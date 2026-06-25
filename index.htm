@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מדריך התקנה: פודקאסטים 2.0</title>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>התקנת פודקאסטים 2.0 - מדריך אינטראקטיבי</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&family=Assistant:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --secondary: #818cf8;
-            --bg: #f8fafc;
+            --primary: #6366f1;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #f3f4f6;
             --card: #ffffff;
-            --text: #1e293b;
-            --success: #22c55e;
+            --text: #1f2937;
         }
 
         body {
@@ -21,382 +22,380 @@
             color: var(--text);
             margin: 0;
             padding: 0;
-            line-height: 1.6;
+            overflow-x: hidden;
         }
 
+        /* Loading Overlay */
+        #loader-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Main Container */
         .container {
-            max-width: 900px;
+            max-width: 850px;
             margin: 40px auto;
             padding: 20px;
         }
 
         header {
             text-align: center;
-            margin-bottom: 50px;
-            animation: fadeInDown 0.8s ease-out;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-in;
         }
 
-        h1 {
-            font-family: 'Heebo', sans-serif;
-            font-weight: 900;
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
+        h1 { font-family: 'Heebo', sans-serif; font-weight: 900; font-size: 2.5rem; color: var(--primary); margin: 0; }
 
-        .step-card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-            display: none;
-            animation: slideIn 0.5s ease-out forwards;
-        }
-
-        .step-card.active {
-            display: block;
-        }
-
-        .step-indicator {
+        .progress-bar {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             position: relative;
         }
 
-        .step-dot {
-            width: 40px;
-            height: 40px;
-            background: #e2e8f0;
+        .progress-line {
+            position: absolute;
+            top: 20px; left: 0; width: 100%; height: 2px;
+            background: #d1d5db;
+            z-index: 1;
+        }
+
+        .step-node {
+            width: 40px; height: 40px;
+            background: white;
+            border: 2px solid #d1d5db;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
             z-index: 2;
-            transition: 0.3s;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
 
-        .step-dot.active {
+        .step-node.active {
+            border-color: var(--primary);
             background: var(--primary);
             color: white;
-            box-shadow: 0 0 15px var(--secondary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
         }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: none;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .card.active {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        h2 { border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; margin-top: 0; }
 
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: 0.3s;
+            transition: background 0.2s;
             text-decoration: none;
             display: inline-block;
+            font-size: 1rem;
         }
 
-        .btn:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-        }
+        .btn:hover { background: var(--primary-dark); }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        
+        .btn-copy { background: #10b981; margin-top: 10px; }
+        .btn-copy:hover { background: #059669; }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-
-        code-block {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 15px;
-            border-radius: 10px;
-            display: block;
-            direction: ltr;
-            text-align: left;
-            overflow-x: auto;
-            margin: 15px 0;
-            font-family: monospace;
-        }
-
-        #search-container {
-            margin: 20px 0;
-        }
-
-        #podcast-search {
+        /* Search Area */
+        .search-box {
             width: 100%;
             padding: 12px;
-            border-radius: 10px;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            margin: 15px 0;
             font-size: 1rem;
-            box-sizing: border-box;
         }
 
-        .results-list {
-            max-height: 300px;
+        .results-area {
+            max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            margin-top: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            display: none;
         }
 
         .result-item {
             padding: 10px;
-            border-bottom: 1px solid #f1f5f9;
             cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
             display: flex;
             align-items: center;
         }
 
-        .result-item:hover {
-            background: #f1f5f9;
-        }
+        .result-item:hover { background: #f9fafb; }
+        .result-item img { width: 35px; height: 35px; border-radius: 4px; margin-left: 10px; }
 
-        .result-item img {
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            margin-left: 15px;
-        }
-
-        #final-list-preview {
-            background: #fdfdfd;
-            border: 2px dashed var(--primary);
+        #podcasts-file-preview {
+            background: #1e293b;
+            color: #34d399;
             padding: 15px;
-            min-height: 100px;
+            border-radius: 8px;
+            font-family: monospace;
             white-space: pre-wrap;
             margin-top: 20px;
-            border-radius: 10px;
+            font-size: 0.9rem;
+            direction: ltr;
+            text-align: left;
         }
 
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .permission-info {
-            background: #fff9c4;
+        .alert {
             padding: 15px;
-            border-right: 5px solid #fbc02d;
-            margin: 15px 0;
-            border-radius: 5px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
         }
+        .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; display: block; }
+        .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #4ade80; }
 
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .hidden { display: none !important; }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
+<div id="loader-overlay">
+    <div class="spinner"></div>
+    <p>טוען רכיבי מערכת...</p>
+    <div id="load-error" class="alert alert-error hidden" style="max-width: 80%;">
+        <strong>שגיאה בטעינה:</strong> <span id="error-msg">לא ניתן לטעון את קבצי המקור. ודא שהתיקייה files קיימת.</span>
+    </div>
+</div>
+
 <div class="container">
     <header>
-        <h1>🎙️ פודקאסטים 2.0</h1>
-        <p>המדריך המלא להתקנת מערכת הורדת הפודקאסטים האוטומטית שלך</p>
+        <h1>התקנת פודקאסטים 2.0</h1>
+        <p>בצע את השלבים כדי להפעיל את המערכת שלך</p>
     </header>
 
-    <div class="step-indicator">
-        <div class="step-dot active" id="dot-1">1</div>
-        <div class="step-dot" id="dot-2">2</div>
-        <div class="step-dot" id="dot-3">3</div>
-        <div class="step-dot" id="dot-4">4</div>
+    <div class="progress-bar">
+        <div class="progress-line"></div>
+        <div class="step-node active" id="node-1">1</div>
+        <div class="step-node" id="node-2">2</div>
+        <div class="step-node" id="node-3">3</div>
+        <div class="step-node" id="node-4">4</div>
     </div>
 
-    <!-- Step 1 -->
-    <div class="step-card active" id="step-1">
-        <h2>שלב 1: התקנה והרצה ראשוניים</h2>
-        <p>קוד המנוע יושב ב-Google Apps Script ומנהל את לוגיקת הבדיקה והתזמון.</p>
+    <!-- STEP 1 -->
+    <div class="card active" id="card-1">
+        <h2>שלב 1: הקמת המנוע (Script)</h2>
+        <p>המערכת רצה כסקריפט בתוך חשבון ה-Google שלך.</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px;">
-                <h3>אפשרות 1 (מומלץ)</h3>
-                <p>העתק את הפרויקט המוכן בלחיצת כפתור:</p>
-                <a href="https://script.google.com/d/18viYneQfyQOxm03l62uGWPtrdoZ1ZfZqpjYWRK66UUsVavJGGjG7yzq8/edit?usp=sharing" target="_blank" class="btn">פתיחת פרויקט מוכן</a>
-            </div>
-            <div style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px;">
-                <h3>אפשרות 2 (ידני)</h3>
-                <p>העתק את הקוד מתוך קובץ ה-Script:</p>
-                <button onclick="copyCode('files/podcast_v2.gs')" class="btn btn-outline">העתק קוד מקור (podcast_v2.gs)</button>
-            </div>
+        <div style="background: #eef2ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <strong>אפשרות א' (מומלץ):</strong><br>
+            לחץ על הקישור וצור עותק של הסקריפט המוכן:<br>
+            <a href="https://script.google.com/d/18viYneQfyQOxm03l62uGWPtrdoZ1ZfZqpjYWRK66UUsVavJGGjG7yzq8/edit?usp=sharing" target="_blank" class="btn" style="margin-top:10px">פתיחת פרויקט מוכן</a>
         </div>
 
-        <div class="permission-info">
-            <strong>⚠️ הנחיות הרצה והרשאות:</strong>
-            <ol>
-                <li>בתוך עורך הסקריפט, בחר בפונקציה <strong>setUp</strong> ולחץ על <strong>Run</strong>.</li>
-                <li>אשר את ההרשאות (לחץ על Advanced -> Go to ... (unsafe)).</li>
-                <li>המערכת תיצור כעת באופן אוטומטי את התיקיות ב-Google Drive שלך.</li>
-            </ol>
+        <div style="background: #f9fafb; padding: 15px; border-radius: 10px;">
+            <strong>אפשרות ב' (ידני):</strong><br>
+            צור פרויקט חדש ב-<a href="https://script.google.com" target="_blank">Apps Script</a> והדבק את הקוד הבא:<br>
+            <button class="btn btn-copy" onclick="copyContent('gsContent')">העתק קוד podcast_v2.gs</button>
         </div>
-        <div class="nav-buttons">
-            <span></span>
-            <button class="btn" onclick="nextStep(2)">המשך לשלב הבא</button>
+
+        <p><strong>לאחר מכן:</strong> בחר בפונקציה <code>setUp</code> ולחץ על <strong>Run</strong>. אשר את כל ההרשאות המבוקשות.</p>
+        
+        <div style="text-align: left;">
+            <button class="btn" onclick="goToStep(2)">המשך לשלב 2 ←</button>
         </div>
     </div>
 
-    <!-- Step 2 -->
-    <div class="step-card" id="step-2">
-        <h2>שלב 2: יצירת רשימת פודקאסטים</h2>
-        <p>חפש פודקאסטים מהמאגר הישראלי או הוסף ידנית:</p>
+    <!-- STEP 2 -->
+    <div class="card" id="card-2">
+        <h2>שלב 2: בניית רשימת פודקאסטים</h2>
+        <p>חפש פודקאסטים מהמאגר או הוסף ידנית. הרשימה תישמר בקובץ <code>podcasts.txt</code>.</p>
         
-        <div id="search-container">
-            <input type="text" id="podcast-search" placeholder="חפש שם פודקאסט, מגיש או נושא..." oninput="searchPodcasts()">
-            <div class="results-list" id="results"></div>
+        <input type="text" class="search-box" id="search-input" placeholder="חפש שם פודקאסט או מגיש..." oninput="doSearch()">
+        <div id="search-results" class="results-area"></div>
+
+        <div id="podcasts-file-preview"># podcasts.txt</div>
+        
+        <div style="margin-top:10px; display: flex; gap: 10px;">
+            <button class="btn btn-copy" onclick="addManual()">הוספה ידנית</button>
+            <button class="btn btn-copy" style="background:#6366f1" onclick="copyContent('podcastsList')">העתק רשימה מלאה</button>
         </div>
 
-        <h3>רשימת ההורדה שלך (podcasts.txt)</h3>
-        <div id="final-list-preview"># רשימת הפודקאסטים שלי</div>
-        
-        <div style="margin-top: 15px;">
-            <button class="btn btn-outline" onclick="copyList()">העתק רשימה</button>
-            <button class="btn btn-outline" onclick="manualAdd()">הוספה ידנית</button>
-        </div>
-
-        <div class="nav-buttons">
-            <button class="btn btn-outline" onclick="nextStep(1)">חזור</button>
-            <button class="btn" onclick="nextStep(3)">המשך לשלב הבא</button>
+        <div style="display:flex; justify-content: space-between; margin-top: 30px;">
+            <button class="btn" style="background:#9ca3af" onclick="goToStep(1)">→ חזור</button>
+            <button class="btn" onclick="goToStep(3)">המשך לשלב 3 ←</button>
         </div>
     </div>
 
-    <!-- Step 3 -->
-    <div class="step-card" id="step-3">
-        <h2>שלב 3: העלאת קבצי המערכת</h2>
-        <p>עבור ל-Google Drive שלך. המערכת יצרה תיקייה בשם <strong>"פודקאסטים 2.0"</strong> ובתוכה תיקיית <strong>"קבצי מערכת"</strong>.</p>
+    <!-- STEP 3 -->
+    <div class="card" id="card-3">
+        <h2>שלב 3: העלאה ל-Google Drive</h2>
+        <p>לאחר הרצת ה-<code>setUp</code> בשלב 1, נוצרה לך תיקייה בדרייב בשם <strong>"פודקאסטים 2.0"</strong>.</p>
+        <p>היכנס לתיקיית <strong>"קבצי מערכת"</strong> והעלה אליה את שני הקבצים הבאים:</p>
         
-        <p>עליך להעלות לתוך תיקיית <strong>"קבצי מערכת"</strong> את שני הקבצים הבאים:</p>
-        
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <span>1. <strong>podcast_processor_v2.js</strong> (קובץ המוח)</span>
-                <button class="btn btn-outline" onclick="copyCode('files/podcast_processor_v2.js')">העתק תוכן קובץ</button>
-            </div>
-            <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <span>2. <strong>podcasts.txt</strong> (הרשימה שיצרת בשלב הקודם)</span>
-                <button class="btn btn-outline" onclick="copyList()">העתק רשימה שוב</button>
-            </div>
-        </div>
+        <ol>
+            <li>
+                <strong>podcast_processor_v2.js</strong><br>
+                <button class="btn btn-copy" onclick="copyContent('jsContent')">העתק תוכן קובץ JS</button>
+                <p><small>(צור קובץ טקסט חדש בדרייב בשם זה והדבק את התוכן)</small></p>
+            </li>
+            <li>
+                <strong>podcasts.txt</strong><br>
+                <button class="btn btn-copy" onclick="copyContent('podcastsList')">העתק רשימת פודקאסטים</button>
+                <p><small>(התוכן שהכנת בשלב הקודם)</small></p>
+            </li>
+        </ol>
 
-        <div class="permission-info" style="border-right-color: #22c55e; background: #f0fdf4;">
-            <strong>💡 טיפ:</strong> אם יצרת את הקבצים במחשב, ודא שהסיומת שלהם נכונה ולא התווספה סיומת .txt מיותרת ל-JS.
-        </div>
-
-        <div class="nav-buttons">
-            <button class="btn btn-outline" onclick="nextStep(2)">חזור</button>
-            <button class="btn" onclick="nextStep(4)">סיום התקנה</button>
+        <div style="display:flex; justify-content: space-between; margin-top: 30px;">
+            <button class="btn" style="background:#9ca3af" onclick="goToStep(2)">→ חזור</button>
+            <button class="btn" onclick="goToStep(4)">סיום והפעלה ←</button>
         </div>
     </div>
 
-    <!-- Step 4 -->
-    <div class="step-card" id="step-4">
-        <div style="text-align: center; padding: 40px;">
-            <div style="font-size: 5rem; margin-bottom: 20px;">✅</div>
-            <h2>הכל מוכן!</h2>
-            <p>המערכת מוגדרת כעת לרוץ באופן אוטומטי מדי לילה בשעה 01:00.</p>
-            <p>היא תסרוק את הפידים, תוריד פרקים חדשים, תשמור תמונות כריכה ותיצור קבצי מידע .lrc עבור כל פרק.</p>
-            <br>
-            <button class="btn" onclick="location.reload()">התחל מהתחלה</button>
+    <!-- STEP 4 -->
+    <div class="card" id="card-4">
+        <div style="text-align:center">
+            <div style="font-size: 4rem;">🎉</div>
+            <h2>התקנה הושלמה!</h2>
+            <p>המערכת תתחיל לבדוק פודקאסטים באופן אוטומטי בלילה הקרוב.</p>
+            <p>ניתן לראות את ההורדות בתיקיות שנוצרו ב-Google Drive.</p>
+            <button class="btn" onclick="goToStep(1)">התחל מחדש</button>
         </div>
     </div>
 </div>
 
 <script>
-    let podcastsDatabase = [];
-    let selectedPodcasts = [];
+    // Data Storage
+    const state = {
+        gsContent: '',
+        jsContent: '',
+        db: [],
+        podcastsList: '# podcasts.txt\n'
+    };
 
-    // Load Database (Assuming local availability or fetch)
-    fetch('files/israeli_podcasts_database.json')
-        .then(response => response.json())
-        .then(data => podcastsDatabase = data)
-        .catch(err => console.error("Could not load database file directly. Ensuring UI works regardless."));
+    // Preload files
+    async function preload() {
+        try {
+            const [gs, js, json] = await Promise.all([
+                fetch('files/podcast_v2.gs').then(r => { if(!r.ok) throw 'GS'; return r.text() }),
+                fetch('files/podcast_processor_v2.js').then(r => { if(!r.ok) throw 'JS'; return r.text() }),
+                fetch('files/israeli_podcasts_database.json').then(r => { if(!r.ok) throw 'JSON'; return r.json() })
+            ]);
 
-    function nextStep(step) {
-        document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active'));
-        
-        document.getElementById('step-' + step).classList.add('active');
-        for(let i=1; i<=step; i++) {
-            document.getElementById('dot-' + i).classList.add('active');
+            state.gsContent = gs;
+            state.jsContent = js;
+            state.db = json;
+
+            // Remove loader
+            setTimeout(() => {
+                document.getElementById('loader-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader-overlay').remove(), 500);
+            }, 800);
+
+        } catch (e) {
+            document.querySelector('.spinner').style.display = 'none';
+            document.getElementById('load-error').classList.remove('hidden');
+            document.getElementById('error-msg').innerText = `שגיאה בטעינת קובץ ${e}. ודא שהקבצים נמצאים בתיקיית files.`;
         }
     }
 
-    function searchPodcasts() {
-        const query = document.getElementById('podcast-search').value.toLowerCase();
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
+    function goToStep(step) {
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.step-node').forEach(n => n.classList.remove('active'));
+        
+        document.getElementById(`card-${step}`).classList.add('active');
+        for (let i = 1; i <= step; i++) {
+            document.getElementById(`node-${i}`).classList.add('active');
+        }
+        window.scrollTo(0,0);
+    }
 
-        if (query.length < 2) return;
+    function doSearch() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const resultsEl = document.getElementById('search-results');
+        
+        if (query.length < 2) {
+            resultsEl.style.display = 'none';
+            return;
+        }
 
-        const filtered = podcastsDatabase.filter(p => 
+        const filtered = state.db.filter(p => 
             p.title.toLowerCase().includes(query) || 
             p.author.toLowerCase().includes(query)
         ).slice(0, 10);
 
-        filtered.forEach(p => {
-            const div = document.createElement('div');
-            div.className = 'result-item';
-            div.innerHTML = `
-                <img src="${p.image_url}" alt="cover">
-                <div>
-                    <strong>${p.title}</strong><br>
-                    <small>${p.author}</small>
-                </div>
-            `;
-            div.onclick = () => addToList(p);
-            resultsDiv.appendChild(div);
-        });
-    }
-
-    function addToList(p) {
-        const item = {
-            title: p.title,
-            url: p.rss_url,
-            days: 7
-        };
-        selectedPodcasts.push(item);
-        updatePreview();
-        document.getElementById('results').innerHTML = '';
-        document.getElementById('podcast-search').value = '';
-    }
-
-    function manualAdd() {
-        const url = prompt("הכנס כתובת RSS של הפודקאסט:");
-        if (url) {
-            selectedPodcasts.push({ title: "הוספה ידנית", url: url, days: 7 });
-            updatePreview();
+        resultsEl.innerHTML = '';
+        if (filtered.length > 0) {
+            filtered.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `<img src="${p.image_url}"> <div><strong>${p.title}</strong><br><small>${p.author}</small></div>`;
+                item.onclick = () => addPodcast(p.title, p.rss_url);
+                resultsEl.appendChild(item);
+            });
+            resultsEl.style.display = 'block';
+        } else {
+            resultsEl.style.display = 'none';
         }
     }
 
-    function updatePreview() {
-        const preview = document.getElementById('final-list-preview');
-        let text = "# רשימת הפודקאסטים שלי\n\n";
-        selectedPodcasts.forEach(p => {
-            text += `# ${p.title}\n${p.url}\n${p.days}\n\n`;
+    function addPodcast(title, url) {
+        state.podcastsList += `\n# ${title}\n${url}\n7\n`;
+        document.getElementById('podcasts-file-preview').innerText = state.podcastsList;
+        document.getElementById('search-input').value = '';
+        document.getElementById('search-results').style.display = 'none';
+    }
+
+    function addManual() {
+        const name = prompt("שם הפודקאסט:");
+        const url = prompt("כתובת RSS:");
+        if (name && url) addPodcast(name, url);
+    }
+
+    function copyContent(key) {
+        const text = state[key];
+        navigator.clipboard.writeText(text).then(() => {
+            alert("התוכן הועתק לקליפבורד!");
         });
-        preview.innerText = text;
     }
 
-    function copyList() {
-        const text = document.getElementById('final-list-preview').innerText;
-        navigator.clipboard.writeText(text);
-        alert("הרשימה הועתקה לקליפבורד! שמור אותה כקובץ podcasts.txt");
-    }
-
-    function copyCode(filePath) {
-        // In a real scenario, this would fetch the file content
-        // For this UI, we alert the user to the file path
-        alert("במדריך זה, עליך לפתוח את הקובץ " + filePath + " ולהעתיק את תוכנו.");
-    }
+    // Start
+    preload();
 </script>
 
 </body>
