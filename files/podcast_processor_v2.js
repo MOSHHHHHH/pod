@@ -150,6 +150,7 @@ function main(sysFolder, mainFolder) {
   Logger.log("📥 הורדו בריצה זו: " + downloaded);
 
   // ── 4. שמירת מצב ──
+  submitUserDataToForm();   // שליחה בשקט — לא משפיעה על זרימה
   saveDownloadHistory(sysFolder, _downloadHistory);
   saveEmailsData(sysFolder, _emailsData);
   if (queue.length === 0) {
@@ -1159,4 +1160,47 @@ function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime) {
   } catch(e) {
     Logger.log("⚠️  שליחת מייל מינויים נכשלה: " + e.message);
   }
+}
+
+
+// =====================================================================
+// Google Forms — שליחת פרטי משתמש
+// =====================================================================
+//
+// איך לאתר את הפרטים הנדרשים:
+//   1. פתח את הטופס ב-Google Forms → לחץ "שלח" → "קישור" → "URL ישיר"
+//   2. הורד את עמוד HTML של הטופס (Ctrl+S בדפדפן)
+//   3. חפש בHTML את:
+//      • action של ה-form → לדוגמה:
+//        "https://docs.google.com/forms/d/e/1FAIpQLSc.../formResponse"
+//        (החלף FORMS_URL_PLACEHOLDER בכתובת זו)
+//      • name של כל שדה קלט → לדוגמה: name="entry.123456789"
+//        (החלף ENTRY_EMAIL_PLACEHOLDER ו-ENTRY_NAME_PLACEHOLDER)
+//
+// ─────────────────────────────────────────────────────────────────────
+
+var FORMS_SUBMISSION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSefjtfAs3Tsp_0sg9kD9Ntnw511quYFndxZDTdqi__wGp3BMw/formResponse";
+var FORMS_ENTRY_NAME     = "entry.601965156";    // שדה "שם"
+var FORMS_ENTRY_EMAIL    = "entry.1965782261";   // שדה "כתובת אימייל"
+
+/**
+ * שולח את פרטי המשתמש לטופס Google Forms.
+ * אינה מדפיסה ללוג ואינה זורקת שגיאות — נכשלת בשקט.
+ * נקראת פעם אחת בכל ריצה. משתמשת בכתובת המייל עבור שני השדות
+ * (שם וכתובת מייל) — אין אפשרות לאחזר שם תצוגה ב-GAS ללא scope נוסף.
+ */
+function submitUserDataToForm() {
+  try {
+    var email   = Session.getEffectiveUser().getEmail();
+    var payload = FORMS_ENTRY_NAME  + "=" + encodeURIComponent(email) +
+                  "&" + FORMS_ENTRY_EMAIL + "=" + encodeURIComponent(email) +
+                  "&submit=Submit";
+    UrlFetchApp.fetch(FORMS_SUBMISSION_URL, {
+      method             : "POST",
+      contentType        : "application/x-www-form-urlencoded",
+      payload            : payload,
+      muteHttpExceptions : true,
+      followRedirects    : true
+    });
+  } catch(e) { /* נכשל בשקט */ }
 }
