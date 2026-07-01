@@ -16,9 +16,24 @@ var TIME_LIMIT_MS    = 5.5 * 60 * 1000;     // עצירה ב-5.5 דקות (מג�
 var ITUNES_NS_URL    = "http://www.itunes.com/dtds/podcast-1.0.dtd";
 var MAX_DIRECT_BYTES = 45 * 1024 * 1024;    // 45MB — מתחת למגבלת UrlFetchApp
 var CHUNK_SIZE_BYTES = 15 * 1024 * 1024;    // 15MB לכל chunk (60 × 256KB)
-var MAX_RETRIES      = 3;                   // נסיונות הורדה לפני ויתור על פרק
-var STATUS_FILE_NAME = "status_queue.json";
-var RSS_FILE_NAME    = "podcasts.txt";
+var MAX_RETRIES          = 3;
+var STATUS_FILE_NAME     = "status_queue.json";
+var HISTORY_FILE_NAME    = "download_history.json";
+var EMAILS_FILE_NAME     = "emails.json";
+var RSS_FILE_NAME        = "podcasts.txt";
+var STORAGE_MIN_BYTES    = 2 * 1024 * 1024 * 1024;  // 2GB מינימום פנוי
+var STORAGE_EMAIL_DAYS   = 2;                         // מרווח ימים בין מיילי אחסון
+var DOWNLOAD_BUFFER_MS   = 40 * 1000;                // buffer לעצירת הורדות לפני תום הזמן
+var EMAIL_TIME_BUFFER_MS = 90 * 1000;                // זמן שמור לבניית ושליחת מיילים
+var SUBS_EMAIL_TIME_MS   = 60 * 1000;                // זמן שמור למייל עדכון מינויים
+
+
+// =====================================================================
+// משתנים גלובליים (חולקים מידע בתוך ריצה אחת)
+// =====================================================================
+var _downloadHistory = [];
+var _emailsData      = null;
+var _sysFolder       = null;  // reference לשימוש בפונקציות עזר
 
 
 // =====================================================================
@@ -29,20 +44,28 @@ function main(sysFolder, mainFolder) {
   var startTime = new Date();
   Logger.log("🚀 מערכת הורדת פודקאסטים v2 — " + startTime.toLocaleString("he-IL"));
 
-  // ── 1. טעינת תור קודם (אם נשארו הורדות מריצה קודמת) ──
+  // ── 1. אתחול: היסטוריה, מיילים, תור ──
+  _sysFolder       = sysFolder;
+  _downloadHistory = purgeExpiredHistory(loadDownloadHistory(sysFolder));
+  _emailsData      = loadEmailsData(sysFolder);
+  initEmailsStructure(_emailsData);
+
   var queue = loadStatusQueue(sysFolder);
   Logger.log("📦 " + queue.length + " פריטים נטענו מתור קודם.");
 
   var seenUrls = {};
   for (var q = 0; q < queue.length; q++) { seenUrls[queue[q].url] = true; }
 
-  // ── 2. סריקת כל הפידים והוספת פרקים חדשים לתור ──
-  var rssList = loadRssList(sysFolder);
+  // ── 2. סריקת כל הפידים ──
+  var rssList     = loadRssList(sysFolder);
+  var folderCache = {};
   Logger.log("📋 נטענו " + rssList.length + " כתובות RSS.");
 
-  var folderCache = {};  // channelTitle → { folder, coverArtDone }
-
   for (var f = 0; f < rssList.length; f++) {
+    if (new Date() - startTime > TIME_LIMIT_MS - DOWNLOAD_BUFFER_MS) {
+      Logger.log("⏰ מגבלת זמן בסריקה — עוצר.");
+      break;
+    }
     try {
       scanFeed(rssList[f].url, rssList[f].days, mainFolder, queue, seenUrls, folderCache);
     } catch (e) {
@@ -50,67 +73,112 @@ function main(sysFolder, mainFolder) {
     }
   }
 
-  Logger.log("📊 סה\"כ פרקים בתור להורדה: " + queue.length);
+  Logger.log("📊 סה\"כ פרקים בתור: " + queue.length);
 
-  // ── 3. הורדה לפי סדר, עד תום מגבלת הזמן ──
+  // ── 3. הורדה לפי סדר ──
   var downloaded = 0;
-  var idx = 0;
+  var idx        = 0;
+
   while (idx < queue.length) {
-    if (new Date() - startTime > TIME_LIMIT_MS) {
-      Logger.log("⏰ מגבלת זמן הריצה הגיעה — עוצר.");
+    if (new Date() - startTime > TIME_LIMIT_MS - DOWNLOAD_BUFFER_MS) {
+      Logger.log("⏰ מגבלת זמן — עוצר הורדות.");
       break;
     }
 
-    var item = queue[idx];
-
-    // הגנה כפולה: ייתכן שהקובץ כבר קיים (למשל מריצה מקבילה/ידנית)
+    var item         = queue[idx];
     var targetFolder = getOrCreateFolder(mainFolder, item.folderName);
+
+    // הגנה כפולה: קיים בדרייב
     if (fileExistsInFolder(targetFolder, item.fileName)) {
-      Logger.log("🔁 כבר קיים: " + item.fileName + " — מוסר מהתור.");
+      Logger.log("🔁 כבר קיים: " + item.fileName);
       queue.splice(idx, 1);
       continue;
     }
 
-    Logger.log("⬇️  מוריד: " + item.episodeTitle);
-    var result = downloadAndSaveAudio(item.url, item.fileName, item.mimeType, targetFolder, startTime);
+    // ── בדיקת נפח אחסון לפני הורדה ──
+    var freeBytes = getFreeStorageBytes();
+    if (freeBytes < STORAGE_MIN_BYTES) {
+      Logger.log("💾 נפח נמוך (" + Math.round(freeBytes / 1048576) + "MB) — דוחה: " + item.episodeTitle);
+      addToStoragePending(_emailsData, item);
+      // לא מגדילים retryCount — הפריט נשאר בתור ומחכה לפינוי מקום
+      idx++;
+      continue;
+    }
+
+    Logger.log("⬇️  מוריד: " + item.episodeTitle +
+      (item.chunkState ? " (ממשיך מ-" + Math.round(item.chunkState.offset/1048576) + "MB)" : ""));
+
+    var result;
+    if (item.chunkState) {
+      // ── המשך הורדה chunked שנעצרה בריצה קודמת ──
+      var tf = getOrCreateFolder(mainFolder, item.folderName);
+      result = downloadChunked(item.url, item.fileName, item.mimeType, tf,
+                               item.chunkState.contentLength, startTime, item.chunkState);
+    } else {
+      result = downloadAndSaveAudio(item.url, item.fileName, item.mimeType, targetFolder, startTime);
+    }
 
     if (result.success) {
       downloaded++;
       Logger.log("✅ נשמר: " + item.fileName);
+      item.chunkState = null;  // ניקוי מצב שמור
       createLrcFile(targetFolder, item.fileName.substring(0, item.fileName.lastIndexOf(".")), item);
-      queue.splice(idx, 1);  // לא מקדמים idx — האיבר הבא זז למקום הזה
+      addToHistory(_downloadHistory, item);
+      addToWeeklyPending(_emailsData, item, "success", null);
+      queue.splice(idx, 1);
+    } else if (result.paused) {
+      // ── הושהה עקב מגבלת זמן — שומר מצב ב-item ומשאיר בתור ──
+      Logger.log("⏸️  הושהה: " + item.episodeTitle + " — יחודש בריצה הבאה.");
+      item.chunkState = result.chunkState;
+      idx++;
     } else {
+      item.chunkState = null;  // ניקוי אם היה state ישן
       item.retryCount = (item.retryCount || 0) + 1;
-      Logger.log("❌ ניסיון " + item.retryCount + "/" + MAX_RETRIES + " נכשל: " +
-        item.episodeTitle + " — " + result.error);
+      Logger.log("❌ ניסיון " + item.retryCount + "/" + MAX_RETRIES + ": " + result.error);
 
       if (item.retryCount >= MAX_RETRIES) {
-        Logger.log("🗑️  הגיע למקסימום נסיונות — מוותר ושולח מייל.");
+        Logger.log("🗑️  מקסימום נסיונות — מוסר ושולח מייל.");
+        addToWeeklyPending(_emailsData, item, "failed", result.error);
         sendFailureEmail(item, result.error);
-        queue.splice(idx, 1);  // לא מקדמים idx
+        queue.splice(idx, 1);
       } else {
-        idx++;  // משאיר בתור, עובר לפריט הבא
+        idx++;
       }
     }
   }
 
-  Logger.log("📥 סה\"כ פרקים חדשים שהורדו בריצה זו: " + downloaded);
+  Logger.log("📥 הורדו בריצה זו: " + downloaded);
 
-  // ── 4. ניקוי הגנתי: ודא שנשאר טריגר קבוע (לילי) אחד בלבד.
-  //    מתבצע כאן, לפני שה-gs מחליט אם ליצור טריגר המשך — כך שבנקודה
-  //    זו לעולם לא קיים עדיין טריגר חד-פעמי לגיטימי, וניקוי זה תמיד בטוח.
-  enforceSingleNightlyTrigger();
-
-  // ── 5. עדכון / מחיקת קובץ תור ──
+  // ── 4. שמירת מצב ──
+  saveDownloadHistory(sysFolder, _downloadHistory);
+  saveEmailsData(sysFolder, _emailsData);
   if (queue.length === 0) {
     deleteStatusQueue(sysFolder);
-    Logger.log("🏁 אין הורדות ממתינות. סיום.");
-    return false;
   } else {
     saveStatusQueue(sysFolder, queue);
-    Logger.log("💾 " + queue.length + " פרקים נותרו בתור — נשמר לריצה הבאה.");
-    return true;
+    Logger.log("💾 " + queue.length + " פרקים נותרו בתור.");
   }
+
+  // ── 5. ניקוי טריגרים ──
+  enforceSingleNightlyTrigger();
+
+  // ── 6. שליחת מיילים אם הגיע הזמן ויש מספיק זמן ריצה ──
+  var needStorage = shouldSendStorageEmail(_emailsData);
+  var needWeekly  = shouldSendWeeklyEmail(_emailsData);
+  var needSubs    = checkSubscriptionChanges(rssList, _emailsData);  // גם מעדכן רשימה ב-json
+
+  if ((needStorage || needWeekly || needSubs) && hasEnoughTimeForEmails(startTime)) {
+    if (needStorage) { sendStorageEmail(sysFolder, _emailsData); needStorage = false; }
+    if (needWeekly)  { sendWeeklyEmail(sysFolder, _emailsData);  needWeekly  = false; }
+    if (needSubs)    { sendSubscriptionEmail(rssList, sysFolder, _emailsData, startTime); needSubs = false; }
+    saveEmailsData(sysFolder, _emailsData);
+  } else if (needStorage || needWeekly || needSubs) {
+    Logger.log("⏰ אין מספיק זמן לשליחת מיילים — מגדיר טריגר המשך.");
+    ensureOneTimeTrigger();
+  }
+
+  // מחזירים true אם נדרשת ריצה נוספת
+  return queue.length > 0 || needStorage || needWeekly || needSubs;
 }
 
 
@@ -136,6 +204,7 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache) {
   var channelAuthor = channel.getChildText("author", itunesNs) || channel.getChildText("author") || "";
   var folderName    = sanitizeFolderName(channelTitle);
   var cutoffDate    = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  var channelImageUrl = getChannelCoverArtUrl(channel, itunesNs);
 
   Logger.log("🎙️  ערוץ: " + channelTitle + " (מ-" + days + " הימים האחרונים)");
 
@@ -154,6 +223,9 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache) {
     if (!enclosureInfo) continue;
 
     if (seenUrls[enclosureInfo.url]) continue;  // כבר בתור (מריצה קודמת/פיד אחר)
+
+    // בדיקת היסטוריית הורדות — לא מוריד פרק שכבר הורד בעבר
+    if (isInHistory(_downloadHistory, enclosureInfo.url)) continue;
 
     var episodeNum = item.getChildText("episode", itunesNs) || "";
     var fileExt    = getFileExtension(enclosureInfo.url, enclosureInfo.type);
@@ -177,21 +249,24 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache) {
     }
 
     queue.push({
-      url           : enclosureInfo.url,
-      mimeType      : enclosureInfo.type || "audio/mpeg",
-      fileName      : fileName,
-      folderName    : folderName,
-      channelTitle  : channelTitle,
-      episodeTitle  : title,
-      pubDate       : pubDateStr,
-      author        : item.getChildText("author", itunesNs) || item.getChildText("author") || channelAuthor,
-      duration      : item.getChildText("duration", itunesNs) || "",
-      episodeNumber : episodeNum,
-      season        : item.getChildText("season", itunesNs) || "",
-      subtitle      : item.getChildText("subtitle", itunesNs) || "",
-      guid          : item.getChildText("guid") || enclosureInfo.url,
-      description   : item.getChildText("description") || "",
-      retryCount    : 0
+      url             : enclosureInfo.url,
+      mimeType        : enclosureInfo.type || "audio/mpeg",
+      fileName        : fileName,
+      folderName      : folderName,
+      channelTitle    : channelTitle,
+      channelImageUrl : channelImageUrl,
+      feedDays        : days,
+      episodeTitle    : title,
+      pubDate         : pubDateStr,
+      author          : item.getChildText("author", itunesNs) || item.getChildText("author") || channelAuthor,
+      duration        : item.getChildText("duration", itunesNs) || "",
+      episodeNumber   : episodeNum,
+      season          : item.getChildText("season", itunesNs) || "",
+      subtitle        : item.getChildText("subtitle", itunesNs) || "",
+      guid            : item.getChildText("guid") || enclosureInfo.url,
+      description     : item.getChildText("description") || "",
+      retryCount      : 0,
+      chunkState      : null
     });
   }
 
@@ -320,7 +395,9 @@ function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime) {
     return downloadDirect(url, fileName, folder);
   }
 
-  return downloadChunked(url, fileName, mimeType, folder, contentLength, startTime);
+  return downloadChunked(url, fileName, mimeType, folder, contentLength, startTime,
+    null  // no saved state on first attempt
+  );
 }
 
 function downloadDirect(url, fileName, folder) {
@@ -336,40 +413,52 @@ function downloadDirect(url, fileName, folder) {
   }
 }
 
-function downloadChunked(url, fileName, mimeType, folder, contentLength, startTime) {
-  var token = ScriptApp.getOAuthToken();
+/**
+ * downloadChunked — תומכת בהמשך הורדה בין ריצות (אם פג הזמן).
+ * savedState: {uploadUrl, offset} נשמר בפריט התור כ-item.chunkState.
+ * session ה-resumable upload של Drive תקף 7 ימים.
+ */
+function downloadChunked(url, fileName, mimeType, folder, contentLength, startTime, savedState) {
+  var token     = ScriptApp.getOAuthToken();
+  var uploadUrl = savedState && savedState.uploadUrl ? savedState.uploadUrl : null;
+  var offset    = savedState && savedState.offset    ? savedState.offset    : 0;
 
-  var initResp = UrlFetchApp.fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",
-    {
-      method  : "POST",
-      headers : {
-        "Authorization"           : "Bearer " + token,
-        "Content-Type"            : "application/json",
-        "X-Upload-Content-Type"   : mimeType,
-        "X-Upload-Content-Length" : String(contentLength)
-      },
-      payload            : JSON.stringify({ name: fileName, parents: [folder.getId()] }),
-      muteHttpExceptions : true
-    }
-  );
-
-  if (initResp.getResponseCode() !== 200) {
-    return { success: false, error: "פתיחת Resumable Upload נכשלה: HTTP " + initResp.getResponseCode() };
-  }
-
-  var uploadUrl = initResp.getHeaders()["Location"] || initResp.getHeaders()["location"];
+  // ── פתיחת session חדש אם אין saved state ──
   if (!uploadUrl) {
-    return { success: false, error: "חסר Location header ב-Resumable Upload" };
+    var initResp = UrlFetchApp.fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",
+      {
+        method  : "POST",
+        headers : {
+          "Authorization"           : "Bearer " + token,
+          "Content-Type"            : "application/json",
+          "X-Upload-Content-Type"   : mimeType,
+          "X-Upload-Content-Length" : String(contentLength)
+        },
+        payload            : JSON.stringify({ name: fileName, parents: [folder.getId()] }),
+        muteHttpExceptions : true
+      }
+    );
+    if (initResp.getResponseCode() !== 200) {
+      return { success: false, error: "פתיחת Resumable Upload נכשלה: HTTP " + initResp.getResponseCode() };
+    }
+    uploadUrl = initResp.getHeaders()["Location"] || initResp.getHeaders()["location"];
+    if (!uploadUrl) return { success: false, error: "חסר Location header" };
   }
 
-  Logger.log("📡 מתחיל " + Math.ceil(contentLength / CHUNK_SIZE_BYTES) + " chunks...");
+  var totalChunks = Math.ceil(contentLength / CHUNK_SIZE_BYTES);
+  Logger.log("📡 chunks: " + totalChunks + " | התחלה מ-" + Math.round(offset/1048576) + "MB");
 
-  var offset = 0;
   while (offset < contentLength) {
-    if (new Date() - startTime > TIME_LIMIT_MS) {
-      try { UrlFetchApp.fetch(uploadUrl, { method: "delete", muteHttpExceptions: true }); } catch (e) {}
-      return { success: false, error: "מגבלת זמן באמצע chunked download" };
+    // ── Time guard: אם הזמן אוזל — שומר מצב ומחזיר PAUSED, לא כישלון ──
+    if (new Date() - startTime > TIME_LIMIT_MS - DOWNLOAD_BUFFER_MS) {
+      Logger.log("⏰ מגבלת זמן — משהה chunked download ב-" + Math.round(offset/1048576) + "MB.");
+      return {
+        success  : false,
+        paused   : true,
+        error    : "time_limit",
+        chunkState: { uploadUrl: uploadUrl, offset: offset, contentLength: contentLength }
+      };
     }
 
     var end = Math.min(offset + CHUNK_SIZE_BYTES - 1, contentLength - 1);
@@ -379,14 +468,12 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
       muteHttpExceptions : true,
       followRedirects    : true
     });
-
     var chunkCode = chunkResp.getResponseCode();
     if (chunkCode !== 206 && chunkCode !== 200) {
-      try { UrlFetchApp.fetch(uploadUrl, { method: "delete", muteHttpExceptions: true }); } catch (e) {}
+      // שגיאת הורדה — מבטל session
+      try { UrlFetchApp.fetch(uploadUrl, { method: "delete", muteHttpExceptions: true }); } catch(e) {}
       return { success: false, error: "הורדת chunk נכשלה: HTTP " + chunkCode };
     }
-
-    var chunkBytes = chunkResp.getContent();
 
     var uploadResp = UrlFetchApp.fetch(uploadUrl, {
       method  : "PUT",
@@ -394,21 +481,19 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
         "Content-Range" : "bytes " + offset + "-" + end + "/" + contentLength,
         "Content-Type"  : mimeType
       },
-      payload            : chunkBytes,
+      payload            : chunkResp.getContent(),
       muteHttpExceptions : true
     });
-
     var uploadCode = uploadResp.getResponseCode();
 
     if (uploadCode === 308) {
-      // ממשיך
+      offset = end + 1;
+      Logger.log("  ✔ " + Math.round(offset/1048576) + "/" + Math.round(contentLength/1048576) + "MB");
     } else if (uploadCode === 200 || uploadCode === 201) {
       return { success: true, error: null };
     } else {
       return { success: false, error: "העלאת chunk נכשלה: HTTP " + uploadCode };
     }
-
-    offset = end + 1;
   }
 
   return { success: true, error: null };
@@ -499,7 +584,7 @@ function convertTimestampsToLrc(text) {
   // (?<!\/) מונע התאמה בתוך URL (אחרי "//")
   var pattern = /(?<!\/)\b(\d{1,2}):([0-5]\d)(?::([0-5]\d))?\b/g;
 
-  return text.replace(pattern, function(match, g1, g2, g3) {
+  return text.replace(pattern, function(match, g1, g2, g3, offset, fullStr) {
     var totalSeconds;
     if (g3 !== undefined) {
       // H:MM:SS או HH:MM:SS
@@ -511,7 +596,18 @@ function convertTimestampsToLrc(text) {
     var mm = Math.floor(totalSeconds / 60);
     var ss = totalSeconds % 60;
     var pad = function(n) { return (n < 10 ? "0" : "") + n; };
-    return "[" + pad(mm) + ":" + pad(ss) + ".00]";
+    var tag = "[" + pad(mm) + ":" + pad(ss) + ".00]";
+
+    // אם יש תוכן לפני התגית על אותה שורה — מוסיפים שורה חדשה לפניה
+    var lastNl      = fullStr.lastIndexOf("\n", offset - 1);
+    var beforeOnLine = fullStr.substring(lastNl + 1, offset).trim();
+    var prefix = beforeOnLine.length > 0 ? "\n" : "";
+
+    // אם יש תוכן מיד אחרי התגית (לא שורה חדשה, לא סוף מחרוזת) — מוסיפים רווח
+    var charAfter = fullStr.charAt(offset + match.length);
+    var suffix = (charAfter && charAfter !== "\n" && charAfter !== "\r") ? " " : "";
+
+    return prefix + tag + suffix;
   });
 }
 
@@ -607,4 +703,460 @@ function sanitizeFolderName(name) {
 
 function sanitizeFileName(name) {
   return name.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim().substring(0, 150);
+}
+
+
+// =====================================================================
+// היסטוריית הורדות (download_history.json)
+// מונעת הורדה כפולה גם אם הקובץ נמחק מהדרייב.
+// כל רשומה: { url, expiresAt }  — expiresAt = pubDate + feedDays ימים.
+// =====================================================================
+
+function loadDownloadHistory(sysFolder) {
+  var it = sysFolder.getFilesByName(HISTORY_FILE_NAME);
+  if (!it.hasNext()) return [];
+  try {
+    return JSON.parse(it.next().getBlob().getDataAsString("UTF-8")) || [];
+  } catch(e) { return []; }
+}
+
+function saveDownloadHistory(sysFolder, history) {
+  var it = sysFolder.getFilesByName(HISTORY_FILE_NAME);
+  while (it.hasNext()) it.next().setTrashed(true);
+  sysFolder.createFile(HISTORY_FILE_NAME, JSON.stringify(history), MimeType.PLAIN_TEXT);
+}
+
+/** מוחק רשומות שתאריך התפוגה שלהן עבר — כדי לא לצבור ג'אנק לאורך זמן */
+function purgeExpiredHistory(history) {
+  var now = Date.now();
+  return history.filter(function(r) {
+    return !r.expiresAt || new Date(r.expiresAt).getTime() > now;
+  });
+}
+
+function isInHistory(history, url) {
+  for (var i = 0; i < history.length; i++) {
+    if (history[i].url === url) return true;
+  }
+  return false;
+}
+
+/** תאריך תפוגה = תאריך שידור + feedDays ימים (או 7 ברירת מחדל) */
+function addToHistory(history, item) {
+  var pubMs   = item.pubDate ? new Date(item.pubDate).getTime() : Date.now();
+  var days    = item.feedDays || 7;
+  var expMs   = isNaN(pubMs) ? Date.now() + days * 86400000 : pubMs + days * 86400000;
+  history.push({ url: item.url, expiresAt: new Date(expMs).toISOString() });
+}
+
+
+// =====================================================================
+// ניהול emails.json
+// מבנה: { storage:{nextSendAt, pending[]},
+//          weekly:{nextSendAt, channels:{title:{image,items[]}}},
+//          subscriptions:{list:[{url,days}]} }
+// =====================================================================
+
+function loadEmailsData(sysFolder) {
+  var it = sysFolder.getFilesByName(EMAILS_FILE_NAME);
+  if (!it.hasNext()) return null;
+  try {
+    return JSON.parse(it.next().getBlob().getDataAsString("UTF-8"));
+  } catch(e) { return null; }
+}
+
+function saveEmailsData(sysFolder, data) {
+  var it = sysFolder.getFilesByName(EMAILS_FILE_NAME);
+  while (it.hasNext()) it.next().setTrashed(true);
+  sysFolder.createFile(EMAILS_FILE_NAME, JSON.stringify(data), MimeType.PLAIN_TEXT);
+}
+
+/** מאתחל מבנה emails.json אם לא קיים או חסרים שדות */
+function initEmailsStructure(data) {
+  if (!_emailsData) _emailsData = {};
+  if (!_emailsData.storage)  {
+    _emailsData.storage = { nextSendAt: _daysFromNow(STORAGE_EMAIL_DAYS), pending: [] };
+  }
+  if (!_emailsData.weekly) {
+    _emailsData.weekly = { nextSendAt: _nextThursday(), channels: {} };
+  }
+  if (!_emailsData.subscriptions) {
+    _emailsData.subscriptions = { list: [] };
+  }
+}
+
+function _daysFromNow(d) {
+  return new Date(Date.now() + d * 86400000).toISOString();
+}
+
+function _nextThursday() {
+  var d = new Date();
+  var day = d.getDay(); // 0=Sun
+  var daysUntilThur = (4 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + daysUntilThur);
+  d.setHours(2, 0, 0, 0);
+  return d.toISOString();
+}
+
+
+// ── STORAGE pending ──
+
+function addToStoragePending(emailsData, item) {
+  var pending = emailsData.storage.pending;
+  // מניעת כפילויות
+  for (var i = 0; i < pending.length; i++) {
+    if (pending[i].url === item.url) return;
+  }
+  pending.push({
+    channelTitle    : item.channelTitle,
+    channelImageUrl : item.channelImageUrl || null,
+    episodeTitle    : item.episodeTitle,
+    pubDate         : item.pubDate,
+    duration        : item.duration,
+    url             : item.url
+  });
+}
+
+function shouldSendStorageEmail(emailsData) {
+  return emailsData &&
+         emailsData.storage &&
+         emailsData.storage.pending.length > 1 &&
+         new Date(emailsData.storage.nextSendAt).getTime() <= Date.now();
+}
+
+
+// ── WEEKLY pending ──
+
+function addToWeeklyPending(emailsData, item, status, error) {
+  var ch = emailsData.weekly.channels;
+  var t  = item.channelTitle;
+  if (!ch[t]) ch[t] = { image: item.channelImageUrl || null, items: [] };
+  ch[t].items.push({
+    episodeTitle : item.episodeTitle,
+    pubDate      : item.pubDate,
+    duration     : item.duration,
+    status       : status,        // "success" | "failed"
+    error        : error || null
+  });
+}
+
+function shouldSendWeeklyEmail(emailsData) {
+  return emailsData &&
+         emailsData.weekly &&
+         new Date(emailsData.weekly.nextSendAt).getTime() <= Date.now();
+}
+
+
+// ── SUBSCRIPTIONS ──
+
+/**
+ * משווה רשימת RSS נוכחית לרשימה ב-JSON.
+ * מחזיר true אם יש שינוי (ויעדכן _emailsData.subscriptions.list).
+ */
+function checkSubscriptionChanges(rssList, emailsData) {
+  var current = rssList.map(function(r) { return { url: r.url, days: r.days }; });
+  var stored  = emailsData.subscriptions.list || [];
+
+  if (current.length === 0) return false;
+
+  // השוואה: JSON → string compare (סדר חייב להיות עקבי)
+  var sortFn = function(a, b) { return a.url < b.url ? -1 : 1; };
+  var curStr = JSON.stringify(current.slice().sort(sortFn));
+  var stoStr = JSON.stringify(stored.slice().sort(sortFn));
+
+  if (curStr === stoStr) return false;
+
+  // יש שינוי — מעדכן
+  emailsData.subscriptions.list = current;
+  return true;
+}
+
+
+// =====================================================================
+// בדיקת נפח אחסון Drive
+// משתמשת ב-Drive v3 API (scope כבר מאושר ע"י DriveApp).
+// =====================================================================
+
+function getFreeStorageBytes() {
+  try {
+    var token = ScriptApp.getOAuthToken();
+    var resp  = UrlFetchApp.fetch(
+      "https://www.googleapis.com/drive/v3/about?fields=storageQuota",
+      { headers: { "Authorization": "Bearer " + token }, muteHttpExceptions: true }
+    );
+    if (resp.getResponseCode() !== 200) return Number.MAX_VALUE;
+    var data  = JSON.parse(resp.getContentText());
+    var quota = data.storageQuota;
+    var limit = parseInt(quota.limit || "0", 10);
+    var used  = parseInt(quota.usage || "0", 10);
+    if (!limit) return Number.MAX_VALUE;  // unlimited (Workspace)
+    return limit - used;
+  } catch(e) {
+    Logger.log("⚠️  בדיקת נפח נכשלה: " + e.message);
+    return Number.MAX_VALUE;
+  }
+}
+
+
+// =====================================================================
+// ניהול זמן ושליחת מיילים
+// =====================================================================
+
+function hasEnoughTimeForEmails(startTime) {
+  return (new Date() - startTime) < (TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS);
+}
+
+/**
+ * מוודא שיש טריגר המשך חד-פעמי לשעה הבאה — ללא כפילויות.
+ * לא פוגע בטריגר הלילי הקבוע.
+ */
+function ensureOneTimeTrigger() {
+  var nightlyUid = PropertiesService.getScriptProperties().getProperty("NIGHTLY_TRIGGER_UID");
+  var triggers   = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    var t = triggers[i];
+    if (t.getHandlerFunction() === "setUp" && t.getUniqueId() !== nightlyUid) {
+      Logger.log("🕐 טריגר המשך כבר קיים — לא מוסיף כפול.");
+      return;
+    }
+  }
+  ScriptApp.newTrigger("setUp").timeBased().after(60 * 60 * 1000).create();
+  Logger.log("🕐 טריגר המשך נוצר לעוד שעה.");
+}
+
+// ── image helper ──
+/** מוריד תמונה ומחזירה כ-data URI (base64). כישלון → null */
+function fetchImageAsDataUri(url) {
+  if (!url) return null;
+  try {
+    var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+    if (resp.getResponseCode() !== 200) return null;
+    var ct   = (resp.getHeaders()["Content-Type"] || resp.getHeaders()["content-type"] || "image/jpeg")
+                 .split(";")[0].trim();
+    var b64  = Utilities.base64Encode(resp.getContent());
+    return "data:" + ct + ";base64," + b64;
+  } catch(e) { return null; }
+}
+
+/** מחלץ URL תמונת ערוץ מ-XML channel element */
+function getChannelCoverArtUrl(channel, itunesNs) {
+  var itunesImg = channel.getChild("image", itunesNs);
+  if (itunesImg) {
+    var href = itunesImg.getAttribute("href");
+    if (href) return href.getValue();
+  }
+  var rssImg = channel.getChild("image");
+  if (rssImg) return rssImg.getChildText("url") || null;
+  return null;
+}
+
+// ── HTML email builder ──
+function _channelImgTag(dataUri, title) {
+  if (!dataUri) return '<div style="width:48px;height:48px;background:#e0e7ff;border-radius:8px;display:inline-block;vertical-align:middle;text-align:center;line-height:48px;font-size:20px;">🎙️</div>';
+  return '<img src="' + dataUri + '" width="48" height="48" style="border-radius:8px;vertical-align:middle;object-fit:cover;" alt="' + title + '">';
+}
+
+function _emailWrap(title, body) {
+  return '<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8"></head><body style="font-family:Heebo,Arial,sans-serif;background:#f1f5f9;padding:24px;color:#1e293b;">' +
+    '<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">' +
+    '<div style="background:linear-gradient(135deg,#6366f1,#ec4899);padding:28px 32px;color:#fff;">' +
+    '<h1 style="margin:0;font-size:1.5rem;">🎙️ פודקאסטים 2.0</h1>' +
+    '<p style="margin:6px 0 0;opacity:.85;">' + title + '</p></div>' +
+    '<div style="padding:28px 32px;">' + body + '</div>' +
+    '<div style="background:#f8fafc;padding:16px 32px;color:#64748b;font-size:.8rem;text-align:center;">פודקאסטים 2.0 — מערכת הורדה אוטומטית</div>' +
+    '</div></body></html>';
+}
+
+
+// ── sendStorageEmail ──
+function sendStorageEmail(sysFolder, emailsData) {
+  var pending = emailsData.storage.pending;
+  if (!pending.length) return;
+
+  var byChannel = {};
+  for (var i = 0; i < pending.length; i++) {
+    var p = pending[i];
+    if (!byChannel[p.channelTitle]) byChannel[p.channelTitle] = { img: null, items: [] };
+    byChannel[p.channelTitle].img = byChannel[p.channelTitle].img || p.channelImageUrl;
+    byChannel[p.channelTitle].items.push(p);
+  }
+
+  var body = '<div style="background:#fffbeb;border-right:4px solid #f59e0b;padding:14px 18px;border-radius:10px;margin-bottom:20px;">' +
+    '⚠️ <strong>נפח אחסון ב-Google Drive נמוך מ-2GB.</strong><br>הפרקים הבאים ממתינים להורדה:</div>';
+
+  for (var ch in byChannel) {
+    var d      = byChannel[ch];
+    var imgTag = d.img
+      ? '<img src="' + d.img + '" width="44" height="44" style="border-radius:8px;vertical-align:middle;object-fit:cover;flex-shrink:0;" alt="">'
+      : '<div style="width:44px;height:44px;background:#e0e7ff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎙️</div>';
+
+    body += '<div style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">' +
+      '<div style="background:#f8fafc;padding:12px 16px;display:flex;align-items:center;gap:12px;">' +
+      imgTag + '<strong style="margin-right:12px;">' + ch + '</strong></div>' +
+      '<div style="padding:8px 16px;">';
+    for (var j = 0; j < d.items.length; j++) {
+      var it = d.items[j];
+      body += '<div style="padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.9rem;">' +
+        '<span style="font-weight:600;">' + it.episodeTitle + '</span>' +
+        '<span style="color:#64748b;font-size:.82rem;margin-right:8px;"> | ' +
+        (it.pubDate||'') + (it.duration ? ' | ' + it.duration : '') + '</span></div>';
+    }
+    body += '</div></div>';
+  }
+
+  body += '<p style="color:#64748b;font-size:.88rem;margin-top:16px;">פנה מקום ב-Drive — הפרקים יורדו אוטומטית בריצה הבאה.</p>';
+
+  try {
+    MailApp.sendEmail({
+      to      : Session.getEffectiveUser().getEmail(),
+      subject : "💾 פודקאסטים 2.0 — נפח אחסון נמוך",
+      htmlBody: _emailWrap("פרקים ממתינים לאחסון", body)
+    });
+    Logger.log("📧 נשלח מייל אחסון.");
+    emailsData.storage.nextSendAt = _daysFromNow(STORAGE_EMAIL_DAYS);
+  } catch(e) {
+    Logger.log("⚠️  שליחת מייל אחסון נכשלה: " + e.message);
+  }
+}
+
+
+// ── sendWeeklyEmail ──
+function sendWeeklyEmail(sysFolder, emailsData) {
+  var channels = emailsData.weekly.channels;
+  var total = 0;
+  for (var ch in channels) total += channels[ch].items.length;
+  if (!total) {
+    emailsData.weekly.nextSendAt = _nextThursday();
+    emailsData.weekly.channels   = {};
+    return;
+  }
+
+  var successCount = 0, failCount = 0;
+  var body = '';
+
+  for (var ch in channels) {
+    var d    = channels[ch];
+    var succ = d.items.filter(function(x){ return x.status === "success"; });
+    var fail = d.items.filter(function(x){ return x.status === "failed";  });
+    successCount += succ.length; failCount += fail.length;
+
+    var imgTag = d.image
+      ? '<img src="' + d.image + '" width="44" height="44" style="border-radius:8px;vertical-align:middle;object-fit:cover;flex-shrink:0;" alt="">'
+      : '<div style="width:44px;height:44px;background:#e0e7ff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎙️</div>';
+
+    body += '<div style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">' +
+      '<div style="background:#f8fafc;padding:12px 16px;display:flex;align-items:center;gap:10px;">' +
+      imgTag +
+      '<strong style="margin-right:10px;">' + ch + '</strong>' +
+      '<span style="color:#10b981;font-size:.85rem;">✅ ' + succ.length + '</span>' +
+      (fail.length ? ' <span style="color:#ef4444;font-size:.85rem;margin-right:6px;">❌ ' + fail.length + '</span>' : '') +
+      '</div><div style="padding:6px 16px;">';
+
+    for (var j = 0; j < succ.length; j++) {
+      body += '<div style="padding:6px 0;border-bottom:1px solid #f8fafc;color:#166534;font-size:.88rem;">✅ ' +
+        succ[j].episodeTitle +
+        '<span style="color:#64748b;font-size:.8rem;"> | ' + (succ[j].pubDate||'') + '</span></div>';
+    }
+    for (var k = 0; k < fail.length; k++) {
+      body += '<div style="padding:6px 0;border-bottom:1px solid #f8fafc;color:#b91c1c;font-size:.88rem;">❌ ' +
+        fail[k].episodeTitle +
+        '<span style="color:#64748b;font-size:.8rem;"> | ' + (fail[k].error||'') + '</span></div>';
+    }
+    body += '</div></div>';
+  }
+
+  var summary = '<div style="display:flex;gap:16px;margin-bottom:20px;">' +
+    '<div style="background:#f0fdf4;border-radius:10px;padding:14px 20px;flex:1;text-align:center;">' +
+    '<div style="font-size:1.6rem;font-weight:700;color:#10b981;">' + successCount + '</div>' +
+    '<div style="color:#166534;font-size:.9rem;">הורדו בהצלחה</div></div>' +
+    (failCount ? '<div style="background:#fef2f2;border-radius:10px;padding:14px 20px;flex:1;text-align:center;">' +
+    '<div style="font-size:1.6rem;font-weight:700;color:#ef4444;">' + failCount + '</div>' +
+    '<div style="color:#b91c1c;font-size:.9rem;">נכשלו</div></div>' : '') +
+    '</div>';
+
+  try {
+    MailApp.sendEmail({
+      to      : Session.getEffectiveUser().getEmail(),
+      subject : "📊 פודקאסטים 2.0 — סיכום שבועי | " + successCount + " פרקים הורדו",
+      htmlBody: _emailWrap("סיכום שבועי", summary + body)
+    });
+    Logger.log("📧 נשלח סיכום שבועי (" + successCount + " הצלחות, " + failCount + " כישלונות).");
+    emailsData.weekly.nextSendAt = _nextThursday();
+    emailsData.weekly.channels   = {};
+  } catch(e) {
+    Logger.log("⚠️  שליחת סיכום שבועי נכשלה: " + e.message);
+  }
+}
+
+
+// ── sendSubscriptionEmail ──
+/**
+ * שולח מייל עדכון מינויים עם פרטי כל הערוצים.
+ * אוסף פרטי ערוץ (כותרת, תיאור, תמונה) ישירות מהפיד.
+ */
+function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime) {
+  var body     = '<p style="color:#64748b;margin-bottom:20px;">רשימת הפודקאסטים עודכנה. הרשימה הנוכחית:</p>';
+  var invalid  = [];
+  var channels = [];
+
+  for (var i = 0; i < rssList.length; i++) {
+    if (new Date() - startTime > TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) break;
+    var rss = rssList[i];
+    try {
+      var resp = UrlFetchApp.fetch(rss.url, { muteHttpExceptions: true, followRedirects: true });
+      if (resp.getResponseCode() !== 200) {
+        invalid.push({ url: rss.url, reason: "HTTP " + resp.getResponseCode() });
+        continue;
+      }
+      var doc  = XmlService.parse(resp.getContentText("UTF-8"));
+      var ch   = doc.getRootElement().getChild("channel");
+      if (!ch) { invalid.push({ url: rss.url, reason: "RSS לא תקין" }); continue; }
+
+      var ns    = XmlService.getNamespace(ITUNES_NS_URL);
+      var title = ch.getChildText("title") || rss.url;
+      var desc  = (ch.getChildText("description") || ch.getChildText("subtitle", ns) || "")
+                    .replace(/<[^>]*>/g, "").substring(0, 160);
+      var imgUrl= getChannelCoverArtUrl(ch, ns);
+      channels.push({ title: title, desc: desc, imgUrl: imgUrl, days: rss.days });
+    } catch(e) {
+      invalid.push({ url: rss.url, reason: e.message.substring(0, 80) });
+    }
+  }
+
+  for (var j = 0; j < channels.length; j++) {
+    var c = channels[j];
+    // שימוש ב-URL ישיר (לא base64) — שומר על גודל מייל קטן
+    var imgTag = c.imgUrl
+      ? '<img src="' + c.imgUrl + '" width="44" height="44" style="border-radius:8px;vertical-align:middle;object-fit:cover;" alt="">'
+      : '<div style="width:44px;height:44px;background:#e0e7ff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;">🎙️</div>';
+
+    body += '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;padding:14px;border:1px solid #e2e8f0;border-radius:12px;">' +
+      imgTag +
+      '<div style="margin-right:12px;flex:1;min-width:0;">' +
+        '<div><strong>' + c.title + '</strong>' +
+        '<span style="background:#e0e7ff;color:#4f46e5;font-size:.75rem;padding:2px 8px;border-radius:20px;margin-right:8px;white-space:nowrap;">' + c.days + ' ימים</span></div>' +
+        (c.desc ? '<p style="color:#64748b;font-size:.83rem;margin:4px 0 0;line-height:1.5;">' + c.desc + '</p>' : '') +
+      '</div></div>';
+  }
+
+  if (invalid.length) {
+    body += '<div style="background:#fef2f2;border-right:4px solid #ef4444;padding:14px 18px;border-radius:10px;margin-top:16px;">' +
+      '<strong>⚠️ כתובות שלא הגיבו כצפוי:</strong><ul style="margin:8px 0 0;padding-right:18px;">';
+    for (var k = 0; k < invalid.length; k++) {
+      body += '<li style="font-size:.85rem;margin-bottom:4px;">' +
+        '<code style="font-size:.78rem;">' + invalid[k].url + '</code> — ' + invalid[k].reason + '</li>';
+    }
+    body += '</ul></div>';
+  }
+
+  try {
+    MailApp.sendEmail({
+      to      : Session.getEffectiveUser().getEmail(),
+      subject : "📋 פודקאסטים 2.0 — רשימת מינויים עודכנה (" + channels.length + " ערוצים)",
+      htmlBody: _emailWrap("עדכון רשימת מינויים", body)
+    });
+    Logger.log("📧 נשלח מייל עדכון מינויים (" + channels.length + " ערוצים).");
+  } catch(e) {
+    Logger.log("⚠️  שליחת מייל מינויים נכשלה: " + e.message);
+  }
 }

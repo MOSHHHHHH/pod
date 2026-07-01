@@ -21,6 +21,7 @@ if (false) {
   ScriptApp.getOAuthToken();
   PropertiesService.getScriptProperties().setProperty("", "");
   MailApp.sendEmail("", "", "");
+  Session.getEffectiveUser().getEmail();
 }
 
 // ── קבועי תצורה ──────────────────────────────────────────────────────
