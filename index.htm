@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -196,7 +197,7 @@
             background: white;
             border-radius: 16px;
             box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
             z-index: 10;
             display: none;
@@ -211,6 +212,20 @@
             cursor: pointer;
         }
         .result-item:hover { background: #f8fafc; color: var(--primary); }
+
+        .podcast-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .podcast-thumb {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
 
         .podcast-row {
             display: grid;
@@ -274,7 +289,6 @@
         <div class="step-circle" id="dot-4">4</div>
     </div>
 
-    <!-- STEP 1: INITIAL SETUP -->
     <div class="card active" id="card-1">
         <h2>שלב 1: התקנת ה"מנוע" ב-Apps Script</h2>
         <p>קוד ה-Script הוא המוח שמתזמן את ההורדות בכל לילה.</p>
@@ -283,12 +297,12 @@
             <div style="background: #eef2ff; padding: 25px; border-radius: 20px; border: 1px solid #c7d2fe;">
                 <h3 style="margin-top:0">אפשרות 1 (מומלץ)</h3>
                 <p>העתק את הפרויקט המוכן ישירות לחשבון שלך:</p>
-                <a href="https://script.google.com/d/18viYneQfyQOxm03l62uGWPtrdoZ1ZfZqpjYWRK66UUsVavJGGjG7yzq8/edit?usp=sharing" target="_blank" class="btn btn-primary">🔗 פתיחת קישור ישיר</a>
+                <a href="https://script.google.com/d/18viYneQfyQOxm03l62uGWPtrdoZ1ZfZqpjYWRK66UUsVavJGGjG7yzq8/copy" target="_blank" class="btn btn-primary">🔗 יצירת עותק אוטומטי</a>
             </div>
             <div style="background: #f8fafc; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0;">
                 <h3 style="margin-top:0">אפשרות 2 (ידני)</h3>
-                <p>הורד את הקוד והדבק אותו בפרויקט חדש:</p>
-                <button class="btn btn-outline" onclick="downloadFile('gsContent', 'podcast_v2.gs')">⏬ הורד קוד מקור (.gs)</button>
+                <p>העתק את הקוד ישירות ללוח והדבק אותו בפרויקט חדש:</p>
+                <button id="btn-copy-gs" class="btn btn-outline" onclick="copyGsToClipboard()">📋 העתק קוד מקור ללוח</button>
             </div>
         </div>
 
@@ -313,7 +327,6 @@
         </div>
     </div>
 
-    <!-- STEP 2: PODCAST LIST -->
     <div class="card" id="card-2">
         <h2>שלב 2: בניית רשימת הפודקאסטים</h2>
         <p>בחר פודקאסטים מהמאגר או הוסף כתובות RSS ידנית. תוכל לקבוע לכמה ימים אחורה המערכת תחפש פרקים חדשים.</p>
@@ -324,8 +337,7 @@
         </div>
 
         <div id="selected-podcasts-container">
-            <!-- List items will appear here -->
-        </div>
+            </div>
 
         <div style="margin-top: 20px; display: flex; gap: 10px;">
             <button class="btn btn-outline" onclick="addManual()">➕ הוספה ידנית</button>
@@ -337,7 +349,6 @@
         </div>
     </div>
 
-    <!-- STEP 3: DRIVE UPLOAD -->
     <div class="card" id="card-3">
         <h2>שלב 3: העלאה ל-Google Drive</h2>
         <p>היכנס לדרייב שלך. תחת <strong>"הדרייב שלי"</strong> נוצרה תיקייה בשם <strong>"פודקאסטים 2.0"</strong>. בתוכה תמצא את התיקייה <strong>"קבצי מערכת"</strong>.</p>
@@ -371,7 +382,6 @@
         </div>
     </div>
 
-    <!-- STEP 4: FINISH -->
     <div class="card" id="card-4">
         <div style="text-align: center; padding: 40px 0;">
             <div style="font-size: 6rem; margin-bottom: 20px; animation: pulse 2s infinite">✨</div>
@@ -404,7 +414,8 @@
             const [gs, js, json] = await Promise.all([
                 fetch('files/podcast_v2.gs').then(r => r.text()),
                 fetch('files/podcast_processor_v2.js').then(r => r.text()),
-                fetch('files/israeli_podcasts_database.json').then(r => r.json())
+                fetch('files/israeli_podcasts_database.json').then(r => r.json()).catch(() => []) 
+                // fallback ריק למקרה שאין קובץ מאגר, כדי שלא ייתקע
             ]);
             state.gsContent = gs;
             state.jsContent = js;
@@ -432,7 +443,7 @@
         window.scrollTo(0, 0);
     }
 
-    // 3. Search & List Management
+    // 3. Search & List Management (With Images)
     function handleSearch() {
         const query = document.getElementById('search-input').value.toLowerCase();
         const resultsBox = document.getElementById('search-results');
@@ -444,7 +455,7 @@
 
         const filtered = state.db.filter(p => 
             p.title.toLowerCase().includes(query) || 
-            p.author.toLowerCase().includes(query)
+            (p.author && p.author.toLowerCase().includes(query))
         ).slice(0, 8);
 
         resultsBox.innerHTML = '';
@@ -452,8 +463,21 @@
             filtered.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'result-item';
-                div.innerHTML = `<span><strong>${p.title}</strong> | ${p.author}</span> <span>➕</span>`;
-                div.onclick = () => addPodcast(p.title, p.rss_url);
+                
+                // שימוש בתמונת ברירת מחדל אם אין תמונה במאגר
+                const imgUrl = p.img_url || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=100&auto=format&fit=crop&q=60';
+                
+                div.innerHTML = `
+                    <div class="podcast-meta">
+                        <img src="${imgUrl}" class="podcast-thumb" alt="${p.title}">
+                        <div>
+                            <strong>${p.title}</strong><br>
+                            <small style="color: #64748b">${p.author || ''}</small>
+                        </div>
+                    </div> 
+                    <span>➕</span>
+                `;
+                div.onclick = () => addPodcast(p.title, p.rss_url, imgUrl);
                 resultsBox.appendChild(div);
             });
             resultsBox.style.display = 'block';
@@ -462,9 +486,10 @@
         }
     }
 
-    function addPodcast(title, url) {
+    function addPodcast(title, url, imgUrl) {
         if (state.selected.some(p => p.url === url)) return;
-        state.selected.push({ title, url, days: 7 });
+        const img = imgUrl || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=100&auto=format&fit=crop&q=60';
+        state.selected.push({ title, url, days: 7, img: img });
         renderList();
         document.getElementById('search-input').value = '';
         document.getElementById('search-results').style.display = 'none';
@@ -476,7 +501,7 @@
             if(url) alert("כתובת לא תקינה");
             return;
         }
-        addPodcast("פודקאסט ידני", url);
+        addPodcast("פודקאסט ידני", url, null);
     }
 
     function removePodcast(idx) {
@@ -495,9 +520,12 @@
             const div = document.createElement('div');
             div.className = 'podcast-row';
             div.innerHTML = `
-                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <strong>${p.title}</strong><br>
-                    <small style="color: #64748b">${p.url}</small>
+                <div class="podcast-meta" style="overflow: hidden;">
+                    <img src="${p.img}" class="podcast-thumb" alt="${p.title}">
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <strong>${p.title}</strong><br>
+                        <small style="color: #64748b">${p.url}</small>
+                    </div>
                 </div>
                 <div style="text-align: center;">
                     ימים: <input type="number" class="days-input" value="${p.days}" onchange="updateDays(${i}, this.value)">
@@ -510,7 +538,29 @@
         });
     }
 
-    // 4. File Downloads
+    // 4. Clipboard & File Downloads
+    function copyGsToClipboard() {
+        if (!state.gsContent) {
+            alert("קוד המקור עדיין לא נטען.");
+            return;
+        }
+        navigator.clipboard.writeText(state.gsContent).then(() => {
+            const btn = document.getElementById('btn-copy-gs');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "✅ הועתק ללוח!";
+            btn.style.backgroundColor = "var(--success)";
+            btn.style.color = "white";
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.backgroundColor = "white";
+                btn.style.color = "#475569";
+            }, 2500);
+        }).catch(err => {
+            console.error('שגיאה בהעתקה:', err);
+            alert("לא ניתן היה להעתיק אוטומטית. נסה לסמן ולהעתיק ידנית.");
+        });
+    }
+
     function downloadFile(contentKey, filename) {
         const blob = new Blob([state[contentKey]], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
