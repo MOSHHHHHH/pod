@@ -1,0 +1,45 @@
+name: Update Podcasts Database
+
+on:
+  schedule:
+    # ירוץ בכל יום בשעה 02:00 UTC (בסביבות 04:00 או 05:00 בבוקר שעון ישראל)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # מאפשר לך להריץ את ה-Action גם ידנית דרך הטאב Actions ב-GitHub
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+    
+    # נתינת הרשאות כתיבה ל-Workflow כדי שיוכל לעדכן את הקובץ בתוך ה-Repository
+    permissions:
+      contents: write
+
+    steps:
+      # 1. שליפת הקוד מהמאגר
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. הגדרת סביבת Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # 3. הרצת הסקריפט שיוצר את העדכונים
+      - name: Run update script
+        run: python update_podcasts.py
+
+      # 4. בדיקה האם הקובץ השתנה, ואם כן - ביצוע Commit ו-Push אוטומטי
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # בדיקה האם יש שינויים בקובץ ה-JSON
+          if [ -n "$(git status --porcelain files/israeli_podcasts_database.json)" ]; then
+            git add files/israeli_podcasts_database.json
+            git commit -m "Automated update: Added new podcasts from Apple API"
+            git push
+          else
+            echo "No new podcasts found, database is up to date."
+          fi
