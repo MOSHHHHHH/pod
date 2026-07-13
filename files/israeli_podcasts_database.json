@@ -40093,5 +40093,65 @@
     "track_count": 7,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1849415008,
+    "title": "פודקאסט שער הזהב",
+    "author": "GNA Sports Finance",
+    "rss_url": "https://anchor.fm/s/108aa4430/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%A2%D7%A8-%D7%94%D7%96%D7%94%D7%91/id1849415008?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/3f/d1/16/3fd11636-5fef-3ebd-bef7-86856eec2251/mza_6265563975268903563.jpg/600x600bb.jpg",
+    "primary_genre": "Investing",
+    "track_count": 18,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1870800665,
+    "title": "עולים להתקפה - פודקאסט הפועל באר שבע ברדיו דרום",
+    "author": "Radio Darom",
+    "rss_url": "https://anchor.fm/s/d8a0cef8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%95%D7%9C%D7%99%D7%9D-%D7%9C%D7%94%D7%AA%D7%A7%D7%A4%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%A4%D7%95%D7%A2%D7%9C-%D7%91%D7%90%D7%A8-%D7%A9%D7%91%D7%A2-%D7%91%D7%A8%D7%93%D7%99%D7%95-%D7%93%D7%A8%D7%95%D7%9D/id1870800665?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/15/26/58/1526588c-22c9-ba5e-a1a5-290e812e7943/mza_10515141974485514406.jpg/600x600bb.jpg",
+    "primary_genre": "Football",
+    "track_count": 125,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1693774728,
+    "title": "טיפול למחשבה - פודקאסט למטפלות ולמטפלים",
+    "author": "Dana Keissary",
+    "rss_url": "https://anchor.fm/s/e0a2732c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%98%D7%99%D7%A4%D7%95%D7%9C-%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9C%D7%9E%D7%98%D7%A4%D7%9C%D7%95%D7%AA-%D7%95%D7%9C%D7%9E%D7%98%D7%A4%D7%9C%D7%99%D7%9D/id1693774728?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/ab/bc/68/abbc68d7-6197-0c47-fa1b-edfa8f2d2e3e/mza_7530626286251758738.jpg/600x600bb.jpg",
+    "primary_genre": "Mental Health",
+    "track_count": 31,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1849112407,
+    "title": "קורת רוח לשבת",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/Mishapachakoratruachleshabat/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A7%D7%95%D7%A8%D7%AA-%D7%A8%D7%95%D7%97-%D7%9C%D7%A9%D7%91%D7%AA/id1849112407?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/c1/2b/43/c12b438b-dc4b-2cd1-8500-02d03eb5779a/mza_9445585480255195093.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 39,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1683526004,
+    "title": "שלום בית",
+    "author": "הרב משה רחי",
+    "rss_url": "https://anchor.fm/s/dc7cab8c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%9C%D7%95%D7%9D-%D7%91%D7%99%D7%AA/id1683526004?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/8b/51/54/8b515407-50a5-a0c7-bb34-b249819df44d/mza_9026022824378324454.jpg/600x600bb.jpg",
+    "primary_genre": "Parenting",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
