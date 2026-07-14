@@ -40153,5 +40153,53 @@
     "track_count": 10,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1700849906,
+    "title": "פודקאסט מוואל",
+    "author": "מיזם מוואל - עידן להב וזאב סולומון",
+    "rss_url": "https://anchor.fm/s/ded19870/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9E%D7%95%D7%95%D7%90%D7%9C/id1700849906?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/23/c1/a7/23c1a705-188c-d115-b245-2b0ce7d523c4/mza_7087024393375725573.jpg/600x600bb.jpg",
+    "primary_genre": "News Commentary",
+    "track_count": 69,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6790117821,
+    "title": "הגריד - פודקאסט על עיצוב, חדשנות וטכנולוגיה מבית Kubi'z",
+    "author": "קוביז",
+    "rss_url": "https://anchor.fm/s/1149a28c8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%92%D7%A8%D7%99%D7%93-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A2%D7%9C-%D7%A2%D7%99%D7%A6%D7%95%D7%91-%D7%97%D7%93%D7%A9%D7%A0%D7%95%D7%AA-%D7%95%D7%98%D7%9B%D7%A0%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94-%D7%9E%D7%91%D7%99%D7%AA-kubiz/id6790117821?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/38/4f/5f/384f5f6f-8624-5dde-f0bb-abc40c9dd745/mza_5284048157004664377.jpg/600x600bb.jpg",
+    "primary_genre": "Design",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1849157577,
+    "title": "הפסקת אש",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/mishpachahafsakatesh/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A4%D7%A1%D7%A7%D7%AA-%D7%90%D7%A9/id1849157577?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d2/c5/09/d2c509af-126d-81c1-bdbf-0e18ca2745cd/mza_7920933267706832504.jpeg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 23,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1628347213,
+    "title": "עושות בצפר לצבא",
+    "author": "רדיו קול יבנה",
+    "rss_url": "https://kolyavne.co.il/feed/podcast/ossot/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%95%D7%A9%D7%95%D7%AA-%D7%91%D7%A6%D7%A4%D7%A8-%D7%9C%D7%A6%D7%91%D7%90/id1628347213?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/PodcastSource112/v4/6f/f8/88/6ff8887f-57b0-cb2a-62d0-704e99c9df21/69663eed-056f-4068-9918-3ff5172604ec.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 7,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
