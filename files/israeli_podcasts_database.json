@@ -40201,5 +40201,41 @@
     "track_count": 7,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6790362989,
+    "title": "דור בצמיחה - נדל\"ן עסקים והתפתחות אישית",
+    "author": "דור",
+    "rss_url": "https://anchor.fm/s/104ede9a0/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%93%D7%95%D7%A8-%D7%91%D7%A6%D7%9E%D7%99%D7%97%D7%94-%D7%A0%D7%93%D7%9C-%D7%9F-%D7%A2%D7%A1%D7%A7%D7%99%D7%9D-%D7%95%D7%94%D7%AA%D7%A4%D7%AA%D7%97%D7%95%D7%AA-%D7%90%D7%99%D7%A9%D7%99%D7%AA/id6790362989?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/e6/b6/72/e6b67275-cfa1-9a32-0e45-24bb3c0727e2/mza_8539505144390008464.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 52,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1750483461,
+    "title": "עומקה של מחשבה",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/omkashelmachshava/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%95%D7%9E%D7%A7%D7%94-%D7%A9%D7%9C-%D7%9E%D7%97%D7%A9%D7%91%D7%94/id1750483461?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/27/5d/b9/275db922-3d2d-8101-8e0f-7f0950993839/mza_14543634407640600518.jpeg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 24,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1690991089,
+    "title": "U.R GIFTED עדי בראון מיכובר",
+    "author": "U.R GIFTED",
+    "rss_url": "https://anchor.fm/s/aa28a7bc/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/u-r-gifted-%D7%A2%D7%93%D7%99-%D7%91%D7%A8%D7%90%D7%95%D7%9F-%D7%9E%D7%99%D7%9B%D7%95%D7%91%D7%A8/id1690991089?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/d7/47/16/d74716d3-f925-dbdc-3f30-a42882e72ce3/mza_12548872304851590601.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 39,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
