@@ -24,9 +24,9 @@ var RSS_FILE_NAME        = "podcasts.txt";
 var STORAGE_MIN_BYTES    = 2 * 1024 * 1024 * 1024;  // 2GB מינימום פנוי
 var STORAGE_EMAIL_DAYS   = 2;
 var CATALOG_PER_EMAIL    = 50;                        // פרקים מקסימום לאימייל קטלוג
-var CTRL_SUBSCRIBE       = "subscribe@example.com";
-var CTRL_UNSUBSCRIBE     = "unsubscribe@example.com";
-var CTRL_GET_EPISODE     = "get-episode@example.com";
+var CTRL_SUBSCRIBE       = "subscribe.wrinkly124@simplelogin.com";
+var CTRL_UNSUBSCRIBE     = "unsubscribe.supper574@simplelogin.com";
+var CTRL_GET_EPISODE     = "get-episode.cahoots527@simplelogin.com";
 var DOWNLOAD_BUFFER_MS   = 40 * 1000;                // buffer לעצירת הורדות לפני תום הזמן
 var EMAIL_TIME_BUFFER_MS = 90 * 1000;                // זמן שמור לבניית ושליחת מיילים
 
