@@ -29,7 +29,7 @@ var MAIN_FOLDER_NAME = "פודקאסטים 2.0";
 var SYS_FOLDER_NAME  = "קבצי מערכת";
 var RSS_FILE_NAME    = "podcasts.txt";
 var HOURLY_UID_KEY   = "HOURLY_TRIGGER_UID";
-var GITHUB_JS_URL    = "https://raw.githubusercontent.com/MOSHHHHHH/pod/refs/heads/main/files/podcast_processor_v2.js";
+var GITHUB_JS_URL    = "https://cdn.jsdelivr.net/gh/MOSHHHHHH/pod@main/files/podcast_processor_v2.js";
 
 // ── פונקציה יחידה ────────────────────────────────────────────────────
 function setUp() {
