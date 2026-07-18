@@ -40453,5 +40453,113 @@
     "track_count": 5,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6783832755,
+    "title": "אילמה פודקאסט",
+    "author": "אילמה - המרכז הגבוהה לרפואה טבעית",
+    "rss_url": "https://anchor.fm/s/1135cc088/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%9C%D7%9E%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98/id6783832755?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d4/40/9f/d4409f74-3d37-6587-e41a-f9f2ff08612a/mza_8196518992699173975.jpg/600x600bb.jpg",
+    "primary_genre": "Health & Fitness",
+    "track_count": 4,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1621461140,
+    "title": "פודקאסט לילה",
+    "author": "Nariz",
+    "rss_url": "https://anchor.fm/s/ae87888c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9C%D7%99%D7%9C%D7%94/id1621461140?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a8/50/22/a8502239-61f9-5553-df86-abfe09f4e76e/mza_2802591260301612531.jpg/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 79,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1551267261,
+    "title": "התחדשות בפשטות - פודקאסט ההתחדשות העירונית של האחים לאב",
+    "author": "התחדשות בפשטות",
+    "rss_url": "https://anchor.fm/s/4a04e850/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%AA%D7%97%D7%93%D7%A9%D7%95%D7%AA-%D7%91%D7%A4%D7%A9%D7%98%D7%95%D7%AA-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%94%D7%AA%D7%97%D7%93%D7%A9%D7%95%D7%AA-%D7%94%D7%A2%D7%99%D7%A8%D7%95%D7%A0%D7%99%D7%AA-%D7%A9%D7%9C-%D7%94%D7%90%D7%97%D7%99%D7%9D-%D7%9C%D7%90%D7%91/id1551267261?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f0/34/98/f03498a6-4221-cfbd-87b9-bce6abb599bc/mza_1165305700996123499.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 61,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1490466464,
+    "title": "פודקאסט התחדשות עירונית",
+    "author": "Arnon Yahav",
+    "rss_url": "https://anchor.fm/s/e6d717c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%AA%D7%97%D7%93%D7%A9%D7%95%D7%AA-%D7%A2%D7%99%D7%A8%D7%95%D7%A0%D7%99%D7%AA/id1490466464?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/36/1d/42/361d42db-1f89-06c6-198a-720130070582/mza_14998964848701128631.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 15,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1766996945,
+    "title": "קומץ עמה פודקאסט מכבי תל אביב",
+    "author": "קומץ עמה",
+    "rss_url": "https://anchor.fm/s/e5b6700c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A7%D7%95%D7%9E%D7%A5-%D7%A2%D7%9E%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9E%D7%9B%D7%91%D7%99-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/id1766996945?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/5e/a0/4d/5ea04d65-f9f4-4baf-3686-fe2a9fd61162/mza_17980270306494086541.jpg/600x600bb.jpg",
+    "primary_genre": "Football",
+    "track_count": 93,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 1400334302,
+    "title": "פודקאסט המונדיאל",
+    "author": "Haaretz",
+    "rss_url": "https://www.omnycontent.com/d/playlist/397b9456-4f75-4509-acff-ac0600b4a6a4/ed870d98-f6a2-4808-8137-ac0800928146/ef034870-eb1e-4056-9795-ac080092814a/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%9E%D7%95%D7%A0%D7%93%D7%99%D7%90%D7%9C/id1400334302?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/d4/d4/b1/d4d4b1c3-6a99-b959-2ef9-82ba475b4149/mza_11758958235073498431.jpg/600x600bb.jpg",
+    "primary_genre": "Sport",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1696489685,
+    "title": "שיווק עם עוזי ביז, עוזיאל חזן ואורחים",
+    "author": "עוזיאל חזן",
+    "rss_url": "https://anchor.fm/s/d8ab5774/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%95%D7%95%D7%A7-%D7%A2%D7%9D-%D7%A2%D7%95%D7%96%D7%99-%D7%91%D7%99%D7%96-%D7%A2%D7%95%D7%96%D7%99%D7%90%D7%9C-%D7%97%D7%96%D7%9F-%D7%95%D7%90%D7%95%D7%A8%D7%97%D7%99%D7%9D/id1696489685?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/07/de/25/07de25a2-4985-587f-9924-e6a76c208cca/mza_9513427995886654262.jpg/600x600bb.jpg",
+    "primary_genre": "Marketing",
+    "track_count": 2,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1661456174,
+    "title": "שיחה אישית",
+    "author": "103fm",
+    "rss_url": "https://103fm.maariv.co.il/rss/mediarss.aspx?programId=470",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%97%D7%94-%D7%90%D7%99%D7%A9%D7%99%D7%AA/id1661456174?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/3a/f9/83/3af983ce-56e6-8ca5-a926-1da273e9ddee/mza_10824328585530734529.jpg/600x600bb.jpg",
+    "primary_genre": "News",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1868656498,
+    "title": "hizukit",
+    "author": "Ronen weiss",
+    "rss_url": "https://feeds.soundcloud.com/users/soundcloud:users:144444213/sounds.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/hizukit/id1868656498?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/0e/81/1f/0e811f3e-3a80-cfff-ab33-49d4debe5cb6/mza_3410681531092160761.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 80,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
