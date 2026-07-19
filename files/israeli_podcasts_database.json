@@ -40561,5 +40561,41 @@
     "track_count": 80,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1833951230,
+    "title": "גירלז ⚡ פודקאסט",
+    "author": "Girlz",
+    "rss_url": "https://anchor.fm/s/10791bcf4/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%92%D7%99%D7%A8%D7%9C%D7%96-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98/id1833951230?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ed/84/34/ed84346e-b49a-a062-660d-9e016f502165/mza_10467315316276278447.jpg/600x600bb.jpg",
+    "primary_genre": "Comedy",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6786693512,
+    "title": "השירים של להציל את הצלילים",
+    "author": "Or Ilan",
+    "rss_url": "https://feeds.acast.com/public/shows/6a4651663dd2dcc100e94979",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A9%D7%99%D7%A8%D7%99%D7%9D-%D7%A9%D7%9C-%D7%9C%D7%94%D7%A6%D7%99%D7%9C-%D7%90%D7%AA-%D7%94%D7%A6%D7%9C%D7%99%D7%9C%D7%99%D7%9D/id6786693512?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/72/87/5f/72875f51-765e-3294-8e30-a07df3c5ca52/mza_960769718634114623.jpeg/600x600bb.jpg",
+    "primary_genre": "Kids & Family",
+    "track_count": 42,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1663659934,
+    "title": "פעם הורה תמיד הורה | שרי אריסון",
+    "author": "רדיו מהות החיים | EOL Radio",
+    "rss_url": "https://anchor.fm/s/d89d820c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%A2%D7%9D-%D7%94%D7%95%D7%A8%D7%94-%D7%AA%D7%9E%D7%99%D7%93-%D7%94%D7%95%D7%A8%D7%94-%D7%A9%D7%A8%D7%99-%D7%90%D7%A8%D7%99%D7%A1%D7%95%D7%9F/id1663659934?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/28/c7/df/28c7df50-551a-d5a5-7459-7b3391686429/mza_9752249362735531867.jpg/600x600bb.jpg",
+    "primary_genre": "Relationships",
+    "track_count": 4,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
