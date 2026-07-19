@@ -27,6 +27,8 @@ var CATALOG_PER_EMAIL    = 50;                        // פרקים מקסימו
 var CTRL_SUBSCRIBE       = "subscribe.wrinkly124@simplelogin.com";
 var CTRL_UNSUBSCRIBE     = "unsubscribe.supper574@simplelogin.com";
 var CTRL_GET_EPISODE     = "get-episode.cahoots527@simplelogin.com";
+var APPLE_API_MAX_RETRY  = 4;      // נסיונות מקסימום לחיפוש iTunes לפני מייל שגיאה
+var PRIVACY_NOTE         = "שים לב: מיילים הנשלחים לכתובות אלו נאספים ומעובדים אוטומטית בהתאם למדיניות השירות.";
 var DOWNLOAD_BUFFER_MS   = 40 * 1000;                // buffer לעצירת הורדות לפני תום הזמן
 var EMAIL_TIME_BUFFER_MS = 90 * 1000;                // זמן שמור לבניית ושליחת מיילים
 
@@ -165,9 +167,18 @@ function main(sysFolder, mainFolder) {
     Logger.log("⏰ אין מספיק זמן לשליחת מיילים — יטופלו בריצה הבאה.");
   }
 
-  // ── 8. סיכום מיילי בקרה ──
-  if (processedEmails.length > 0 && hasEnoughTimeForEmails(startTime)) {
-    sendProcessedEmailsSummary(processedEmails);
+  // ── 8. סיכום פרקים שהתקבלו בבקשה ספציפית ──
+  // הוסף לרשימה המצטברת ב-emails.json
+  var newEpisodeItems = (processedEmails || []).filter(function(it){ return it.type === 'episode_queued' && it.ok; });
+  if (newEpisodeItems.length > 0) {
+    newEpisodeItems.forEach(function(it){ _emailsData.pendingEpisodeSummary.push(it); });
+  }
+  if (_emailsData.pendingEpisodeSummary.length > 0 && hasEnoughTimeForEmails(startTime)) {
+    sendProcessedEmailsSummary(_emailsData.pendingEpisodeSummary);
+    _emailsData.pendingEpisodeSummary = [];
+    saveEmailsData(sysFolder, _emailsData);
+  } else if (_emailsData.pendingEpisodeSummary.length > 0) {
+    Logger.log("⏰ סיכום פרקים ידחה לריצה הבאה (" + _emailsData.pendingEpisodeSummary.length + " פרקים).");
     saveEmailsData(sysFolder, _emailsData);
   }
 
@@ -759,6 +770,8 @@ function initEmailsStructure(data) {
   if (!_emailsData.subscriptions.details) _emailsData.subscriptions.details = {};
   if (_emailsData.emptySubsEmailSent === undefined) _emailsData.emptySubsEmailSent = false;
   if (!_emailsData.processedEmailIds) _emailsData.processedEmailIds = [];
+  if (!_emailsData.pendingSearches)     _emailsData.pendingSearches = {};
+  if (!_emailsData.pendingEpisodeSummary) _emailsData.pendingEpisodeSummary = [];
 }
 
 function _daysFromNow(d) {
@@ -1074,9 +1087,9 @@ function buildMailtoBtn(label, to, subject, body, color) {
 /** כפתורי שליטה לערוץ: הסר מנוי + קבל פרקים */
 function buildChannelControlButtons(channelTitle, rssUrl) {
   var unsubBtn = buildMailtoBtn('הסר מנוי', CTRL_UNSUBSCRIBE, rssUrl,
-    'שלח מייל זה על מנת לבטל מינוי לערוץ \''+channelTitle+'\', הבקשה תטופל תוך מספר שעות.', '#ef4444');
+    'שלח מייל זה על מנת לבטל מינוי לערוץ \''+channelTitle+'\', הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE, '#ef4444');
   var epBtn = buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, rssUrl,
-    'שלח מייל זה על מנת לקבל את קטלוג הפרקים מערוץ \''+channelTitle+'\'. הבקשה תטופל תוך מספר שעות.');
+    'שלח מייל זה על מנת לקבל את קטלוג הפרקים מערוץ \''+channelTitle+'\'. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE);
   return unsubBtn + epBtn;
 }
 
@@ -1084,17 +1097,25 @@ function buildChannelControlButtons(channelTitle, rssUrl) {
 function buildAddChannelBtn() {
   return buildMailtoBtn('+ הוסף ערוץ', CTRL_SUBSCRIBE,
     '[כתובת RSS או מחרוזת חיפוש]',
-    'אם אתה יודע את כתובת הפיד RSS של הפודקאסט, מלא אותה בכותרת. אחרת מלא את שם הפודקאסט/נושא/מגיש לחיפוש. לאחר מכן שלח מייל זה. הבקשה תטופל תוך מספר שעות.',
+    'אם אתה יודע את כתובת הפיד RSS של הפודקאסט, מלא אותה בכותרת. אחרת מלא את שם הפודקאסט/נושא/מגיש לחיפוש. לאחר מכן שלח מייל זה. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE,
     '#10b981');
 }
 
 /** קישור לתיקיית ערוץ ב-Drive (null אם לא קיימת) */
 function getFolderLink(channelTitle, mainFolder) {
+  if (!channelTitle || !mainFolder) return null;
   try {
     var it = mainFolder.getFoldersByName(sanitizeFolderName(channelTitle));
     if (it.hasNext()) return 'https://drive.google.com/drive/folders/'+it.next().getId();
-  } catch(e) {}
+  } catch(e) { /* ויתור בשקט — הטקסט יוצג ללא קישור */ }
   return null;
+}
+
+/** כפתור הירשם (לערוץ שאינו ברשימת המינויים) */
+function buildSubscribeButton(channelTitle, rssUrl) {
+  return buildMailtoBtn('+ הירשם לערוץ', CTRL_SUBSCRIBE, rssUrl,
+    'שלח מייל זה להוספת הערוץ \'' + channelTitle + '\' לרשימת המינויים שלך. הבקשה תטופל תוך מספר שעות.\n\n' + PRIVACY_NOTE,
+    '#10b981');
 }
 
 /** שם ערוץ עם קישור לתיקייה (או ללא קישור אם לא קיימת) */
@@ -1154,7 +1175,7 @@ function sendWeeklyEmail(sysFolder, emailsData, rssList, mainFolder) {
         +'<span style="margin-right:10px;">'+channelNameTag(ch, mainFolder)+'</span>'
         +'<span style="color:#10b981;font-size:.82rem;">✅ '+succ.length+'</span>'
         +(fail.length?'<span style="color:#ef4444;font-size:.82rem;margin-right:4px;">❌ '+fail.length+'</span>':'')
-        +buildChannelControlButtons(ch, d.rssUrl||'')
+        +(d.fromSubscription !== false ? buildChannelControlButtons(ch, d.rssUrl||'') : buildSubscribeButton(ch, d.rssUrl||''))
         +'</div><div style="padding:4px 14px 8px;">';
       succ.concat(fail).forEach(function(it){
         var icon = it.status==='success' ? '✅' : '❌';
@@ -1179,15 +1200,15 @@ function sendWeeklyEmail(sysFolder, emailsData, rssList, mainFolder) {
 
   var inactiveItems = rssList.filter(function(r){
     var title = subs[r.url] ? subs[r.url].title : null;
-    return !channels[title||'__unknown__'];
+    return title && !channels[title];
   });
 
   if (inactiveItems.length > 0) {
     body += '<div style="margin-top:20px;padding:14px 16px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">'
       +'<h3 style="color:#64748b;font-size:.95rem;margin:0 0 10px;">ערוצים שאתה מנוי אליהם אך לא ירדו פרקים השבוע</h3>';
     inactiveItems.forEach(function(r){
-      var info = subs[r.url] || {};
-      var title = info.title || r.url;
+      var info  = subs[r.url] || {};
+      var title = info.title;
       var imgUrl = info.image || null;
       body += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">'
         +channelImgTag(imgUrl)
@@ -1351,9 +1372,12 @@ function checkSentMailbox(sysFolder, mainFolder, queue, rssList, startTime) {
         else if (addr === CTRL_SUBSCRIBE) result = processSubscribeEmail(thread, sysFolder, rssList, mainFolder, startTime);
         else if (addr === CTRL_GET_EPISODE) result = processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime);
         if (result !== null) {
-          thread.moveToTrash();
-          processedIds.push(tid);
-          processed.push(result);
+          // רק אם לא נדחה — מסמן כטופל ומוחק
+          if (result.type !== 'subscribe_search_pending') {
+            thread.moveToTrash();
+            processedIds.push(tid);
+          }
+          if (result.type !== 'subscribe_search_pending') processed.push(result);
         }
       });
     } catch(e) { Logger.log('⚠️  checkSentMailbox ('+addr+'): '+e.message); }
@@ -1414,8 +1438,13 @@ function processSubscribeEmail(thread, sysFolder, rssList, mainFolder, startTime
     rssList.push({ url: subject, days: 7 });
     return { type: 'subscribe_added', url: subject };
   }
-  // חיפוש iTunes
-  var results = searchITunesPodcasts(subject);
+  // חיפוש iTunes (עם retry logic)
+  var results = handleITunesRetry(subject, sysFolder, startTime);
+  if (results === null) return { type: 'subscribe_search_pending', query: subject };  // נדחה לריצה הבאה
+  if (results.length === 0) {
+    sendNoResultsEmail(subject);
+    return { type: 'subscribe_no_results', query: subject };
+  }
   sendPodcastSearchResultsEmail(subject, results, mainFolder);
   return { type: 'subscribe_search', query: subject, count: results.length };
 }
@@ -1439,26 +1468,63 @@ function addToPodcastsFile(sysFolder, url, comment, days) {
 
 
 // ── iTunes search ──
+/**
+ * מחזיר מערך תוצאות, null אם שגיאת שרת (יש לנסות שוב), [] אם אין תוצאות (שלח מייל)
+ */
 function searchITunesPodcasts(query) {
-  var results = [];
+  var url  = 'https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=podcast&limit=15&country=IL';
+  var resp;
+  try { resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true }); }
+  catch(e) { Logger.log('⚠️  iTunes fetch error: '+e.message); return null; }
+  if (resp.getResponseCode() !== 200) {
+    Logger.log('⚠️  iTunes HTTP '+resp.getResponseCode());
+    return null;  // שגיאת שרת — ניסיון חוזר
+  }
+  var data;
+  try { data = JSON.parse(resp.getContentText()).results || []; }
+  catch(e) { Logger.log('⚠️  iTunes parse error: '+e.message); return null; }
+  return data.filter(function(p){ return !!p.feedUrl; }).map(function(p){
+    return {
+      title:        p.trackName || p.collectionName || '',
+      author:       p.artistName || '',
+      rssUrl:       p.feedUrl,
+      image:        p.artworkUrl100 || null,
+      episodeCount: p.trackCount || 0,
+      lastDate:     p.releaseDate ? formatDate(new Date(p.releaseDate)) : ''
+    };
+  });
+}
+
+/** מחזיר אמת אם צריך לשלוח מייל שגיאת iTunes */
+function handleITunesRetry(query, sysFolder, startTime) {
+  // pending searches נשמרים ב-emails.json
+  if (!_emailsData.pendingSearches) _emailsData.pendingSearches = {};
+  var entry = _emailsData.pendingSearches[query] || { retries: 0 };
+  var results = searchITunesPodcasts(query);
+  if (results === null) {
+    // שגיאת שרת
+    entry.retries++;
+    _emailsData.pendingSearches[query] = entry;
+    if (entry.retries >= APPLE_API_MAX_RETRY) {
+      delete _emailsData.pendingSearches[query];
+      sendITunesErrorEmail(query, entry.retries);
+    }
+    return null;  // טיפול נדחה
+  }
+  delete _emailsData.pendingSearches[query];
+  return results;  // [] אם ריק, מערך אחרת
+}
+
+function sendITunesErrorEmail(query, attempts) {
+  var body = '<p>לא ניתן היה לחפש פודקאסטים עבור: <strong>'+query+'</strong></p>'
+    +'<p>שגיאת תקשורת עם Apple Podcasts API לאחר '+attempts+' נסיונות.</p>'
+    +'<p>נסה לחפש שוב מאוחר יותר או הכנס כתובת RSS ישירות.</p>'
+    +'<div style="margin-top:16px;">'+buildAddChannelBtn()+'</div>';
   try {
-    var url  = 'https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=podcast&limit=15&country=IL';
-    var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-    if (resp.getResponseCode() !== 200) return results;
-    var data = JSON.parse(resp.getContentText()).results || [];
-    data.forEach(function(p){
-      if (!p.feedUrl) return;
-      results.push({
-        title:        p.trackName || p.collectionName || '',
-        author:       p.artistName || '',
-        rssUrl:       p.feedUrl,
-        image:        p.artworkUrl100 || null,
-        episodeCount: p.trackCount || 0,
-        lastDate:     p.releaseDate ? formatDate(new Date(p.releaseDate)) : ''
-      });
-    });
-  } catch(e) { Logger.log('⚠️  iTunes search: '+e.message); }
-  return results;
+    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
+      subject: '⚠️ פודקאסטים 2.0 — חיפוש נכשל: '+query,
+      htmlBody: _emailWrap('שגיאת חיפוש', body) });
+  } catch(e) { Logger.log('⚠️  iTunes error email: '+e.message); }
 }
 
 function sendPodcastSearchResultsEmail(query, results, mainFolder) {
@@ -1468,9 +1534,9 @@ function sendPodcastSearchResultsEmail(query, results, mainFolder) {
   } else {
     results.forEach(function(r){
       var addBtn = buildMailtoBtn('+ הוסף ערוץ', CTRL_SUBSCRIBE, r.rssUrl,
-        'שלח מייל זה להוספת הערוץ \''+r.title+'\' לרשימת המינויים שלך.', '#10b981');
+        'שלח מייל זה להוספת הערוץ \''+r.title+'\' לרשימת המינויים שלך.\n\n'+PRIVACY_NOTE, '#10b981');
       var epBtn  = buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, r.rssUrl,
-        'שלח מייל זה לקבלת קטלוג פרקי הערוץ \''+r.title+'\'.');
+        'שלח מייל זה לקבלת קטלוג פרקי הערוץ \''+r.title+'\'.\n\n'+PRIVACY_NOTE);
       body += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;flex-wrap:wrap;">'
         +channelImgTag(r.image)
         +'<div style="flex:1;min-width:0;margin-right:12px;">'
@@ -1492,6 +1558,17 @@ function sendPodcastSearchResultsEmail(query, results, mainFolder) {
 
 
 // ── get episode ──
+function sendNoResultsEmail(query) {
+  var body = '<p style="color:#64748b;margin-bottom:16px;">לא נמצאו תוצאות עבור: <strong>'+query+'</strong></p>'
+    +'<p>נסה לחפש עם מילות מפתח שונות (שם מגיש, נושא, שם תוכנית), או הכנס כתובת RSS ישירות.</p>'
+    +'<div style="margin-top:20px;text-align:center;">'+buildAddChannelBtn()+'</div>';
+  try {
+    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
+      subject: '🔍 פודקאסטים 2.0 — לא נמצאו תוצאות: '+query,
+      htmlBody: _emailWrap('אין תוצאות חיפוש', body) });
+  } catch(e) { Logger.log('⚠️  sendNoResultsEmail: '+e.message); }
+}
+
 function processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime) {
   var subject = thread.getMessages()[0].getSubject().trim();
   // אפשרות ב: JSON עם episodeGuid
@@ -1512,7 +1589,8 @@ function processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime) {
 }
 
 /** הוספת פרק ספציפי לתור — גם אם הורד בעבר, גם אם הערוץ לא נמצא ברשימת המינויים */
-function addSpecificEpisodeToQueue(channelUrl, episodeGuid, queue, mainFolder) {
+function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder) {
+  var RET = { ok: false, channelTitle: '', episodeTitle: '' };
   try {
     var resp = UrlFetchApp.fetch(channelUrl, { muteHttpExceptions: true, followRedirects: true });
     if (resp.getResponseCode() !== 200) return false;
@@ -1561,11 +1639,12 @@ function addSpecificEpisodeToQueue(channelUrl, episodeGuid, queue, mainFolder) {
         skipHistory:    true,   // הורד גם אם הורד בעבר
         fromSubscription: false  // ערוץ לא ברשימת המינויים
       });
+      RET.ok = true; RET.channelTitle = chanTitle; RET.episodeTitle = title;
       Logger.log('📌 פרק ספציפי נוסף: '+title);
-      return true;
+      return RET;
     }
   } catch(e) { Logger.log('⚠️  addSpecificEpisode: '+e.message); }
-  return false;
+  return RET;
 }
 
 /** שליחת קטלוג פרקים לערוץ (מפוצל ל-50 פרקים למייל) */
@@ -1599,7 +1678,7 @@ function sendEpisodeCatalogEmail(channelUrl, startTime) {
         var desc  = (item.getChildText('description') || '').replace(/<[^>]*>/g,'').substring(0,150);
         var getBtn = buildMailtoBtn('קבל פרק זה', CTRL_GET_EPISODE,
           JSON.stringify({ channelUrl: channelUrl, episodeGuid: guid }),
-          'שלח מייל זה על מנת להוסיף את הפרק \''+title+'\' מערוץ \''+chanTitle+'\' לרשימת ההורדות. הבקשה תטופל תוך מספר שעות.');
+          'שלח מייל זה על מנת להוסיף את הפרק \''+title+'\' מערוץ \''+chanTitle+'\' לרשימת ההורדות. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE);
         body += '<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;">'
           +'<div style="font-weight:600;margin-bottom:3px;">'+title+'</div>'
           +'<div style="color:#94a3b8;font-size:.8rem;margin-bottom:4px;">'+pdFmt+(dur?' | '+dur:'')+'</div>'
