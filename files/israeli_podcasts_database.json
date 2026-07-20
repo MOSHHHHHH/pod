@@ -40597,5 +40597,77 @@
     "track_count": 4,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1786427623,
+    "title": "פודקאסט \"מראה ש-בורא\" בהנחיית אירית ויינשטיין",
+    "author": "Irit Vainshtein",
+    "rss_url": "https://anchor.fm/s/fe58a454/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9E%D7%A8%D7%90%D7%94-%D7%A9-%D7%91%D7%95%D7%A8%D7%90-%D7%91%D7%94%D7%A0%D7%97%D7%99%D7%99%D7%AA-%D7%90%D7%99%D7%A8%D7%99%D7%AA-%D7%95%D7%99%D7%99%D7%A0%D7%A9%D7%98%D7%99%D7%99%D7%9F/id1786427623?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/5d/37/80/5d3780f2-ae37-9e90-01c8-f3cf208d8baa/mza_587170253976807751.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 25,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6790775965,
+    "title": "מותר בפיך",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/mutarbeficha/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%95%D7%AA%D7%A8-%D7%91%D7%A4%D7%99%D7%9A/id6790775965?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/89/63/ee/8963eea9-750c-250f-dbca-242252dcc5a2/mza_6485857896885809747.jpeg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1601119660,
+    "title": "ליבא בעי - בית מדרש לתורה שבלב",
+    "author": "Liba Baei - ליבא בעי",
+    "rss_url": "https://anchor.fm/s/76a74718/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9C%D7%99%D7%91%D7%90-%D7%91%D7%A2%D7%99-%D7%91%D7%99%D7%AA-%D7%9E%D7%93%D7%A8%D7%A9-%D7%9C%D7%AA%D7%95%D7%A8%D7%94-%D7%A9%D7%91%D7%9C%D7%91/id1601119660?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e1/61/b7/e161b77e-33e2-8f34-7d03-cbce7328245a/mza_13223349379268712102.jpg/600x600bb.jpg",
+    "primary_genre": "Non-Profit",
+    "track_count": 229,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1649090165,
+    "title": "שיחות הר\"ן | עם הרב אבישי",
+    "author": "בית המדרש לנשים מגדל עז",
+    "rss_url": "http://rss.castbox.fm/everest/a1dd32badc924dacbe1ae1109b83244a.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%97%D7%95%D7%AA-%D7%94%D7%A8-%D7%9F-%D7%A2%D7%9D-%D7%94%D7%A8%D7%91-%D7%90%D7%91%D7%99%D7%A9%D7%99/id1649090165?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/75/1d/f6/751df65d-10d8-5688-8989-27489fc8fb57/mza_18209664838254288781.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 43,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1896771528,
+    "title": "שיעורי הגאון רב נתן רוטמן",
+    "author": "Isaac",
+    "rss_url": "https://anchor.fm/s/112fe8644/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%A2%D7%95%D7%A8%D7%99-%D7%94%D7%92%D7%90%D7%95%D7%9F-%D7%A8%D7%91-%D7%A0%D7%AA%D7%9F-%D7%A8%D7%95%D7%98%D7%9E%D7%9F/id1896771528?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d3/08/9c/d3089cd7-84d8-ce37-0129-a2aa3ddbec13/mza_12496813093492451584.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 52,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1792680997,
+    "title": "בטוחה ועצמה- עם ענבר כהן כלף",
+    "author": "inbar",
+    "rss_url": "https://anchor.fm/s/fff21bc4/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%98%D7%95%D7%97%D7%94-%D7%95%D7%A2%D7%A6%D7%9E%D7%94-%D7%A2%D7%9D-%D7%A2%D7%A0%D7%91%D7%A8-%D7%9B%D7%94%D7%9F-%D7%9B%D7%9C%D7%A3/id1792680997?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/36/54/5d/36545dd5-4520-239b-0472-24be747225b1/mza_15854436115046109189.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
