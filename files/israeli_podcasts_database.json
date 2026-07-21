@@ -40669,5 +40669,53 @@
     "track_count": 8,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1279311390,
+    "title": "אפלוג - פודקאסט על אפל",
+    "author": "רפ״י - רשת פודקאסטים ישראלית",
+    "rss_url": "https://feeds.captivate.fm/applog/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%A4%D7%9C%D7%95%D7%92-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A2%D7%9C-%D7%90%D7%A4%D7%9C/id1279311390?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/7c/3e/62/7c3e6272-8b9f-1183-4a98-909873ad80f8/mza_1897934228765251772.jpg/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 121,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1686387958,
+    "title": "פודקאסט שפל",
+    "author": "כדורגל שפל",
+    "rss_url": "https://anchor.fm/s/e0a17a58/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%A4%D7%9C/id1686387958?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/62/f9/d4/62f9d44b-b68c-b906-ac6b-e4c9e0f435c4/mza_9064779369943668547.jpg/600x600bb.jpg",
+    "primary_genre": "Football",
+    "track_count": 6,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1867153279,
+    "title": "ניתוח לב פתוח עם אמילי עמרוסי",
+    "author": "כיפה",
+    "rss_url": "https://anchor.fm/s/10d9b5d08/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A0%D7%99%D7%AA%D7%95%D7%97-%D7%9C%D7%91-%D7%A4%D7%AA%D7%95%D7%97-%D7%A2%D7%9D-%D7%90%D7%9E%D7%99%D7%9C%D7%99-%D7%A2%D7%9E%D7%A8%D7%95%D7%A1%D7%99/id1867153279?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/6b/59/e4/6b59e4b5-a53a-799a-6048-7f441f7012ae/mza_16220327745652600882.jpg/600x600bb.jpg",
+    "primary_genre": "Personal Journals",
+    "track_count": 21,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6788663182,
+    "title": "אימהות על אמת",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/imahutalemet/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%9E%D7%94%D7%95%D7%AA-%D7%A2%D7%9C-%D7%90%D7%9E%D7%AA/id6788663182?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/ae/e2/e4/aee2e423-f4d8-132b-7f2b-ca42f2377510/mza_6038592507936362511.jpeg/600x600bb.jpg",
+    "primary_genre": "Kids & Family",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
