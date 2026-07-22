@@ -40717,5 +40717,53 @@
     "track_count": 1,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1620891294,
+    "title": "Women AI פודקאסט podcasts",
+    "author": "WOMEN AI",
+    "rss_url": "https://anchor.fm/s/8a467d48/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/women-ai-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-podcasts/id1620891294?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/09/e2/76/09e27671-645e-353a-8521-bb80aa0bf3cb/mza_5412404649378605522.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 68,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1704555159,
+    "title": "שיח בשדה - פודקאסט מבית ישיבת שיח יצחק",
+    "author": "ישיבת שיח יצחק",
+    "rss_url": "https://anchor.fm/s/113a12070/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%97-%D7%91%D7%A9%D7%93%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9E%D7%91%D7%99%D7%AA-%D7%99%D7%A9%D7%99%D7%91%D7%AA-%D7%A9%D7%99%D7%97-%D7%99%D7%A6%D7%97%D7%A7/id1704555159?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/85/45/7b/85457b2c-70f9-d7dc-99c6-3399a1e51e3c/mza_3724704461435665193.jpg/600x600bb.jpg",
+    "primary_genre": "Philosophy",
+    "track_count": 16,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1708376865,
+    "title": "יומן מלחמה",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/mishpachayomanmilchama/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%99%D7%95%D7%9E%D7%9F-%D7%9E%D7%9C%D7%97%D7%9E%D7%94/id1708376865?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/ed/11/c3/ed11c34c-fe84-7e50-b827-de1e71876b72/mza_18238649487512966706.jpeg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 5,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1730898502,
+    "title": "בגובה האוזניים",
+    "author": "רדיו קול רגע",
+    "rss_url": "https://anchor.fm/s/f22c2f0c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%92%D7%95%D7%91%D7%94-%D7%94%D7%90%D7%95%D7%96%D7%A0%D7%99%D7%99%D7%9D/id1730898502?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/36/53/f6/3653f6d6-7817-7352-db67-c4880c9a0e8b/mza_15382421661960641494.jpg/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 4,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
