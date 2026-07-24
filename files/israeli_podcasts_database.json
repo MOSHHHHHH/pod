@@ -40825,5 +40825,53 @@
     "track_count": 63,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1548348337,
+    "title": "מאזן הכוחות - פודקאסט עמותת מתייעלים",
+    "author": "Mityaalim",
+    "rss_url": "https://anchor.fm/s/4773a2fc/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%90%D7%96%D7%9F-%D7%94%D7%9B%D7%95%D7%97%D7%95%D7%AA-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A2%D7%9E%D7%95%D7%AA%D7%AA-%D7%9E%D7%AA%D7%99%D7%99%D7%A2%D7%9C%D7%99%D7%9D/id1548348337?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/4a/a1/dc/4aa1dc72-eafe-94bd-addd-aeb1cd7f9641/mza_13219321520237659519.jpg/600x600bb.jpg",
+    "primary_genre": "Non-Profit",
+    "track_count": 66,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1601614871,
+    "title": "פודקאסט ההון סיכון",
+    "author": "קול האוניברסיטה | AudioVersity",
+    "rss_url": "https://1062fm.co.il/wp-json/idc/v1/itunes/4725",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%94%D7%95%D7%9F-%D7%A1%D7%99%D7%9B%D7%95%D7%9F/id1601614871?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/09/fa/11/09fa11dc-e527-2578-b57c-ca724e330d2d/mza_13875776548630968565.jpg/600x600bb.jpg",
+    "primary_genre": "Careers",
+    "track_count": 54,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1896946372,
+    "title": "עושות בית ספר",
+    "author": "שני וורנר ונעמה ששון",
+    "rss_url": "https://anchor.fm/s/11283cd14/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%95%D7%A9%D7%95%D7%AA-%D7%91%D7%99%D7%AA-%D7%A1%D7%A4%D7%A8/id1896946372?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/53/59/0a/53590a49-b254-bbef-a236-b51e5c87c07c/mza_8671350461916121505.jpg/600x600bb.jpg",
+    "primary_genre": "Parenting",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1782854461,
+    "title": "שמעו קטע",
+    "author": "בית הפודיום",
+    "rss_url": "https://feeds.megaphone.fm/POLTD5789873631",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%9E%D7%A2%D7%95-%D7%A7%D7%98%D7%A2/id1782854461?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/3d/7c/b6/3d7cb60c-471d-1608-e9b1-faac3a2ac0b9/mza_16115169283880935466.jpg/600x600bb.jpg",
+    "primary_genre": "Stand-Up Comedy",
+    "track_count": 13,
+    "content_advisory": null,
+    "country": "ISR"
   }
 ]
