@@ -40873,5 +40873,65 @@
     "track_count": 13,
     "content_advisory": null,
     "country": "ISR"
+  },
+  {
+    "id": 1788888786,
+    "title": "ONE Podcasts - פודקאסט ליגת העל",
+    "author": "ONE PODCASTS",
+    "rss_url": "https://www.omnycontent.com/d/playlist/ae6ed7c5-9419-4a64-8b67-ae6e00cf868a/e816b4d1-2fbf-416e-8a6d-b25e00978cd8/74e6c32f-07ef-45ba-a38d-b25e00978dfc/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/one-podcasts-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9C%D7%99%D7%92%D7%AA-%D7%94%D7%A2%D7%9C/id1788888786?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/51/b2/87/51b28784-e2cb-e998-2c45-6470ec91b0dc/mza_5466647959316306981.jpg/600x600bb.jpg",
+    "primary_genre": "Sports News",
+    "track_count": 23,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1654920414,
+    "title": "מדיקו פודקאסט - Medico Podcast",
+    "author": "Medical Online",
+    "rss_url": "https://media.rss.com/medico/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%93%D7%99%D7%A7%D7%95-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-medico-podcast/id1654920414?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/2d/58/d9/2d58d980-54bb-aad7-bd5e-21591df02118/mza_15472838844277986403.jpg/600x600bb.jpg",
+    "primary_genre": "Medicine",
+    "track_count": 93,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1792173257,
+    "title": "הפודקאסט של איתמר פליישמן",
+    "author": "itamarfleischmann",
+    "rss_url": "https://feed.podbean.com/itamarfleischmann/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%9C-%D7%90%D7%99%D7%AA%D7%9E%D7%A8-%D7%A4%D7%9C%D7%99%D7%99%D7%A9%D7%9E%D7%9F/id1792173257?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/11/2a/ee/112aeeb4-3493-579f-c05f-9c342b993676/mza_18247353774001395582.jpg/600x600bb.jpg",
+    "primary_genre": "Personal Journals",
+    "track_count": 24,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1853504406,
+    "title": "KZradio הקצה",
+    "author": "KZradio",
+    "rss_url": "https://feed.podbean.com/kzradio/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/kzradio-%D7%94%D7%A7%D7%A6%D7%94/id1853504406?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d5/7e/c4/d57ec404-0966-4cf8-90d1-8505aaea560c/mza_9491671350401971907.png/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 600,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1062683281,
+    "title": "KZradio הקצה",
+    "author": "KZradio",
+    "rss_url": "https://feed.podbean.com/kzradio/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/kzradio-%D7%94%D7%A7%D7%A6%D7%94/id1062683281?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/d3/79/1e/d3791ed5-cefa-eae2-5992-d5b193120a57/mza_13444624023593894274.png/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 600,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
