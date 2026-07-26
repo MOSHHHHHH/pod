@@ -49,7 +49,8 @@ function main(sysFolder, mainFolder) {
   var startTime = new Date();
   Logger.log("🚀 פודקאסטים v2 — " + formatDate(startTime));
 
-  // ── 1. אתחול ──
+  // ── 1. מיזוג קבצי RSS (אם יש כפולים) + אתחול ──
+  mergePodcastsFiles(sysFolder);
   _sysFolder       = sysFolder;
   _downloadHistory = purgeExpiredHistory(loadDownloadHistory(sysFolder));
   _emailsData      = loadEmailsData(sysFolder);
@@ -336,6 +337,92 @@ function sendFailureEmail(item, lastError) {
 // =====================================================================
 // טעינת רשימת RSS מ-Drive (כולל תמיכה ב-N ימים אופציונלי לכל פיד)
 // =====================================================================
+
+// =====================================================================
+// ניהול קובץ podcasts.txt — תמיכה במספר קבצים ומיזוג
+// =====================================================================
+
+/**
+ * קורא את כל קבצי podcasts.txt מהתיקייה, מאחד לאובייקט אחד.
+ * מחזיר { byUrl: {url: {comment, days}}, order: [urls in appearance order] }
+ * עבור כפולי URL — שומר את ה-comment הראשון שנמצא, ואת הימים המרביים.
+ */
+function parsePodcastsFiles(sysFolder) {
+  var byUrl = {}, order = [];
+  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
+  var files = [];
+  while (it.hasNext()) files.push(it.next());
+
+  files.forEach(function(file) {
+    var raw;
+    try {
+      raw = file.getMimeType() === MimeType.GOOGLE_DOCS
+        ? file.getAs('text/plain').getDataAsString('UTF-8')
+        : file.getBlob().getDataAsString('UTF-8');
+    } catch(e) { return; }
+    var lines = raw.split('\n');
+    var pendingComment = null;
+    var i = 0;
+    while (i < lines.length) {
+      var line = lines[i].trim();
+      if (!line)                    { pendingComment = null; i++; continue; }
+      if (line.startsWith('#'))     { pendingComment = line.slice(1).trim(); i++; continue; }
+      if (!line.startsWith('http')) { pendingComment = null; i++; continue; }
+      var days = 7;
+      if (i + 1 < lines.length && /^\d+$/.test(lines[i+1].trim())) {
+        days = parseInt(lines[i+1].trim(), 10); i++;
+      }
+      if (!byUrl[line]) {
+        byUrl[line] = { comment: pendingComment, days: days };
+        order.push(line);
+      } else {
+        // כפול — שמור ימים מרביים, comment ראשון נשמר
+        if (days > byUrl[line].days) byUrl[line].days = days;
+      }
+      pendingComment = null;
+      i++;
+    }
+  });
+  return { byUrl: byUrl, order: order };
+}
+
+/**
+ * מוחק את כל קבצי podcasts.txt הקיימים וכותב קובץ אחד ממוזג.
+ */
+function writeMergedPodcastsFile(sysFolder, merged) {
+  // מחק את כולם
+  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
+  while (it.hasNext()) it.next().setTrashed(true);
+  // כתוב קובץ חדש
+  var lines = ['# רשימת פודקאסטים'];
+  merged.order.forEach(function(url) {
+    var entry = merged.byUrl[url];
+    if (!entry) return;
+    lines.push('');
+    if (entry.comment) lines.push('# ' + entry.comment);
+    lines.push(url);
+    if (entry.days && entry.days !== 7) lines.push(String(entry.days));
+  });
+  sysFolder.createFile(RSS_FILE_NAME, lines.join('\n'), MimeType.PLAIN_TEXT);
+}
+
+/**
+ * ממוזג ומנקה כפולים — רץ בתחילת כל ריצה.
+ * מדפיס ללוג רק אם בוצעה פעולה (יותר מקובץ אחד, או כפולי URL).
+ */
+function mergePodcastsFiles(sysFolder) {
+  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
+  var files = [];
+  while (it.hasNext()) files.push(it.next());
+
+  if (files.length <= 1) return;  // אין מה למזג
+
+  Logger.log("🔀 נמצאו " + files.length + " קבצי " + RSS_FILE_NAME + " — ממזג...");
+  var merged = parsePodcastsFiles(sysFolder);
+  writeMergedPodcastsFile(sysFolder, merged);
+  Logger.log("✅ מיזוג הושלם: " + merged.order.length + " ערוצים ייחודיים בקובץ אחד.");
+}
+
 function loadRssList(sysFolder) {
   var it = sysFolder.getFilesByName(RSS_FILE_NAME);
   if (!it.hasNext()) return [];
@@ -1402,28 +1489,14 @@ function processUnsubscribeEmail(thread, sysFolder, rssList) {
 }
 
 function removeFromPodcastsFile(sysFolder, urlToRemove) {
-  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
-  if (!it.hasNext()) return false;
-  var file    = it.next();
-  var content = file.getMimeType() === MimeType.GOOGLE_DOCS
-    ? file.getAs('text/plain').getDataAsString('UTF-8')
-    : file.getBlob().getDataAsString('UTF-8');
-  var lines = content.split('\n');
-  var out = [], i = 0, removed = false;
-  while (i < lines.length) {
-    if (lines[i].trim() === urlToRemove) {
-      removed = true;
-      // remove preceding comment+empty line
-      while (out.length > 0 && (out[out.length-1].trim() === '' || out[out.length-1].trim().startsWith('#')))
-        out.pop();
-      i++;
-      // skip following days line
-      if (i < lines.length && /^\d+$/.test(lines[i].trim())) i++;
-    } else { out.push(lines[i]); i++; }
+  var merged = parsePodcastsFiles(sysFolder);
+  if (!merged.byUrl[urlToRemove]) return false;
+  delete merged.byUrl[urlToRemove];
+  for (var i = merged.order.length - 1; i >= 0; i--) {
+    if (merged.order[i] === urlToRemove) { merged.order.splice(i, 1); break; }
   }
-  if (!removed) return false;
-  file.setTrashed(true);
-  sysFolder.createFile(RSS_FILE_NAME, out.join('\n'), MimeType.PLAIN_TEXT);
+  writeMergedPodcastsFile(sysFolder, merged);
+  Logger.log("🗑️  ערוץ הוסר מהרשימה: " + urlToRemove);
   return true;
 }
 
@@ -1450,20 +1523,13 @@ function processSubscribeEmail(thread, sysFolder, rssList, mainFolder, startTime
 }
 
 function addToPodcastsFile(sysFolder, url, comment, days) {
-  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
-  var existing = it.hasNext() ? it.next() : null;
-  var content  = existing
-    ? (existing.getMimeType() === MimeType.GOOGLE_DOCS
-        ? existing.getAs('text/plain').getDataAsString('UTF-8')
-        : existing.getBlob().getDataAsString('UTF-8'))
-    : '';
-  var lines = content.trim().split('\n');
-  lines.push('');
-  if (comment) lines.push('# ' + comment);
-  lines.push(url);
-  if (days && days !== 7) lines.push(String(days));
-  if (existing) existing.setTrashed(true);
-  sysFolder.createFile(RSS_FILE_NAME, lines.join('\n'), MimeType.PLAIN_TEXT);
+  var merged = parsePodcastsFiles(sysFolder);
+  if (!merged.byUrl[url]) {
+    merged.byUrl[url] = { comment: comment || null, days: days || 7 };
+    merged.order.push(url);
+    Logger.log("📋 ערוץ חדש נוסף לרשימה: " + url);
+  }
+  writeMergedPodcastsFile(sysFolder, merged);
 }
 
 
