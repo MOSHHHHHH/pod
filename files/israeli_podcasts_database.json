@@ -40933,5 +40933,41 @@
     "track_count": 600,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1662272022,
+    "title": "הגאון והבלגי",
+    "author": "Michael Kolomenkin & Carlo Rubinstein",
+    "rss_url": "https://anchor.fm/s/d8f55f04/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%92%D7%90%D7%95%D7%9F-%D7%95%D7%94%D7%91%D7%9C%D7%92%D7%99/id1662272022?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/b1/8e/51/b18e518e-1f13-e1e6-0d2f-b09530a576de/mza_16501103676912672148.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 19,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1663692049,
+    "title": "בחדרי מאמרים",
+    "author": "Shaked Zychlinski and Ophir Sarusi",
+    "rss_url": "https://shakedzy.xyz/jc-podcast/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%97%D7%93%D7%A8%D7%99-%D7%9E%D7%90%D7%9E%D7%A8%D7%99%D7%9D/id1663692049?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/05/e6/80/05e68005-04d0-bc80-f342-deef195c24b6/mza_7776180914318793895.jpg/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 4,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1644489760,
+    "title": "גם זה יעבור",
+    "author": "רדיו על הגל",
+    "rss_url": "https://radio.neurim.org.il/feed/podcast/%D7%92%D7%9D-%D7%96%D7%94-%D7%99%D7%A2%D7%91%D7%95%D7%A8/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%92%D7%9D-%D7%96%D7%94-%D7%99%D7%A2%D7%91%D7%95%D7%A8/id1644489760?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/27/9a/7d/279a7db9-0ceb-5018-7186-b42249a2eb35/mza_1112447353289341460.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
