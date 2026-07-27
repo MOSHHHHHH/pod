@@ -40969,5 +40969,41 @@
     "track_count": 10,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1834755158,
+    "title": "כלב טוב - פודקאסט ללא מחסומים",
+    "author": "כלב טוב",
+    "rss_url": "https://anchor.fm/s/107c52a30/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9B%D7%9C%D7%91-%D7%98%D7%95%D7%91-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%9C%D7%9C%D7%90-%D7%9E%D7%97%D7%A1%D7%95%D7%9E%D7%99%D7%9D/id1834755158?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b4/33/56/b43356d0-64a6-ca32-3379-d2932bccf6ec/mza_4137362124732547624.jpg/600x600bb.jpg",
+    "primary_genre": "Pets & Animals",
+    "track_count": 5,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1536826223,
+    "title": "מכון בן גוריון לחקר ישראל והציונות- BGRI",
+    "author": "BGRI podcast",
+    "rss_url": "https://anchor.fm/s/3c858d9c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%9B%D7%95%D7%9F-%D7%91%D7%9F-%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%9F-%D7%9C%D7%97%D7%A7%D7%A8-%D7%99%D7%A9%D7%A8%D7%90%D7%9C-%D7%95%D7%94%D7%A6%D7%99%D7%95%D7%A0%D7%95%D7%AA-bgri/id1536826223?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts114/v4/a6/3c/23/a63c23ab-6434-c00f-976a-8f5d111b07c8/mza_2271783310149242429.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 7,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1887845218,
+    "title": "השורה התחתונה",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/hashurahatachtona/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A9%D7%95%D7%A8%D7%94-%D7%94%D7%AA%D7%97%D7%AA%D7%95%D7%A0%D7%94/id1887845218?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/5c/34/6b/5c346bb6-5ff4-9817-2bdc-8de1ffdb18c8/mza_10068663962657281459.png/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 5,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
