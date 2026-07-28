@@ -41005,5 +41005,29 @@
     "track_count": 5,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1849138572,
+    "title": "שניים הפוך",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/shnaimafhooch/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%A0%D7%99%D7%99%D7%9D-%D7%94%D7%A4%D7%95%D7%9A/id1849138572?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a6/0e/69/a60e6946-aff8-6280-b6c4-47217d954e67/mza_11010893941089258607.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 51,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1734040771,
+    "title": "דף יומי - בבא מציעא",
+    "author": "Yeshivat Har Etzion",
+    "rss_url": "https://anchor.fm/s/f2f9df4c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%93%D7%A3-%D7%99%D7%95%D7%9E%D7%99-%D7%91%D7%91%D7%90-%D7%9E%D7%A6%D7%99%D7%A2%D7%90/id1734040771?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/05/a5/df/05a5df45-9950-0b12-95cd-5a32e050c199/mza_11457260505424960559.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 117,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
