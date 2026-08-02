@@ -41209,5 +41209,29 @@
     "track_count": 42,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1447040615,
+    "title": "if we will Podcast אם נרצה",
+    "author": "אם נרצה",
+    "rss_url": "https://feed.podbean.com/ifwewill/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/if-we-will-podcast-%D7%90%D7%9D-%D7%A0%D7%A8%D7%A6%D7%94/id1447040615?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/6b/8a/c0/6b8ac048-6b8a-6dab-d397-953d53ce4eb3/mza_1658544342401546684.jpg/600x600bb.jpg",
+    "primary_genre": "Spirituality",
+    "track_count": 37,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1789097259,
+    "title": "לוקץ' והגרג",
+    "author": "רדיו קול רגע",
+    "rss_url": "https://anchor.fm/s/d66d76f4/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9C%D7%95%D7%A7%D7%A5-%D7%95%D7%94%D7%92%D7%A8%D7%92/id1789097259?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/7d/f5/5f/7df55fec-07fa-5572-c5ac-b0328d0253a4/mza_9156158904673052200.jpg/600x600bb.jpg",
+    "primary_genre": "Comedy",
+    "track_count": 107,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
