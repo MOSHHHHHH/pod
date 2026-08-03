@@ -41233,5 +41233,53 @@
     "track_count": 107,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6795898186,
+    "title": "מפגש",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/mifgash/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A4%D7%92%D7%A9/id6795898186?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/81/69/f4/8169f428-9b5e-8a5c-a515-ca41babef861/mza_8254328861822934477.jpeg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1717573215,
+    "title": "איך לקנות בית בישראל",
+    "author": "איך לקנות בית בישראל",
+    "rss_url": "https://anchor.fm/s/ed821d68/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%9A-%D7%9C%D7%A7%D7%A0%D7%95%D7%AA-%D7%91%D7%99%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C/id1717573215?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/c0/74/f2/c074f252-e8b8-a88b-280c-03550bc692c8/mza_9324863885654012218.jpg/600x600bb.jpg",
+    "primary_genre": "How To",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1655628579,
+    "title": "אסותא-טוק",
+    "author": "Radio Tel Aviv",
+    "rss_url": "https://rss.102fm.co.il/rss-feed/get-feed?category=ASUTA",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%A1%D7%95%D7%AA%D7%90-%D7%98%D7%95%D7%A7/id1655628579?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/df/0b/05/df0b059e-224c-113d-9ed2-f03890640ea3/mza_7211682210419526620.png/600x600bb.jpg",
+    "primary_genre": "Arts",
+    "track_count": 25,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1597130428,
+    "title": "קול המשפט",
+    "author": "kolhamishpatcolman",
+    "rss_url": "https://feed.podbean.com/kolhamishpatcolman/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A7%D7%95%D7%9C-%D7%94%D7%9E%D7%A9%D7%A4%D7%98/id1597130428?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/PodcastSource116/v4/7a/a9/7f/7aa97f96-de38-27d5-8917-174d878c5946/3ffa521b-6bff-4c43-bfeb-d98016518e5a.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 83,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
