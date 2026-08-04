@@ -41281,5 +41281,65 @@
     "track_count": 83,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1831945845,
+    "title": "הקוף הירוק - פודקאסט אוהדי מכבי חיפה",
+    "author": "בדרך למשחק",
+    "rss_url": "https://anchor.fm/s/1080dc6dc/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A7%D7%95%D7%A3-%D7%94%D7%99%D7%A8%D7%95%D7%A7-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%90%D7%95%D7%94%D7%93%D7%99-%D7%9E%D7%9B%D7%91%D7%99-%D7%97%D7%99%D7%A4%D7%94/id1831945845?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/5b/c4/08/5bc4081e-5c07-2c14-601c-3a37848fd7c0/mza_16442753816271297650.jpg/600x600bb.jpg",
+    "primary_genre": "Sport",
+    "track_count": 3,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1334708598,
+    "title": "עולים לרשת - פודקאסט הטניס של שלום סיונוב",
+    "author": "הפודקסיה",
+    "rss_url": "https://pinecast.com/feed/olim",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%95%D7%9C%D7%99%D7%9D-%D7%9C%D7%A8%D7%A9%D7%AA-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%98%D7%A0%D7%99%D7%A1-%D7%A9%D7%9C-%D7%A9%D7%9C%D7%95%D7%9D-%D7%A1%D7%99%D7%95%D7%A0%D7%95%D7%91/id1334708598?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f2/11/00/f2110017-d212-2a86-51e4-a90ff6513302/mza_17313439734464334868.jpg/600x600bb.jpg",
+    "primary_genre": "Tennis",
+    "track_count": 312,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1570995526,
+    "title": "פודקאסט האימה של תומר כרמלי",
+    "author": "Tomer Carmeli",
+    "rss_url": "https://feeds.soundcloud.com/users/soundcloud:users:266558358/sounds.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%90%D7%99%D7%9E%D7%94-%D7%A9%D7%9C-%D7%AA%D7%95%D7%9E%D7%A8-%D7%9B%D7%A8%D7%9E%D7%9C%D7%99/id1570995526?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/d4/ae/fc/d4aefca9-9b93-733d-3501-99a69a07271d/mza_16510144261976267591.jpg/600x600bb.jpg",
+    "primary_genre": "Fiction",
+    "track_count": 75,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 6797248717,
+    "title": "שואלת בשביל חברה",
+    "author": "Podcast",
+    "rss_url": "https://anchor.fm/s/1159b2510/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%95%D7%90%D7%9C%D7%AA-%D7%91%D7%A9%D7%91%D7%99%D7%9C-%D7%97%D7%91%D7%A8%D7%94/id6797248717?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/85/89/ec/8589ecf6-21a0-b5ac-d255-0e97d85f615c/mza_7235578141261715482.jpg/600x600bb.jpg",
+    "primary_genre": "Comedy",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6796555646,
+    "title": "הרב בן ציון מוצפי",
+    "author": "הרב בן ציון מוצפי שליט\"א",
+    "rss_url": "https://rabmeireliyahu.github.io/ravmutzafi/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A8%D7%91-%D7%91%D7%9F-%D7%A6%D7%99%D7%95%D7%9F-%D7%9E%D7%95%D7%A6%D7%A4%D7%99/id6796555646?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/63/60/79/636079eb-937f-1cb9-0de9-1d5ab1dc7289/mza_3538904112106270461.jpg/600x600bb.jpg",
+    "primary_genre": "Religion & Spirituality",
+    "track_count": 306,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
