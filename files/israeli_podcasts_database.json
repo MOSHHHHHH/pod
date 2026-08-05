@@ -41341,5 +41341,41 @@
     "track_count": 306,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1624381477,
+    "title": "אגדה ירושלמית",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/mishpachaagadayerushtalmit/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%92%D7%93%D7%94-%D7%99%D7%A8%D7%95%D7%A9%D7%9C%D7%9E%D7%99%D7%AA/id1624381477?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/0d/f1/38/0df138f8-534a-b154-0c82-2db3a9b5fb51/mza_6434993008991792942.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 18,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1678710982,
+    "title": "ללטש את היהלום הפנימי",
+    "author": "Vered Grenadir fruchtman",
+    "rss_url": "https://anchor.fm/s/824e0908/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9C%D7%9C%D7%98%D7%A9-%D7%90%D7%AA-%D7%94%D7%99%D7%94%D7%9C%D7%95%D7%9D-%D7%94%D7%A4%D7%A0%D7%99%D7%9E%D7%99/id1678710982?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/18/43/90/18439047-59d4-2367-986a-88228c5d58b8/mza_18366447505844643284.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 174,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1867493052,
+    "title": "AI&I",
+    "author": "מבית המרכז האקדמי פרס -PeresCast פרסקאסט",
+    "rss_url": "https://feeds.transistor.fm/ai-i",
+    "apple_url": "https://podcasts.apple.com/il/podcast/ai-i/id1867493052?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d5/da/e9/d5dae91f-b7a9-f367-6171-9a668a7d10fe/mza_5383596887862645902.jpg/600x600bb.jpg",
+    "primary_genre": "Careers",
+    "track_count": 4,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
