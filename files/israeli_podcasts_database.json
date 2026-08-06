@@ -41377,5 +41377,77 @@
     "track_count": 4,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6797922805,
+    "title": "מעשה אדם - מנהיגות הומניסטית בעידן דיגיטלי",
+    "author": "בוגרי ובוגרות קרן מנדל",
+    "rss_url": "https://anchor.fm/s/10ef4d47c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A2%D7%A9%D7%94-%D7%90%D7%93%D7%9D-%D7%9E%D7%A0%D7%94%D7%99%D7%92%D7%95%D7%AA-%D7%94%D7%95%D7%9E%D7%A0%D7%99%D7%A1%D7%98%D7%99%D7%AA-%D7%91%D7%A2%D7%99%D7%93%D7%9F-%D7%93%D7%99%D7%92%D7%99%D7%98%D7%9C%D7%99/id6797922805?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/43/a4/dd/43a4dd7d-21f7-7955-cf0c-d7ccbe84179c/mza_16995700096768333149.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 7,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1476390346,
+    "title": "איזה בוקר",
+    "author": "רדיו חיפה",
+    "rss_url": "https://1075.fm/mchxml?prog=1405",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%96%D7%94-%D7%91%D7%95%D7%A7%D7%A8/id1476390346?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/ff/c3/4b/ffc34bba-6ae5-1fff-6309-38dba811bdb1/mza_1297849639866652850.jpg/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 1251,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1489386356,
+    "title": "הגלגול האחרון",
+    "author": "הטחנה | רדיו בנימינה",
+    "rss_url": "https://feeds.transistor.fm/593d750c-b106-43de-9166-c7b627c494cd",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%92%D7%9C%D7%92%D7%95%D7%9C-%D7%94%D7%90%D7%97%D7%A8%D7%95%D7%9F/id1489386356?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d0/f0/a1/d0f0a125-d689-c8cc-a40b-e83b2d8c951c/mza_2050751801225217052.jpg/600x600bb.jpg",
+    "primary_genre": "Music Commentary",
+    "track_count": 53,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6797880413,
+    "title": "משוטטים",
+    "author": "מדברים עברית",
+    "rss_url": "https://feeds.captivate.fm/meshotetim/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A9%D7%95%D7%98%D7%98%D7%99%D7%9D/id6797880413?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/44/22/fb/4422fb40-d70a-9315-4b0e-9b75f6a69a34/mza_3142432160303238195.jpg/600x600bb.jpg",
+    "primary_genre": "Books",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6797374466,
+    "title": "הרב בניהו שמואלי",
+    "author": "הרב בניהו שמואלי",
+    "rss_url": "https://rabmeireliyahu.github.io/ravshmueli/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A8%D7%91-%D7%91%D7%A0%D7%99%D7%94%D7%95-%D7%A9%D7%9E%D7%95%D7%90%D7%9C%D7%99/id6797374466?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/f0/32/57/f032570b-d6f6-a903-69e7-526a67eef0e2/mza_9338483593008656754.jpg/600x600bb.jpg",
+    "primary_genre": "Religion & Spirituality",
+    "track_count": 129,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1355374069,
+    "title": "הפודקאסט של התנ״ך",
+    "author": "ליאורה רביד",
+    "rss_url": "https://feed.podbean.com/biblicaltimes/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%9C-%D7%94%D7%AA%D7%A0-%D7%9A/id1355374069?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/08/a3/09/08a309dd-5cfa-7bc3-757f-78838fc2477f/mza_12927219314101513832.jpg/600x600bb.jpg",
+    "primary_genre": "History",
+    "track_count": 116,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
