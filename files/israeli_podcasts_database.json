@@ -41449,5 +41449,29 @@
     "track_count": 116,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1888952561,
+    "title": "מי האיש",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/mihaish/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%99-%D7%94%D7%90%D7%99%D7%A9/id1888952561?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/92/f1/6c/92f16c88-9ac4-37fd-adbe-27aa0b01b1fa/mza_14487306925882127919.jpeg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 12,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1662363397,
+    "title": "זה נדיר ברדיו תל אביב",
+    "author": "Radio Tel Aviv",
+    "rss_url": "https://rss.102fm.co.il/rss-feed/get-feed?category=ADI",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%96%D7%94-%D7%A0%D7%93%D7%99%D7%A8-%D7%91%D7%A8%D7%93%D7%99%D7%95-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/id1662363397?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/af/a2/ed/afa2edd2-9cb3-55f4-e67a-7876f1720c8d/mza_12363264998615599175.png/600x600bb.jpg",
+    "primary_genre": "Arts",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
