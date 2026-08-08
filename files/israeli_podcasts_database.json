@@ -41473,5 +41473,29 @@
     "track_count": 10,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1839240292,
+    "title": "מנפצים את תקרת הזכוכית",
+    "author": "SivanInvest | סיון השקעות",
+    "rss_url": "https://anchor.fm/s/1093f852c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A0%D7%A4%D7%A6%D7%99%D7%9D-%D7%90%D7%AA-%D7%AA%D7%A7%D7%A8%D7%AA-%D7%94%D7%96%D7%9B%D7%95%D7%9B%D7%99%D7%AA/id1839240292?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/e9/34/6c/e9346cdb-3fa0-4930-ebef-26f6edf4dc58/mza_7648304713722574510.jpg/600x600bb.jpg",
+    "primary_genre": "Investing",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1625619085,
+    "title": "ארכיון | מהכי עמוק להכי רחוק",
+    "author": "reut zvi",
+    "rss_url": "https://anchor.fm/s/86f74690/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%A8%D7%9B%D7%99%D7%95%D7%9F-%D7%9E%D7%94%D7%9B%D7%99-%D7%A2%D7%9E%D7%95%D7%A7-%D7%9C%D7%94%D7%9B%D7%99-%D7%A8%D7%97%D7%95%D7%A7/id1625619085?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/78/fd/07/78fd0780-6ac9-333e-509d-c54dff235dd2/mza_14568548316952010327.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 26,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
