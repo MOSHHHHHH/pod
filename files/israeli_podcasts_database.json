@@ -41557,5 +41557,65 @@
     "track_count": 32,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1605641561,
+    "title": "צריכה לזה פודקאסט",
+    "author": "יערה בתר פוקר",
+    "rss_url": "https://feed.podbean.com/needapod/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A6%D7%A8%D7%99%D7%9B%D7%94-%D7%9C%D7%96%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98/id1605641561?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/1d/5e/eb/1d5eeb0d-f491-47d8-f7ea-ae232f90a765/mza_13448747202886394988.jpg/600x600bb.jpg",
+    "primary_genre": "TV & Film",
+    "track_count": 4,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1813149211,
+    "title": "בין השורות - פודקאסט בין חברות",
+    "author": "רינה זלדיץ וטל גרינזייד | פודקאסטודיו",
+    "rss_url": "https://anchor.fm/s/104a3f4d0/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%99%D7%9F-%D7%94%D7%A9%D7%95%D7%A8%D7%95%D7%AA-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%91%D7%99%D7%9F-%D7%97%D7%91%D7%A8%D7%95%D7%AA/id1813149211?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/59/9f/ab/599fab7b-a7b8-2e26-de17-8552d1d36f09/mza_1531232783586645937.jpg/600x600bb.jpg",
+    "primary_genre": "Relationships",
+    "track_count": 4,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 6798608696,
+    "title": "סדרת חינוך",
+    "author": "omec studio",
+    "rss_url": "https://anchor.fm/s/115b74e70/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A1%D7%93%D7%A8%D7%AA-%D7%97%D7%99%D7%A0%D7%95%D7%9A/id6798608696?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/58/cc/6e/58cc6ef6-c05c-a020-ea20-223b9cdb1741/mza_17080649565847021626.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6799596249,
+    "title": "מה הקשר | פודקאסט על הורות ושינה בגישה ההיקשרותית",
+    "author": "גלי פלק, טל שדה המנרמלת",
+    "rss_url": "https://anchor.fm/s/115d22ee8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%94-%D7%94%D7%A7%D7%A9%D7%A8-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A2%D7%9C-%D7%94%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%A0%D7%94-%D7%91%D7%92%D7%99%D7%A9%D7%94-%D7%94%D7%94%D7%99%D7%A7%D7%A9%D7%A8%D7%95%D7%AA%D7%99%D7%AA/id6799596249?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/fd/a1/00/fda1007b-4251-7ff0-1faa-fa64dbf3d2e7/mza_5704618264587207890.jpg/600x600bb.jpg",
+    "primary_genre": "Parenting",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6798606501,
+    "title": "חדר אומנים",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/chadaromanim/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%97%D7%93%D7%A8-%D7%90%D7%95%D7%9E%D7%A0%D7%99%D7%9D/id6798606501?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/21/c9/65/21c965ce-74c5-03f1-a795-12c99b9c2c39/mza_1581868290038985361.jpeg/600x600bb.jpg",
+    "primary_genre": "Music Interviews",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
