@@ -41617,5 +41617,53 @@
     "track_count": 1,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1788898048,
+    "title": "פודקאסט סוף התיכון 🎓",
+    "author": "Omer meir עומר מאיר",
+    "rss_url": "https://anchor.fm/s/ff24e2a8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A1%D7%95%D7%A3-%D7%94%D7%AA%D7%99%D7%9B%D7%95%D7%9F/id1788898048?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fd/1e/8b/fd1e8b53-5499-b3de-52e0-6ca06145ecc2/mza_4545901752717440447.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 34,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1855307659,
+    "title": "בית הכנסת כתר ראובן",
+    "author": "בית הכנסת כתר ראובן",
+    "rss_url": "https://feeds.transistor.fm/2399030f-2879-407a-879e-6755b6ce4f31",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%99%D7%AA-%D7%94%D7%9B%D7%A0%D7%A1%D7%AA-%D7%9B%D7%AA%D7%A8-%D7%A8%D7%90%D7%95%D7%91%D7%9F/id1855307659?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a7/5d/29/a75d2952-58ee-0286-4cde-5abd857f973b/mza_11483910368499083806.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 116,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6799624675,
+    "title": "בגג של יצחקי",
+    "author": "אסף יצחקי",
+    "rss_url": "https://feeds.transistor.fm/7491e803-4380-4b16-af05-0e30d031de2e",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%92%D7%92-%D7%A9%D7%9C-%D7%99%D7%A6%D7%97%D7%A7%D7%99/id6799624675?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/79/49/be/7949be8c-9d76-1330-03ce-839436eac42f/mza_1125792552170126124.jpg/600x600bb.jpg",
+    "primary_genre": "Comedy Interviews",
+    "track_count": 32,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 1767318928,
+    "title": "מעסיקים-אותנו-עם-עו-ד-נעמה-שבתאי-בכר",
+    "author": "Radio Tel Aviv",
+    "rss_url": "https://rss.102fm.co.il/rss-feed/get-feed?category=BACHAR",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A2%D7%A1%D7%99%D7%A7%D7%99%D7%9D-%D7%90%D7%95%D7%AA%D7%A0%D7%95-%D7%A2%D7%9D-%D7%A2%D7%95-%D7%93-%D7%A0%D7%A2%D7%9E%D7%94-%D7%A9%D7%91%D7%AA%D7%90%D7%99-%D7%91%D7%9B%D7%A8/id1767318928?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/60/75/5d/60755d52-518a-6950-ab57-e53dcbaa3b28/mza_5150507576594213441.jpg/600x600bb.jpg",
+    "primary_genre": "Arts",
+    "track_count": 11,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
