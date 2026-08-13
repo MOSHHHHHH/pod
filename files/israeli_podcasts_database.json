@@ -41737,5 +41737,65 @@
     "track_count": 17,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1754834447,
+    "title": "גילאון וגורדון פודקאסט ההשקעות",
+    "author": "דרור גילאון ונדב גורדון",
+    "rss_url": "https://anchor.fm/s/10f86f834/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%92%D7%99%D7%9C%D7%90%D7%95%D7%9F-%D7%95%D7%92%D7%95%D7%A8%D7%93%D7%95%D7%9F-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%94%D7%A9%D7%A7%D7%A2%D7%95%D7%AA/id1754834447?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/51/81/03/51810346-6ef0-78a4-b1e3-edc60d7c6992/mza_14950736147415064033.jpeg/600x600bb.jpg",
+    "primary_genre": "Investing",
+    "track_count": 97,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1597348902,
+    "title": "מארוול פלוס - פודקאסט על היקום הקולנועי של מארוול | Marvel Plus - Marvel Cinematic Un",
+    "author": "מארוול+ | Marvel+",
+    "rss_url": "https://anchor.fm/s/b7907524/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%90%D7%A8%D7%95%D7%95%D7%9C-%D7%A4%D7%9C%D7%95%D7%A1-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A2%D7%9C-%D7%94%D7%99%D7%A7%D7%95%D7%9D-%D7%94%D7%A7%D7%95%D7%9C%D7%A0%D7%95%D7%A2%D7%99-%D7%A9%D7%9C-%D7%9E%D7%90%D7%A8%D7%95%D7%95%D7%9C-marvel/id1597348902?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/8a/a9/0b/8aa90bdb-b8f1-b154-b7f0-84dd4a455233/mza_2597626619690752698.jpg/600x600bb.jpg",
+    "primary_genre": "TV & Film",
+    "track_count": 200,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1531341802,
+    "title": "לשם שמיים - פודקאסט התרבות של בית הנסן וערב רב",
+    "author": "Hansen House",
+    "rss_url": "https://rss.buzzsprout.com/1337275.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9C%D7%A9%D7%9D-%D7%A9%D7%9E%D7%99%D7%99%D7%9D-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%AA%D7%A8%D7%91%D7%95%D7%AA-%D7%A9%D7%9C-%D7%91%D7%99%D7%AA-%D7%94%D7%A0%D7%A1%D7%9F-%D7%95%D7%A2%D7%A8%D7%91-%D7%A8%D7%91/id1531341802?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/0c/a3/7f/0ca37faf-97aa-96ee-0063-442a13e5c688/mza_18340733847611563113.jpg/600x600bb.jpg",
+    "primary_genre": "Design",
+    "track_count": 26,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1793983348,
+    "title": "שומר קאסט",
+    "author": "רדיו חיפה 107.5",
+    "rss_url": "https://anchor.fm/s/100b64d8c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%95%D7%9E%D7%A8-%D7%A7%D7%90%D7%A1%D7%98/id1793983348?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ff/7f/0a/ff7f0aaa-c8f8-a210-38a7-9f77ec6fc2b6/mza_13079771338242181287.jpg/600x600bb.jpg",
+    "primary_genre": "Entertainment News",
+    "track_count": 20,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1523890408,
+    "title": "The Rebbe’s advice  - Rabbi Chaim Wolosow",
+    "author": "Rabbi Chaim Wolosow",
+    "rss_url": "https://www.torahrecordings.com/show/the-rebbes-advice/apple_feed/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/the-rebbes-advice-rabbi-chaim-wolosow/id1523890408?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/58/71/0d/58710d0f-7585-fda5-db06-a78c0b3750f1/mza_6145227892800077503.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 108,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
