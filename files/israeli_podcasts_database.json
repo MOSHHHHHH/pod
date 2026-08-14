@@ -41797,5 +41797,53 @@
     "track_count": 108,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1896649865,
+    "title": "עולים להתקפה - פודקאסט הפועל באר שבע ברדיו דרום",
+    "author": "Radio Darom",
+    "rss_url": "https://anchor.fm/s/d8a0cef8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%95%D7%9C%D7%99%D7%9D-%D7%9C%D7%94%D7%AA%D7%A7%D7%A4%D7%94-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%94%D7%A4%D7%95%D7%A2%D7%9C-%D7%91%D7%90%D7%A8-%D7%A9%D7%91%D7%A2-%D7%91%D7%A8%D7%93%D7%99%D7%95-%D7%93%D7%A8%D7%95%D7%9D/id1896649865?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/96/dd/85/96dd8594-77df-bd91-173c-bad6f3e24ad3/mza_14654861135915852209.jpg/600x600bb.jpg",
+    "primary_genre": "Football",
+    "track_count": 128,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1525436316,
+    "title": "שומעים כוכבים - פודקאסט על שמי הלילה",
+    "author": "שומעים כוכבים | BGU Radio",
+    "rss_url": "https://anchor.fm/s/2e4e3d28/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%95%D7%9E%D7%A2%D7%99%D7%9D-%D7%9B%D7%95%D7%9B%D7%91%D7%99%D7%9D-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A2%D7%9C-%D7%A9%D7%9E%D7%99-%D7%94%D7%9C%D7%99%D7%9C%D7%94/id1525436316?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/73/c2/da/73c2da08-6339-e919-cd24-1806a0b68e74/mza_6022794711362475618.jpg/600x600bb.jpg",
+    "primary_genre": "Astronomy",
+    "track_count": 7,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6797369754,
+    "title": "הרב ישראל אברג'ל",
+    "author": "הרב ישראל אברג'ל שליט\"א",
+    "rss_url": "https://rabmeireliyahu.github.io/abergel/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A8%D7%91-%D7%99%D7%A9%D7%A8%D7%90%D7%9C-%D7%90%D7%91%D7%A8%D7%92%D7%9C/id6797369754?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/7b/63/ae/7b63ae42-0355-ca7a-ecc2-41d665b2241d/mza_16974367169117937166.jpg/600x600bb.jpg",
+    "primary_genre": "Religion & Spirituality",
+    "track_count": 147,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1661632322,
+    "title": "רדיו ישראלה",
+    "author": "ישראלה - הבית החדש של המוסיקה בישראל",
+    "rss_url": "https://anchor.fm/s/d69ddd30/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A8%D7%93%D7%99%D7%95-%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%94/id1661632322?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/b3/a3/d8/b3a3d817-ff47-5df0-48c4-18433f50fb48/mza_1394740859388335141.jpg/600x600bb.jpg",
+    "primary_genre": "Music Interviews",
+    "track_count": 7,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
