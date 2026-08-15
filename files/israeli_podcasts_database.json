@@ -41845,5 +41845,65 @@
     "track_count": 7,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1529742164,
+    "title": "בובקאסט",
+    "author": "Boobcast",
+    "rss_url": "https://anchor.fm/s/307701c0/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%95%D7%91%D7%A7%D7%90%D7%A1%D7%98/id1529742164?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/5a/00/22/5a002282-7c1c-293d-89e5-a580cc5405c5/mza_9573247502291153842.jpg/600x600bb.jpg",
+    "primary_genre": "Careers",
+    "track_count": 47,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1355643129,
+    "title": "קוואמי",
+    "author": "גלגלצ",
+    "rss_url": "https://www.omnycontent.com/d/playlist/6dcbc33f-1fb6-49de-9ae2-ad8a00c01523/75729d27-226f-4912-8920-add601016462/68223971-3931-4455-96d8-add60102f323/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A7%D7%95%D7%95%D7%90%D7%9E%D7%99/id1355643129?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/3e/aa/ae/3eaaae68-01ef-a489-d577-e19190cd04f4/mza_12690343932602626338.jpg/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 969,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1765865362,
+    "title": "כריס מורנה יוניברס",
+    "author": "יעל ביחובסקי ואופיר מרגוליס",
+    "rss_url": "https://anchor.fm/s/f14f80e8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9B%D7%A8%D7%99%D7%A1-%D7%9E%D7%95%D7%A8%D7%A0%D7%94-%D7%99%D7%95%D7%A0%D7%99%D7%91%D7%A8%D7%A1/id1765865362?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a7/0b/2d/a70b2dd2-d1ab-d15e-f4d1-eeceefd211b4/mza_864577921379827897.jpg/600x600bb.jpg",
+    "primary_genre": "TV Reviews",
+    "track_count": 120,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6800295628,
+    "title": "מחוץ לפרוטוקול",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/protokol/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%97%D7%95%D7%A5-%D7%9C%D7%A4%D7%A8%D7%95%D7%98%D7%95%D7%A7%D7%95%D7%9C/id6800295628?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/9f/13/cc/9f13cc43-8dad-fbf9-d284-f49dae97a298/mza_18430028850397854626.jpeg/600x600bb.jpg",
+    "primary_genre": "Politics",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1656266834,
+    "title": "לאתגר את הבלתי אפשרי - הפודקאסט של בית החולים השיקומי רעות תל אביב",
+    "author": "בית החולים השיקומי רעות תל אביב",
+    "rss_url": "https://www.podcastico.net/reut.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9C%D7%90%D7%AA%D7%92%D7%A8-%D7%90%D7%AA-%D7%94%D7%91%D7%9C%D7%AA%D7%99-%D7%90%D7%A4%D7%A9%D7%A8%D7%99-%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%9C-%D7%91%D7%99%D7%AA-%D7%94%D7%97%D7%95%D7%9C%D7%99%D7%9D-%D7%94%D7%A9%D7%99%D7%A7%D7%95%D7%9E%D7%99/id1656266834?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/b7/06/f7/b706f776-3cc5-88a7-ba80-b725bdbe8360/mza_7847440791881020346.jpg/600x600bb.jpg",
+    "primary_genre": "Health & Fitness",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
