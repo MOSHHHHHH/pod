@@ -42013,5 +42013,29 @@
     "track_count": 6,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1611021099,
+    "title": "קול הדרך לרפואה",
+    "author": "Michal Rosenzweig",
+    "rss_url": "https://feed.podbean.com/KolHaDerechLeRefua/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A7%D7%95%D7%9C-%D7%94%D7%93%D7%A8%D7%9A-%D7%9C%D7%A8%D7%A4%D7%95%D7%90%D7%94/id1611021099?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/cd/37/d3/cd37d3c2-1a10-d379-8e88-d04043d3abd7/mza_17033676296354962651.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6787898883,
+    "title": "מטמורפוזה - רוח משנה מציאות | שרי אריסון",
+    "author": "רדיו מהות החיים | EOL Radio",
+    "rss_url": "https://www.omnycontent.com/d/playlist/178d72a7-a889-4132-8008-a5cc014ed109/4c098e0e-d7bf-46c1-9943-b41d00e7edad/b8387e78-8b71-43be-ba38-b41d00e7f4fa/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%98%D7%9E%D7%95%D7%A8%D7%A4%D7%95%D7%96%D7%94-%D7%A8%D7%95%D7%97-%D7%9E%D7%A9%D7%A0%D7%94-%D7%9E%D7%A6%D7%99%D7%90%D7%95%D7%AA-%D7%A9%D7%A8%D7%99-%D7%90%D7%A8%D7%99%D7%A1%D7%95%D7%9F/id6787898883?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/94/ef/24/94ef2405-70ce-98da-70fc-1613e0c9fbf1/mza_14102985333896516026.jpg/600x600bb.jpg",
+    "primary_genre": "Spirituality",
+    "track_count": 12,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
