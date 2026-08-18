@@ -42037,5 +42037,41 @@
     "track_count": 12,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1552573306,
+    "title": "מרשם לבינג'",
+    "author": "מאגי גל",
+    "rss_url": "https://media.rss.com/mirsham2binge/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A8%D7%A9%D7%9D-%D7%9C%D7%91%D7%99%D7%A0%D7%92/id1552573306?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/7c/4b/b9/7c4bb9e4-e8ba-e56a-e07e-35f563cac075/mza_2135480357426914663.jpg/600x600bb.jpg",
+    "primary_genre": "TV Reviews",
+    "track_count": 184,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 6802055647,
+    "title": "מרווח ביטחון - הסיפורים שמאחורי המניות",
+    "author": "אמיל גולדפרב ושי גלבוע - Centenario Capital",
+    "rss_url": "https://anchor.fm/s/115f85bf4/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A8%D7%95%D7%95%D7%97-%D7%91%D7%99%D7%98%D7%97%D7%95%D7%9F-%D7%94%D7%A1%D7%99%D7%A4%D7%95%D7%A8%D7%99%D7%9D-%D7%A9%D7%9E%D7%90%D7%97%D7%95%D7%A8%D7%99-%D7%94%D7%9E%D7%A0%D7%99%D7%95%D7%AA/id6802055647?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/e5/d9/d0/e5d9d01b-9a00-a3d3-a305-56e9705ca70a/mza_6953336366406615585.jpg/600x600bb.jpg",
+    "primary_genre": "Investing",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6802027571,
+    "title": "זוג על מלא - גלי לוי צדק",
+    "author": "gali",
+    "rss_url": "https://pinecast.com/feed/gali",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%96%D7%95%D7%92-%D7%A2%D7%9C-%D7%9E%D7%9C%D7%90-%D7%92%D7%9C%D7%99-%D7%9C%D7%95%D7%99-%D7%A6%D7%93%D7%A7/id6802027571?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/93/1d/70/931d7067-eda5-8901-ecfe-0addc4514aff/mza_4141339017218832624.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
