@@ -42157,5 +42157,53 @@
     "track_count": 12,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1096746102,
+    "title": "ערך מוסף",
+    "author": "Lior Tabori, Tal Wolfson",
+    "rss_url": "https://feeds.simplecast.com/sNqmzLA6",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%A8%D7%9A-%D7%9E%D7%95%D7%A1%D7%A3/id1096746102?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/96/03/39/96033932-b99d-936e-9c67-9d9eac312065/mza_1532147670517964886.jpg/600x600bb.jpg",
+    "primary_genre": "Government",
+    "track_count": 47,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1799574783,
+    "title": "Rabbi Yosef Mizrachi הרב יוסף מזרחי",
+    "author": "Rabbi Yosef Mizrachi",
+    "rss_url": "https://feeds.transistor.fm/rabbi-yosef-mizrachi",
+    "apple_url": "https://podcasts.apple.com/il/podcast/rabbi-yosef-mizrachi-%D7%94%D7%A8%D7%91-%D7%99%D7%95%D7%A1%D7%A3-%D7%9E%D7%96%D7%A8%D7%97%D7%99/id1799574783?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/05/65/c0/0565c086-42ce-4c45-1204-60b2bead0ad3/mza_7146551604611781014.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 207,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1767253490,
+    "title": "תראו מה גרמתם לנו לעשות",
+    "author": "Tiru Ma Podcast",
+    "rss_url": "https://tiruma.show/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%AA%D7%A8%D7%90%D7%95-%D7%9E%D7%94-%D7%92%D7%A8%D7%9E%D7%AA%D7%9D-%D7%9C%D7%A0%D7%95-%D7%9C%D7%A2%D7%A9%D7%95%D7%AA/id1767253490?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/50/7e/85/507e85b4-d9f8-f5ab-8295-d9eed5ce0cd4/mza_12786969499526143376.jpg/600x600bb.jpg",
+    "primary_genre": "Improv",
+    "track_count": 100,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 1536019751,
+    "title": "אלוהים לובשת פראדה",
+    "author": "Godwearsprada",
+    "rss_url": "https://anchor.fm/s/3ba045e8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%9C%D7%95%D7%94%D7%99%D7%9D-%D7%9C%D7%95%D7%91%D7%A9%D7%AA-%D7%A4%D7%A8%D7%90%D7%93%D7%94/id1536019751?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts124/v4/be/71/10/be711046-8357-54b5-b857-316da788c410/mza_2289822377719321928.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 59,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
