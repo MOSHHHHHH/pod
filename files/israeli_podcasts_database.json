@@ -42349,5 +42349,29 @@
     "track_count": 39,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6803273049,
+    "title": "כסף לא גדל על תווים",
+    "author": "הדר צפדיה",
+    "rss_url": "https://anchor.fm/s/1163fe794/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9B%D7%A1%D7%A3-%D7%9C%D7%90-%D7%92%D7%93%D7%9C-%D7%A2%D7%9C-%D7%AA%D7%95%D7%95%D7%99%D7%9D/id6803273049?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/6f/f8/8f/6ff88f3c-7a56-2832-9601-8afd9895c262/mza_4276143090378206232.jpg/600x600bb.jpg",
+    "primary_genre": "Music",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1896891256,
+    "title": "טיק טק - יבוא תכולת בית מסין",
+    "author": "אסף שמאי-ענת סינואני",
+    "rss_url": "https://pinecast.com/feed/tiktak",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%98%D7%99%D7%A7-%D7%98%D7%A7-%D7%99%D7%91%D7%95%D7%90-%D7%AA%D7%9B%D7%95%D7%9C%D7%AA-%D7%91%D7%99%D7%AA-%D7%9E%D7%A1%D7%99%D7%9F/id1896891256?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/77/59/27/775927e7-bcc4-08b8-06c3-1425d7aea591/mza_9520722085212135031.jpg/600x600bb.jpg",
+    "primary_genre": "Marketing",
+    "track_count": 9,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
