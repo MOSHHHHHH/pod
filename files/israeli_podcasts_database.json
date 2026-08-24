@@ -42373,5 +42373,41 @@
     "track_count": 9,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6803285663,
+    "title": "בום באסט - פודקאסט פנטזי פוטבול",
+    "author": "Boom Bust Pod",
+    "rss_url": "https://anchor.fm/s/116158e2c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%95%D7%9D-%D7%91%D7%90%D7%A1%D7%98-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A4%D7%A0%D7%98%D7%96%D7%99-%D7%A4%D7%95%D7%98%D7%91%D7%95%D7%9C/id6803285663?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/9c/14/c0/9c14c03c-67d8-b05b-e2e3-33096a2bd850/mza_17466118860479875209.jpg/600x600bb.jpg",
+    "primary_genre": "Fantasy Sports",
+    "track_count": 3,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6799602123,
+    "title": "AI. סטארט אפ. בעל. אישה.",
+    "author": "אנרוליקס ישראל | Anrolix Israel",
+    "rss_url": "https://anchor.fm/s/114904588/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/ai-%D7%A1%D7%98%D7%90%D7%A8%D7%98-%D7%90%D7%A4-%D7%91%D7%A2%D7%9C-%D7%90%D7%99%D7%A9%D7%94/id6799602123?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/99/4d/45/994d451c-f15c-a438-87b6-ef5b6e27b2e9/mza_14179833533417982504.jpg/600x600bb.jpg",
+    "primary_genre": "Entrepreneurship",
+    "track_count": 5,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6795582401,
+    "title": "הפיצוחיה",
+    "author": "Yarin Hefetz and Maor Eliezer | ירין חפץ + מאור אליעזר",
+    "rss_url": "https://anchor.fm/s/115624038/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A4%D7%99%D7%A6%D7%95%D7%97%D7%99%D7%94/id6795582401?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/c0/86/11/c086115c-8807-20c9-a161-0d5ed2e75e4e/mza_11238041790527383609.jpg/600x600bb.jpg",
+    "primary_genre": "TV & Film",
+    "track_count": 3,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
