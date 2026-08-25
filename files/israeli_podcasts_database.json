@@ -42409,5 +42409,29 @@
     "track_count": 3,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1019124387,
+    "title": "גיקונומי",
+    "author": "ראם שרמן ודורון ניר",
+    "rss_url": "https://feed.podbean.com/geekonomy/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%92%D7%99%D7%A7%D7%95%D7%A0%D7%95%D7%9E%D7%99/id1019124387?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/20/a5/ba/20a5ba27-76cf-1723-c152-c1bad503295a/mza_8981528332580889852.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 1000,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1590739654,
+    "title": "מסע אל גוף האדם",
+    "author": "ד”ר יאיר פוזניאק",
+    "rss_url": "https://feed.podbean.com/ypscience/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A1%D7%A2-%D7%90%D7%9C-%D7%92%D7%95%D7%A3-%D7%94%D7%90%D7%93%D7%9D/id1590739654?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/6d/08/fb/6d08fb53-9b90-23cc-b282-a05279d40b59/mza_5050282531748364242.jpg/600x600bb.jpg",
+    "primary_genre": "Education for Kids",
+    "track_count": 160,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
