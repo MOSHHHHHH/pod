@@ -42433,5 +42433,65 @@
     "track_count": 160,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6802974844,
+    "title": "כלכלה מבראשית",
+    "author": "Radio Tel Aviv",
+    "rss_url": "https://rss.102fm.co.il/rss-feed/get-feed?category=BERESHIT",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9B%D7%9C%D7%9B%D7%9C%D7%94-%D7%9E%D7%91%D7%A8%D7%90%D7%A9%D7%99%D7%AA/id6802974844?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a1/1a/90/a11a9058-c92a-9f83-4438-7ba773d89c66/mza_8105927794806688830.jpg/600x600bb.jpg",
+    "primary_genre": "Arts",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6802301843,
+    "title": "סידור עבודה",
+    "author": "סידור עבודה",
+    "rss_url": "https://anchor.fm/s/11660a600/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A1%D7%99%D7%93%D7%95%D7%A8-%D7%A2%D7%91%D7%95%D7%93%D7%94/id6802301843?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/83/8c/93/838c9325-8a06-25c8-6c63-9f5d7e21a4de/mza_7713854099677347139.jpg/600x600bb.jpg",
+    "primary_genre": "Business",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1567780992,
+    "title": "Be Relevant עם אור פלח",
+    "author": "Or Pelach",
+    "rss_url": "https://anchor.fm/s/4d07db98/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/be-relevant-%D7%A2%D7%9D-%D7%90%D7%95%D7%A8-%D7%A4%D7%9C%D7%97/id1567780992?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/82/c4/c4/82c4c4fd-7a82-ca5a-edf7-59194587a5ae/mza_5382553350197777102.jpg/600x600bb.jpg",
+    "primary_genre": "Careers",
+    "track_count": 231,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1722852510,
+    "title": "ענקי הווידאו",
+    "author": "הארץ",
+    "rss_url": "https://www.omnycontent.com/d/playlist/397b9456-4f75-4509-acff-ac0600b4a6a4/8e249b85-aced-424a-abe6-b0dd00e62451/f395670a-4682-4a10-8832-b0dd00e7e445/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%A0%D7%A7%D7%99-%D7%94%D7%95%D7%95%D7%99%D7%93%D7%90%D7%95/id1722852510?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/81/85/19/81851978-499e-5a7d-bb49-19b50e1bca20/mza_9276198454913360043.jpg/600x600bb.jpg",
+    "primary_genre": "TV & Film",
+    "track_count": 48,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1583586186,
+    "title": "פותחת תודעה",
+    "author": "ניצן אלפסי - Nitzan Alfasi",
+    "rss_url": "https://anchor.fm/s/107bed57c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%95%D7%AA%D7%97%D7%AA-%D7%AA%D7%95%D7%93%D7%A2%D7%94/id1583586186?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/ca/ad/c7/caadc743-0296-bbe2-3a67-86bb93e52c65/mza_3439487291807365633.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 132,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
