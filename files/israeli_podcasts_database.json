@@ -42493,5 +42493,89 @@
     "track_count": 132,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1766480824,
+    "title": "מעשה לשבת",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/maaseleshabbat/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A2%D7%A9%D7%94-%D7%9C%D7%A9%D7%91%D7%AA/id1766480824?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ce/cf/3f/cecf3f74-1e56-f0b6-5d5d-25869f4a1e21/mza_13634030199739826377.jpeg/600x600bb.jpg",
+    "primary_genre": "Religion & Spirituality",
+    "track_count": 19,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6786267973,
+    "title": "הג’וניורים",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/hajunyurim/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%92%D7%95%D7%A0%D7%99%D7%95%D7%A8%D7%99%D7%9D/id6786267973?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/6c/96/80/6c968013-b739-3f94-dcff-fd330c924524/mza_5564470072050079909.jpeg/600x600bb.jpg",
+    "primary_genre": "Kids & Family",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1526993383,
+    "title": "הדבר הבא",
+    "author": "IBM ישראל",
+    "rss_url": "https://www.spreaker.com/show/4536181/episodes/feed",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%93%D7%91%D7%A8-%D7%94%D7%91%D7%90/id1526993383?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/41/45/e7/4145e70b-b5a2-ff60-aa29-d44bc891082d/mza_13422395460928665509.jpg/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 13,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1895155811,
+    "title": "חיינו - שיעורי תורה",
+    "author": "שיעורים מבית המדרש פרי מגדים צפת",
+    "rss_url": "https://feeds.transistor.fm/f698b3ec-71c5-4453-acc0-781911ca0e6a",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%97%D7%99%D7%99%D7%A0%D7%95-%D7%A9%D7%99%D7%A2%D7%95%D7%A8%D7%99-%D7%AA%D7%95%D7%A8%D7%94/id1895155811?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b1/fc/4a/b1fc4a20-0efd-ea82-4830-9ec034b78c7f/mza_5349045362841852383.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 80,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6799597829,
+    "title": "MINDVEST - תודעה כסף השקעות",
+    "author": "עו״ד אלמוג כהן ואביטל סגן כהן",
+    "rss_url": "https://anchor.fm/s/115abbb28/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/mindvest-%D7%AA%D7%95%D7%93%D7%A2%D7%94-%D7%9B%D7%A1%D7%A3-%D7%94%D7%A9%D7%A7%D7%A2%D7%95%D7%AA/id6799597829?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/bf/15/65/bf156537-1d4a-67ab-6047-c9c229f9f0b0/mza_17512132138003774651.jpg/600x600bb.jpg",
+    "primary_genre": "Investing",
+    "track_count": 3,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1559089843,
+    "title": "ירושלים, הפודקסט",
+    "author": "שלמה צזנה",
+    "rss_url": "https://feed.podbean.com/archeology/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%99%D7%A8%D7%95%D7%A9%D7%9C%D7%99%D7%9D-%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%A1%D7%98/id1559089843?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/70/92/6c/70926c7d-277a-f50c-6c07-73d13d4eb19a/mza_4728549663423202290.jpg/600x600bb.jpg",
+    "primary_genre": "History",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1832234519,
+    "title": "LALASH - לא אפוי לא שפוי",
+    "author": "Lalash",
+    "rss_url": "https://anchor.fm/s/106a3dffc/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/lalash-%D7%9C%D7%90-%D7%90%D7%A4%D7%95%D7%99-%D7%9C%D7%90-%D7%A9%D7%A4%D7%95%D7%99/id1832234519?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/PodcastSource221/v4/c0/70/c4/c070c4e2-820b-c091-c6aa-4aa7cf5e682b/a0c5798b-2670-4859-bb06-49839da81c9d.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 55,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
