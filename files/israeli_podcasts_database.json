@@ -42577,5 +42577,53 @@
     "track_count": 55,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1577671389,
+    "title": "איך עושה משפחה? עם עדי הרפז ומשה שרון",
+    "author": "adi harpaz",
+    "rss_url": "https://anchor.fm/s/631fc60c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%9A-%D7%A2%D7%95%D7%A9%D7%94-%D7%9E%D7%A9%D7%A4%D7%97%D7%94-%D7%A2%D7%9D-%D7%A2%D7%93%D7%99-%D7%94%D7%A8%D7%A4%D7%96-%D7%95%D7%9E%D7%A9%D7%94-%D7%A9%D7%A8%D7%95%D7%9F/id1577671389?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/ad/8d/c2/ad8dc296-30a0-1293-4229-d3640346f5e6/mza_14288042060628902265.jpg/600x600bb.jpg",
+    "primary_genre": "Parenting",
+    "track_count": 23,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1706876329,
+    "title": "האנליסטים בית״ר ירושלים",
+    "author": "האנליסטים ביתר ירושלים",
+    "rss_url": "https://anchor.fm/s/e77b84b8/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%90%D7%A0%D7%9C%D7%99%D7%A1%D7%98%D7%99%D7%9D-%D7%91%D7%99%D7%AA-%D7%A8-%D7%99%D7%A8%D7%95%D7%A9%D7%9C%D7%99%D7%9D/id1706876329?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b3/a6/09/b3a60952-aed8-3e9f-455f-4949ee264fcd/mza_14524882318891658152.jpg/600x600bb.jpg",
+    "primary_genre": "Football",
+    "track_count": 182,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6805817643,
+    "title": "המספרה",
+    "author": "מדברים עברית",
+    "rss_url": "https://feeds.captivate.fm/hamispara/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%9E%D7%A1%D7%A4%D7%A8%D7%94/id6805817643?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/67/5e/58/675e58df-7e52-4352-2d12-3c3013169b70/mza_2066063326181250883.jpg/600x600bb.jpg",
+    "primary_genre": "Books",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6805821017,
+    "title": "המספרה",
+    "author": "מדברים עברית",
+    "rss_url": "https://feeds.captivate.fm/hamispara/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%9E%D7%A1%D7%A4%D7%A8%D7%94/id6805821017?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ae/f9/27/aef927bb-244e-9fe9-6454-386d483fe47c/mza_16910728045557425464.jpg/600x600bb.jpg",
+    "primary_genre": "Books",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
