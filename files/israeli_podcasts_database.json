@@ -42625,5 +42625,29 @@
     "track_count": 1,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1697338367,
+    "title": "מתחילים מאל\"ף | בית חב\"ד רובע א' אשדוד",
+    "author": "הרב אלקנה גודמן",
+    "rss_url": "https://feeds.captivate.fm/rbbigudman/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%AA%D7%97%D7%99%D7%9C%D7%99%D7%9D-%D7%9E%D7%90%D7%9C-%D7%A3-%D7%91%D7%99%D7%AA-%D7%97%D7%91-%D7%93-%D7%A8%D7%95%D7%91%D7%A2-%D7%90-%D7%90%D7%A9%D7%93%D7%95%D7%93/id1697338367?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/32/97/fe/3297fe6c-7c6e-2d85-8a42-dbb8aaabf4b1/mza_16591204674443299853.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 17,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1538239913,
+    "title": "לסלול את הדרך ללקוח הבא",
+    "author": "ליאור עקירב",
+    "rss_url": "https://anchor.fm/s/3db2365c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9C%D7%A1%D7%9C%D7%95%D7%9C-%D7%90%D7%AA-%D7%94%D7%93%D7%A8%D7%9A-%D7%9C%D7%9C%D7%A7%D7%95%D7%97-%D7%94%D7%91%D7%90/id1538239913?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts124/v4/25/86/99/25869901-fc1e-93af-1754-52d53c154e73/mza_442893765698686213.jpg/600x600bb.jpg",
+    "primary_genre": "Entrepreneurship",
+    "track_count": 124,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
