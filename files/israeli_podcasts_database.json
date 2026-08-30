@@ -42649,5 +42649,29 @@
     "track_count": 124,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1643484632,
+    "title": "הפודקאסט של לייטנר",
+    "author": "לייטנר",
+    "rss_url": "https://feeds.soundcloud.com/users/soundcloud:users:1158418177/sounds.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%9C-%D7%9C%D7%99%D7%99%D7%98%D7%A0%D7%A8/id1643484632?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/85/a7/f2/85a7f265-446f-ffb1-13bb-2d9651e879a9/mza_2912106761186169101.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 17,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1744917514,
+    "title": "כל הקלפים על השולחן עם משה רדמן",
+    "author": "Radman's cards podcast",
+    "rss_url": "https://anchor.fm/s/f5b08b3c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9B%D7%9C-%D7%94%D7%A7%D7%9C%D7%A4%D7%99%D7%9D-%D7%A2%D7%9C-%D7%94%D7%A9%D7%95%D7%9C%D7%97%D7%9F-%D7%A2%D7%9D-%D7%9E%D7%A9%D7%94-%D7%A8%D7%93%D7%9E%D7%9F/id1744917514?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/1b/1f/db/1b1fdb96-cb25-6967-b144-e5c5737428f5/mza_5478853534842306916.jpg/600x600bb.jpg",
+    "primary_genre": "Society & Culture",
+    "track_count": 263,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
