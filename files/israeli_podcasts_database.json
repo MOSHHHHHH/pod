@@ -42673,5 +42673,41 @@
     "track_count": 263,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6806557823,
+    "title": "הבלטר דיילי — חדשות AI בעברית",
+    "author": "הבלטר",
+    "rss_url": "https://ai-ilbutler.site/podcast.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%91%D7%9C%D7%98%D7%A8-%D7%93%D7%99%D7%99%D7%9C%D7%99-%D7%97%D7%93%D7%A9%D7%95%D7%AA-ai-%D7%91%D7%A2%D7%91%D7%A8%D7%99%D7%AA/id6806557823?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/c0/95/c0/c095c05f-14e5-30f9-a4b1-1ba95cf690ab/mza_7138023445645097782.png/600x600bb.jpg",
+    "primary_genre": "Tech News",
+    "track_count": 18,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1551534509,
+    "title": "עגלה ריקה",
+    "author": "Haaretz",
+    "rss_url": "https://www.omnycontent.com/d/playlist/397b9456-4f75-4509-acff-ac0600b4a6a4/3a7798d3-bf72-41f6-a09f-ac8900d2b43f/51997f02-0ac5-45d7-9667-ac8900d40f4d/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%92%D7%9C%D7%94-%D7%A8%D7%99%D7%A7%D7%94/id1551534509?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/26/f8/97/26f89777-130a-f091-5682-d57d95e915df/mza_1871433957489913200.jpg/600x600bb.jpg",
+    "primary_genre": "Religion & Spirituality",
+    "track_count": 17,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1572394915,
+    "title": "טובים יותר ב Effortless",
+    "author": "Naama BenIvri",
+    "rss_url": "https://anchor.fm/s/5f35b268/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%98%D7%95%D7%91%D7%99%D7%9D-%D7%99%D7%95%D7%AA%D7%A8-%D7%91-effortless/id1572394915?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/37/7a/17/377a17aa-8fde-96bc-3241-58b496f21ad8/mza_13073962134631210003.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 58,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
