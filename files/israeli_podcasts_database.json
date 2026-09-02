@@ -42721,5 +42721,41 @@
     "track_count": 2,
     "content_advisory": null,
     "country": "ISR"
+  },
+  {
+    "id": 6806772854,
+    "title": "הקולנוען - פודקאסט קולנוע ותרבות",
+    "author": "HaKolnoan",
+    "rss_url": "https://anchor.fm/s/116953dac/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A7%D7%95%D7%9C%D7%A0%D7%95%D7%A2%D7%9F-%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A7%D7%95%D7%9C%D7%A0%D7%95%D7%A2-%D7%95%D7%AA%D7%A8%D7%91%D7%95%D7%AA/id6806772854?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/94/53/93/945393cf-bc45-1219-7475-6510ceb1aa6e/mza_9213483022008451868.jpg/600x600bb.jpg",
+    "primary_genre": "TV & Film",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 402292643,
+    "title": "YUTORAH: R' Eli Baruch Shulman -- Recent Shiurim",
+    "author": "Shulman, Rabbi Eli Baruch",
+    "rss_url": "https://www.yutorah.org/rss/RecentAudioShiurim?teacherID=80177&organizationId=301",
+    "apple_url": "https://podcasts.apple.com/il/podcast/yutorah-r-eli-baruch-shulman-recent-shiurim/id402292643?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts4/v4/f8/53/b5/f853b5f2-f04f-b24b-a821-e6f260f0ab4d/mza_6603118523595740993.jpg/600x600bb.jpg",
+    "primary_genre": "Judaism",
+    "track_count": 10,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 381499533,
+    "title": "ONE.co.il - מספר 1 בספורט",
+    "author": "ONE.co.il",
+    "rss_url": "https://sites.one.co.il/RSS/Video/iTunes",
+    "apple_url": "https://podcasts.apple.com/il/podcast/one-co-il-%D7%9E%D7%A1%D7%A4%D7%A8-1-%D7%91%D7%A1%D7%A4%D7%95%D7%A8%D7%98/id381499533?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts/v4/6b/ec/d7/6becd791-e059-daf9-9986-7804adf3a846/mza_3699689409411724144.jpg/600x600bb.jpg",
+    "primary_genre": "Sport",
+    "track_count": 51,
+    "content_advisory": null,
+    "country": "ISR"
   }
 ]
