@@ -42757,5 +42757,53 @@
     "track_count": 51,
     "content_advisory": null,
     "country": "ISR"
+  },
+  {
+    "id": 6790125285,
+    "title": "אימהות על אמת",
+    "author": "משפחה פודקאסט",
+    "rss_url": "https://feed.podbean.com/imahotalemet/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%9E%D7%94%D7%95%D7%AA-%D7%A2%D7%9C-%D7%90%D7%9E%D7%AA/id6790125285?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/01/71/5f/01715f3c-f3bb-15c5-46a0-fcf150753b83/mza_8022625114279039725.jpeg/600x600bb.jpg",
+    "primary_genre": "Parenting",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1815115558,
+    "title": "הכדורגלן המהיר בעולם",
+    "author": "בית הפודיום",
+    "rss_url": "https://feeds.megaphone.fm/POLTD4266817226",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%9B%D7%93%D7%95%D7%A8%D7%92%D7%9C%D7%9F-%D7%94%D7%9E%D7%94%D7%99%D7%A8-%D7%91%D7%A2%D7%95%D7%9C%D7%9D/id1815115558?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fe/01/d0/fe01d03b-4bf7-0a30-37c2-37e6d8e8609b/mza_18347682118134908546.jpg/600x600bb.jpg",
+    "primary_genre": "Running",
+    "track_count": 25,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6806402153,
+    "title": "התנ״ך – עברית (Modern Hebrew)",
+    "author": "ISM",
+    "rss_url": "https://cmp.thruthebible.io/v3/feeds/bible/c08208ed-87d5-49d4-b431-5a028902f80d?withIntroOutro=true&limit=2000",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%AA%D7%A0-%D7%9A-%D7%A2%D7%91%D7%A8%D7%99%D7%AA-modern-hebrew/id6806402153?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/56/0a/e7/560ae778-5add-2966-7bf5-cc647195a017/mza_136487780925044590.jpg/600x600bb.jpg",
+    "primary_genre": "Christianity",
+    "track_count": 260,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6797875051,
+    "title": "משוטטים",
+    "author": "מדברים עברית",
+    "rss_url": "https://feeds.captivate.fm/meshotetim/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A9%D7%95%D7%98%D7%98%D7%99%D7%9D/id6797875051?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/e7/f3/c0/e7f3c001-98dd-605e-9bcb-7575b4ce3749/mza_12892407509780667089.jpg/600x600bb.jpg",
+    "primary_genre": "Books",
+    "track_count": 9,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
