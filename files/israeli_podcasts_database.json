@@ -42805,5 +42805,53 @@
     "track_count": 9,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1554975476,
+    "title": "אני צריך את זה למחר! אנשי ארט, מנהלי שיווק ומה שבינהם",
+    "author": "Sima Aharoni",
+    "rss_url": "https://anchor.fm/s/4bd049e0/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%A0%D7%99-%D7%A6%D7%A8%D7%99%D7%9A-%D7%90%D7%AA-%D7%96%D7%94-%D7%9C%D7%9E%D7%97%D7%A8-%D7%90%D7%A0%D7%A9%D7%99-%D7%90%D7%A8%D7%98-%D7%9E%D7%A0%D7%94%D7%9C%D7%99-%D7%A9%D7%99%D7%95%D7%95%D7%A7-%D7%95%D7%9E%D7%94-%D7%A9%D7%91%D7%99%D7%A0%D7%94%D7%9D/id1554975476?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts114/v4/4f/6b/8a/4f6b8a9f-2d40-9ad8-32b2-8aa5cc6f6599/mza_13462924165066827622.jpg/600x600bb.jpg",
+    "primary_genre": "Marketing",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6807139482,
+    "title": "חלון לחיים | מסע לבניית בית ב12 פרקים",
+    "author": "צורי דבוש",
+    "rss_url": "https://anchor.fm/s/1169ebb5c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%97%D7%9C%D7%95%D7%9F-%D7%9C%D7%97%D7%99%D7%99%D7%9D-%D7%9E%D7%A1%D7%A2-%D7%9C%D7%91%D7%A0%D7%99%D7%99%D7%AA-%D7%91%D7%99%D7%AA-%D7%9112-%D7%A4%D7%A8%D7%A7%D7%99%D7%9D/id6807139482?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ce/20/ca/ce20ca0c-bbe5-8f6d-41d8-e755e401ea0f/mza_11883108274899390063.jpg/600x600bb.jpg",
+    "primary_genre": "How To",
+    "track_count": 13,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1896324077,
+    "title": "עמוק בבוץ",
+    "author": "Adam Klein",
+    "rss_url": "https://anchor.fm/s/112490b48/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A2%D7%9E%D7%95%D7%A7-%D7%91%D7%91%D7%95%D7%A5/id1896324077?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/1b/84/12/1b8412f7-cf56-7aff-e280-65ee4fbdab87/mza_14353535355786517289.jpg/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 7,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1636705946,
+    "title": "אייל אברהמוב",
+    "author": "Eyal Abrahamov",
+    "rss_url": "https://feed.podbean.com/eyal200404/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%99%D7%99%D7%9C-%D7%90%D7%91%D7%A8%D7%94%D7%9E%D7%95%D7%91/id1636705946?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/1f/22/c7/1f22c71a-45c0-e3e0-997a-3dbe47e74b87/mza_766753420722083759.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 53,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
