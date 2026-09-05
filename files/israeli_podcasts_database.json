@@ -42853,5 +42853,29 @@
     "track_count": 53,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1840344375,
+    "title": "בית - הפודקאסט של אביב ושני",
+    "author": "Aviv & Shani",
+    "rss_url": "https://anchor.fm/s/109bdea34/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%99%D7%AA-%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%9C-%D7%90%D7%91%D7%99%D7%91-%D7%95%D7%A9%D7%A0%D7%99/id1840344375?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8b/fc/a6/8bfca67a-a2da-3e4b-90bc-7b049ba8c382/mza_3981431368779057520.jpg/600x600bb.jpg",
+    "primary_genre": "Relationships",
+    "track_count": 8,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6807735612,
+    "title": "שינוי טק-טוני",
+    "author": "MIND Geo-Tech Center",
+    "rss_url": "https://anchor.fm/s/116b74dfc/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%A0%D7%95%D7%99-%D7%98%D7%A7-%D7%98%D7%95%D7%A0%D7%99/id6807735612?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/PodcastSource211/v4/68/10/97/68109780-409d-25c2-c3ba-962d7891c438/79b95365-1f35-46cb-891b-7332df4647c3.png/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
