@@ -42877,5 +42877,53 @@
     "track_count": 1,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1727541872,
+    "title": "Success על הבוקר ייעוץ עסקי",
+    "author": "Success אלעד הדר",
+    "rss_url": "https://feeds.transistor.fm/success",
+    "apple_url": "https://podcasts.apple.com/il/podcast/success-%D7%A2%D7%9C-%D7%94%D7%91%D7%95%D7%A7%D7%A8-%D7%99%D7%99%D7%A2%D7%95%D7%A5-%D7%A2%D7%A1%D7%A7%D7%99/id1727541872?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/56/2e/4f/562e4faa-7d38-25d1-1b22-ffee6377ee65/mza_1885845184034782607.jpg/600x600bb.jpg",
+    "primary_genre": "Management",
+    "track_count": 181,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1556312923,
+    "title": "סקס אפיל",
+    "author": "לורי שטטמאור | Be.po",
+    "rss_url": "https://www.omnycontent.com/d/playlist/de0f04c1-f777-4661-b029-af6d01426cad/09b83e71-08e6-4db1-89e1-af7a00b179fe/ce9caad2-189f-4d5e-8efc-af7a00b17a28/podcast.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A1%D7%A7%D7%A1-%D7%90%D7%A4%D7%99%D7%9C/id1556312923?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/bd/dc/30/bddc3078-bae8-a76e-d455-33ac4fcc8a16/mza_3769288994527684559.jpg/600x600bb.jpg",
+    "primary_genre": "Sexuality",
+    "track_count": 204,
+    "content_advisory": "Explicit",
+    "country": "ISR"
+  },
+  {
+    "id": 1895540925,
+    "title": "סדר פסח",
+    "author": "Allin Podcasts",
+    "rss_url": "https://anchor.fm/s/111ec5808/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A1%D7%93%D7%A8-%D7%A4%D7%A1%D7%97/id1895540925?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/cc/e8/e6/cce8e637-66a7-8ee9-2a39-9aedfe350440/mza_8261748383513575136.jpg/600x600bb.jpg",
+    "primary_genre": "TV & Film",
+    "track_count": 18,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1521809948,
+    "title": "שיט של אחרים",
+    "author": "otherpeople",
+    "rss_url": "https://anchor.fm/s/f9e3a4a0/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A9%D7%99%D7%98-%D7%A9%D7%9C-%D7%90%D7%97%D7%A8%D7%99%D7%9D/id1521809948?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/06/7e/f3/067ef393-d8ae-c1d9-5148-1caebc084aec/mza_13104173737477969040.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 306,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
