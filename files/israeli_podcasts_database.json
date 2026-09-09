@@ -42949,5 +42949,65 @@
     "track_count": 246,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6809200415,
+    "title": "הייטק ישראלי על ההדסון",
+    "author": "Haim Handwerker",
+    "rss_url": "https://anchor.fm/s/1165d4208/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%99%D7%99%D7%98%D7%A7-%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99-%D7%A2%D7%9C-%D7%94%D7%94%D7%93%D7%A1%D7%95%D7%9F/id6809200415?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/e0/a8/d1/e0a8d104-64db-df77-c569-6f490b80efe0/mza_1680243897494817917.jpg/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 20,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1868897842,
+    "title": "קודם כל בנאדם",
+    "author": "Yoav Degani | Wedo Podcast",
+    "rss_url": "https://anchor.fm/s/10d1cc59c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%A7%D7%95%D7%93%D7%9D-%D7%9B%D7%9C-%D7%91%D7%A0%D7%90%D7%93%D7%9D/id1868897842?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/fc/00/55/fc005500-0915-10a4-2bf2-e03b302a6385/mza_10316077112001496511.jpg/600x600bb.jpg",
+    "primary_genre": "Education",
+    "track_count": 36,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6809445692,
+    "title": ".מרטין בוקסדורף \"הבולדוג\" - מספר סיפורים !",
+    "author": "מרטין בוקסדורף",
+    "rss_url": "https://anchor.fm/s/fd88180c/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%A8%D7%98%D7%99%D7%9F-%D7%91%D7%95%D7%A7%D7%A1%D7%93%D7%95%D7%A8%D7%A3-%D7%94%D7%91%D7%95%D7%9C%D7%93%D7%95%D7%92-%D7%9E%D7%A1%D7%A4%D7%A8-%D7%A1%D7%99%D7%A4%D7%95%D7%A8%D7%99%D7%9D/id6809445692?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/46/5a/5f/465a5f5b-e774-80ca-7e5c-6f66196e3a8c/mza_10647934982925061658.jpg/600x600bb.jpg",
+    "primary_genre": "Entrepreneurship",
+    "track_count": 191,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6792485322,
+    "title": "חומר למחשבה",
+    "author": "103fm",
+    "rss_url": "https://103fm.maariv.co.il/rss/mediarss.aspx?programId=758",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%97%D7%95%D7%9E%D7%A8-%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%94/id6792485322?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d9/8c/55/d98c558c-d5eb-5983-946d-00afeca81fa5/mza_9229516972213884706.png/600x600bb.jpg",
+    "primary_genre": "News",
+    "track_count": 5,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1541863644,
+    "title": "אוכלים את הראש - כל מה שבוער בתחום התזונה",
+    "author": "atid",
+    "rss_url": "https://feed.podbean.com/atid/feed.xml",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%95%D7%9B%D7%9C%D7%99%D7%9D-%D7%90%D7%AA-%D7%94%D7%A8%D7%90%D7%A9-%D7%9B%D7%9C-%D7%9E%D7%94-%D7%A9%D7%91%D7%95%D7%A2%D7%A8-%D7%91%D7%AA%D7%97%D7%95%D7%9D-%D7%94%D7%AA%D7%96%D7%95%D7%A0%D7%94/id1541863644?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/98/83/49/988349be-f25a-7374-6e17-9ca0cbe9a7b7/mza_2233790843453915415.jpg/600x600bb.jpg",
+    "primary_genre": "Nutrition",
+    "track_count": 155,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
