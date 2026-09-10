@@ -43009,5 +43009,53 @@
     "track_count": 155,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1800732982,
+    "title": "הסטודיו | הפודקאסט של סטודיו לאנצ׳ אקדמי | רון קלדרון",
+    "author": "רון קלדרון",
+    "rss_url": "https://anchor.fm/s/fb118838/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A1%D7%98%D7%95%D7%93%D7%99%D7%95-%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98-%D7%A9%D7%9C-%D7%A1%D7%98%D7%95%D7%93%D7%99%D7%95-%D7%9C%D7%90%D7%A0%D7%A6-%D7%90%D7%A7%D7%93%D7%9E%D7%99-%D7%A8%D7%95%D7%9F-%D7%A7%D7%9C%D7%93%D7%A8%D7%95%D7%9F/id1800732982?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/b4/49/f5/b449f53e-d932-9b82-ab44-013e4aa617f6/mza_6427334546599528259.jpg/600x600bb.jpg",
+    "primary_genre": "Marketing",
+    "track_count": 61,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6809161366,
+    "title": "בריף - בקרוב...",
+    "author": "דמוקרט - בית התוכן של המחנה",
+    "rss_url": "https://feeds.transistor.fm/b594afab-94a1-47f7-a5cb-aff0b3851747",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%A8%D7%99%D7%A3-%D7%91%D7%A7%D7%A8%D7%95%D7%91/id6809161366?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/40/e9/cd/40e9cd5a-e686-dd77-ff40-5bd08c8faff8/mza_9490966181632333296.jpg/600x600bb.jpg",
+    "primary_genre": "Politics",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6809161208,
+    "title": "pov - בקרוב...",
+    "author": "דמוקרט - בית התוכן של המחנה",
+    "rss_url": "https://feeds.transistor.fm/pov-2bec394f-152f-4826-afc9-78825da99bda",
+    "apple_url": "https://podcasts.apple.com/il/podcast/pov-%D7%91%D7%A7%D7%A8%D7%95%D7%91/id6809161208?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/24/4a/8a/244a8adc-8ba5-f7e5-c82c-911286ef3988/mza_16479046973627483753.jpg/600x600bb.jpg",
+    "primary_genre": "Comedy Interviews",
+    "track_count": 1,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 1858363229,
+    "title": "בינה אנושית - הפודקאסט",
+    "author": "binaenoshit",
+    "rss_url": "https://api.riverside.com/hosting/eCeT0hTn.rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%91%D7%99%D7%A0%D7%94-%D7%90%D7%A0%D7%95%D7%A9%D7%99%D7%AA-%D7%94%D7%A4%D7%95%D7%93%D7%A7%D7%90%D7%A1%D7%98/id1858363229?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/10/34/3c/10343cbd-47d6-d96d-1c95-f219d63b42e6/mza_11351326147380356419.jpg/600x600bb.jpg",
+    "primary_genre": "Technology",
+    "track_count": 11,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
