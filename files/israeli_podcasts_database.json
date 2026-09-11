@@ -43057,5 +43057,29 @@
     "track_count": 11,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 6809801750,
+    "title": "הפאנל",
+    "author": "רדיו חיפה - 107.5FM",
+    "rss_url": "https://wp.1075.fm/rss-feed/get-feed/?category=hapanel",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%94%D7%A4%D7%90%D7%A0%D7%9C/id6809801750?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/e4/db/0c/e4db0cea-f5e9-6fba-5fc4-8bb1e5b3aafe/mza_14383219317863048327.jpg/600x600bb.jpg",
+    "primary_genre": "Basketball",
+    "track_count": 300,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6809789630,
+    "title": "תכנית הספורט של ישראל",
+    "author": "רדיו חיפה - 107.5FM",
+    "rss_url": "https://wp.1075.fm/rss-feed/get-feed/?category=sportpgm",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%AA%D7%9B%D7%A0%D7%99%D7%AA-%D7%94%D7%A1%D7%A4%D7%95%D7%A8%D7%98-%D7%A9%D7%9C-%D7%99%D7%A9%D7%A8%D7%90%D7%9C/id6809789630?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/ee/ae/f2/eeaef233-edc6-ee54-ca09-8a83ac13dc27/mza_8689457908238358371.jpeg/600x600bb.jpg",
+    "primary_genre": "American Football",
+    "track_count": 300,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
