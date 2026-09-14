@@ -55,6 +55,7 @@ function main(sysFolder, mainFolder) {
   _downloadHistory = purgeExpiredHistory(loadDownloadHistory(sysFolder));
   _emailsData      = loadEmailsData(sysFolder);
   initEmailsStructure(_emailsData);
+  ensureRssFileExists(sysFolder, _emailsData);
 
   // ── 2. טעינת תור ועיבוד מיילי בקרה ──
   var queue = loadStatusQueue(sysFolder);
@@ -455,6 +456,41 @@ function loadRssList(sysFolder) {
   }
 
   return rssList;
+}
+
+/**
+ * בודק אם קובץ podcasts.txt קיים בתיקיית קבצי המערכת.
+ * אם הקובץ חסר לחלוטין (לא רק ריק) — יוצר קובץ ריק חדש, ושולח מייל
+ * חד-פעמי למשתמש עם כפתור "הוסף ערוץ". קובע emptySubsEmailSent=true כדי
+ * שהבדיקה הנפרדת על "רשימת ערוצים ריקה" (main, סעיף 3) לא תשלח מייל כפול
+ * באותה ריצה עצמה.
+ */
+function ensureRssFileExists(sysFolder, emailsData) {
+  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
+  if (it.hasNext()) return false; // הקובץ קיים — אין מה לעשות
+
+  Logger.log("⏳ קובץ " + RSS_FILE_NAME + " חסר בתיקייה 'קבצי מערכת'.");
+  sysFolder.createFile(RSS_FILE_NAME, '# רשימת פודקאסטים\n', MimeType.PLAIN_TEXT);
+  Logger.log("📄 נוצר קובץ " + RSS_FILE_NAME + " ריק.");
+  sendMissingRssFileEmail();
+  if (emailsData) emailsData.emptySubsEmailSent = true;
+  return true;
+}
+
+/**
+ * מייל חד-פעמי שנשלח כשקובץ podcasts.txt לא נמצא כלל ונוצר מאפס.
+ */
+function sendMissingRssFileEmail() {
+  var body = '<p style="color:#64748b;margin-bottom:16px;">קובץ רשימת הפודקאסטים ('+RSS_FILE_NAME+') לא נמצא בתיקיית קבצי המערכת, ולכן נוצר קובץ ריק חדש במקומו.</p>'
+    +'<p style="color:#64748b;font-size:.9rem;margin-bottom:20px;">כדי להתחיל להוריד פרקים, הוסיפו ערוץ — אם ידועה לך כתובת ה-RSS, הכנס אותה ישירות; אחרת ניתן לחפש לפי שם.</p>'
+    +'<div style="text-align:center;padding:20px;">'+buildAddChannelBtn()+'</div>'
+    +'<p style="color:#94a3b8;font-size:.8rem;text-align:center;margin-top:12px;">ניתן גם לערוך את קובץ '+RSS_FILE_NAME+' ישירות ב-Google Drive.</p>';
+  try {
+    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
+      subject: '⏳ פודקאסטים 2.0 — נוצר קובץ ערוצים ריק',
+      htmlBody: _emailWrap('קובץ הערוצים נוצר', body) });
+    Logger.log('📧 מייל קובץ ערוצים חסר נשלח.');
+  } catch(e) { Logger.log('⚠️  מייל קובץ חסר נכשל: '+e.message); }
 }
 
 
