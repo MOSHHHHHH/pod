@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -326,6 +327,25 @@
     display:inline-block;
   }
   .steps .inline-btn{margin-top:10px;}
+  .copy-btn.copied{background:var(--teal); color:#0F1117; box-shadow:0 8px 20px -8px rgba(73,207,196,.55);}
+  .copy-btn.busy{opacity:.7; cursor:wait;}
+  .sub-steps{
+    margin:12px 0 10px;
+    padding:0 20px 0 0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .sub-steps li{
+    display:list-item;
+    list-style:disc;
+    padding:0;
+    border-bottom:none;
+    font-size:.88rem;
+    color:var(--text-dim);
+  }
+  .sub-steps li::before{content:none;}
+  .sub-steps li strong{color:var(--text); font-weight:600;}
 
   .close-note{
     margin-top:30px;
@@ -459,16 +479,7 @@
     <ul class="steps">
       <li>
         <div>
-          <h4>יוצרים תיקיית בית בדרייב</h4>
-          <p>תיקייה חדשה בגוגל דרייב שתשמש כמקום שבו כל הפרקים, קובץ הערוצים וקבצי המערכת יישמרו — למשל בשם "פודקאסטים".</p>
-          <a class="btn btn-outline inline-btn" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">
-            פתיחת גוגל דרייב
-          </a>
-        </div>
-      </li>
-      <li>
-        <div>
-          <h4>פותחים פרויקט Apps Script חדש</h4>
+          <h4>פותחים פרויקט חדש</h4>
           <p>נכנסים ל-Google Apps Script ויוצרים פרויקט ריק חדש.</p>
           <a class="btn btn-outline inline-btn" href="https://script.google.com/create" target="_blank" rel="noopener">
             פתיחת Apps Script חדש
@@ -477,37 +488,42 @@
       </li>
       <li>
         <div>
-          <h4>מדביקים את קוד המערכת</h4>
-          <p>מוחקים את התוכן שמופיע כברירת מחדל בקובץ <code>Code.gs</code>, ומדביקים במקומו את כל התוכן מהקובץ <code>podcast_v2.gs</code> שסופק לכם.</p>
+          <h4>מוחקים את הקוד הקיים</h4>
+          <p>מוחקים את כל התוכן שמופיע כברירת מחדל בקובץ <code>Code.gs</code>.</p>
         </div>
       </li>
       <li>
         <div>
-          <h4>שומרים ונותנים שם לפרויקט</h4>
-          <p>שומרים (Ctrl+S / ⌘S) ונותנים לפרויקט שם ברור, למשל "מוריד הפודקאסטים".</p>
+          <h4>מעתיקים ומדביקים את התוכן</h4>
+          <p>לוחצים על הכפתור, וקוד המערכת המלא (<code>files/podcast_v2.gs</code>) נטען ומועתק אוטומטית ללוח ההעתקה. עוברים לחלון של Apps Script (GAS) שנפתח בשלב 1, לוחצים בתוך קובץ <code>Code.gs</code> הריק, ומדביקים (Ctrl+V / ⌘V).</p>
+          <button type="button" class="btn btn-outline inline-btn copy-btn" id="copyGsBtn" onclick="copyGsCode()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span id="copyGsBtnLabel">העתקת קוד המערכת</span>
+          </button>
         </div>
       </li>
       <li>
         <div>
-          <h4>מריצים פעם אחת כדי לאשר הרשאות</h4>
-          <p>הרצה ראשונה תבקש הרשאה לגישה ל-Drive ול-Gmail. מאשרים את בקשת ההרשאות מול חשבון הגוגל שלכם.</p>
+          <h4>מריצים פעם אחת בלבד ומאשרים הרשאות</h4>
+          <p>אין צורך להגדיר שום דבר אחר — לא תיקיות ולא טריגרים בנפרד. שומרים את הפרויקט (Ctrl+S / ⌘S), ולוחצים על <strong>Run</strong> (▶) כדי להריץ אותו פעם אחת. בהרצה הראשונה תיפתח בקשת הרשאות — אלה השלבים לאישור:</p>
+          <ul class="sub-steps">
+            <li>בחלון "Authorization required" לוחצים על <strong>Review permissions</strong>, ובוחרים את חשבון הגוגל שאיתו רוצים להשתמש בכלי.</li>
+            <li>מופיעה אזהרה שגוגל לא אימתה את האפליקציה ("Google hasn't verified this app") — זה תקין ומצופה עבור סקריפט שכתבתם/הדבקתם בעצמכם. לוחצים על <strong>Advanced</strong> (מתקדם).</li>
+            <li>לוחצים על הקישור <strong>Go to [שם הפרויקט] (unsafe)</strong> שמופיע בהמשך המסך.</li>
+            <li>בודקים ברשימת ההרשאות המבוקשות (גישה ל-Drive ול-Gmail) ולוחצים <strong>Allow</strong> / <strong>Continue</strong> כדי לאשר.</li>
+          </ul>
+          <p>זה מתבצע פעם אחת בלבד לכל חשבון גוגל — מריצות הבאות ואילך הכלי פועל בלי לבקש אישור נוסף.</p>
         </div>
       </li>
       <li>
         <div>
-          <h4>מגדירים הרצה אוטומטית</h4>
-          <p>בתפריט הצד לוחצים על Triggers, ומוסיפים טריגר מבוסס-זמן שמריץ את הפונקציה הראשית כל 15–30 דקות.</p>
-        </div>
-      </li>
-      <li>
-        <div>
-          <h4>מוסיפים ערוצים</h4>
-          <p>בתיקיית המערכת בדרייב ייווצר קובץ <code>podcasts.txt</code>. מוסיפים לשם כתובות RSS של הפודקאסטים שתרצו לעקוב אחריהם — או שולחים מייל הרשמה, בהתאם למה שבחרתם בשלב הקודם.</p>
+          <h4>בודקים במייל</h4>
+          <p>בודקים את המייל שהתקבל — אפשר להתחיל להשתמש!</p>
         </div>
       </li>
     </ul>
 
-    <div class="close-note">זהו — בהרצה הבאה של הטריגר, הפרקים החדשים כבר יתחילו לרדת לדרייב.</div>
+    <div class="close-note">זהו — המערכת פועלת, והפרקים החדשים יתחילו לרדת לדרייב.</div>
 
     <div class="actions">
       <button class="btn btn-ghost" onclick="goTo(2)">
@@ -522,6 +538,48 @@
 
 <script>
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  async function copyGsCode(){
+    const btn = document.getElementById('copyGsBtn');
+    const label = document.getElementById('copyGsBtnLabel');
+    if(btn.classList.contains('busy')) return;
+    btn.classList.add('busy');
+    label.textContent = 'טוען קוד…';
+    try{
+      const res = await fetch('files/podcast_v2.gs', {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const code = await res.text();
+      await copyTextToClipboard(code);
+      btn.classList.remove('busy');
+      btn.classList.add('copied');
+      label.textContent = 'הקוד הועתק!';
+      setTimeout(()=>{
+        btn.classList.remove('copied');
+        label.textContent = 'העתקת קוד המערכת';
+      }, 2200);
+    } catch(err){
+      btn.classList.remove('busy');
+      label.textContent = 'ההעתקה נכשלה — נסו שוב';
+      setTimeout(()=>{ label.textContent = 'העתקת קוד המערכת'; }, 3000);
+    }
+  }
+
+  function copyTextToClipboard(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise((resolve, reject)=>{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand('copy'); resolve(); }
+      catch(e){ reject(e); }
+      document.body.removeChild(ta);
+    });
+  }
 
   function goTo(i){
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
