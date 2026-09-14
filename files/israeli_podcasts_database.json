@@ -43105,5 +43105,29 @@
     "track_count": 238,
     "content_advisory": "Clean",
     "country": "ISR"
+  },
+  {
+    "id": 1487231365,
+    "title": "מדברים סבולת",
+    "author": "מדברים סבולת",
+    "rss_url": "https://www.endurancetalks.com/feed/podcast/",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%9E%D7%93%D7%91%D7%A8%D7%99%D7%9D-%D7%A1%D7%91%D7%95%D7%9C%D7%AA/id1487231365?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/b4/42/5d/b4425dc9-e06d-df67-4792-872901768a82/mza_12926797936168948591.jpg/600x600bb.jpg",
+    "primary_genre": "Sport",
+    "track_count": 50,
+    "content_advisory": "Clean",
+    "country": "ISR"
+  },
+  {
+    "id": 6811360194,
+    "title": "אצלנו הכל בסדר | איך להפסיק לכבות שריפות בעסק (בלי לשרוף את הבית)",
+    "author": "שביט - אימון לתוצאות (שביט נחמן)",
+    "rss_url": "https://anchor.fm/s/111292d24/podcast/rss",
+    "apple_url": "https://podcasts.apple.com/il/podcast/%D7%90%D7%A6%D7%9C%D7%A0%D7%95-%D7%94%D7%9B%D7%9C-%D7%91%D7%A1%D7%93%D7%A8-%D7%90%D7%99%D7%9A-%D7%9C%D7%94%D7%A4%D7%A1%D7%99%D7%A7-%D7%9C%D7%9B%D7%91%D7%95%D7%AA-%D7%A9%D7%A8%D7%99%D7%A4%D7%95%D7%AA-%D7%91%D7%A2%D7%A1%D7%A7-%D7%91%D7%9C%D7%99-%D7%9C%D7%A9%D7%A8%D7%95%D7%A3-%D7%90%D7%AA-%D7%94%D7%91%D7%99%D7%AA/id6811360194?uo=4",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/0d/b7/8f/0db78fa5-7b3c-6a52-9c06-44cc08958cd2/mza_15473215288965429680.jpg/600x600bb.jpg",
+    "primary_genre": "Self-Improvement",
+    "track_count": 23,
+    "content_advisory": "Clean",
+    "country": "ISR"
   }
 ]
