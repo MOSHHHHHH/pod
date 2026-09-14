@@ -1,270 +1,585 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ממשק התקנה - פודקאסטים 2.0</title>
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3039/3039527.png" type="image/png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
-        body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; }
-        .step-content { display: none; }
-        .step-content.active { display: block; animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .podcast-card.selected { border-color: #3b82f6; background-color: #eff6ff; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוריד הפודקאסטים</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1117'/%3E%3Cpath d='M32 14a16 16 0 0 0-16 16v10a5 5 0 0 0 5 5h2a3 3 0 0 0 3-3V33a3 3 0 0 0-3-3h-3.6A12.6 12.6 0 0 1 44 30h-3.6a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h1a6 6 0 0 0 6-6' fill='none' stroke='%23F2A93B' stroke-width='3.4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='47' r='2.6' fill='%234FD1C5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1117;
+    --bg-panel:#161927;
+    --bg-elev:#1D2233;
+    --line:#2A2F44;
+    --line-soft:#232840;
+    --text:#ECEEF6;
+    --text-dim:#9AA0BC;
+    --text-faint:#6B7191;
+    --accent:#F2A93B;
+    --accent-soft:rgba(242,169,59,.14);
+    --teal:#49CFC4;
+    --teal-soft:rgba(73,207,196,.14);
+    --danger:#E5637A;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --ease:cubic-bezier(.22,.68,0,1);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 620px at 82% -8%, rgba(242,169,59,.09), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(73,207,196,.08), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Heebo', system-ui, sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 20px 80px;
+    line-height:1.6;
+  }
+  .app{
+    width:100%;
+    max-width:760px;
+  }
+
+  /* ---------- progress rail ---------- */
+  .rail{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0;
+    margin-bottom:40px;
+    user-select:none;
+  }
+  .rail .seg{
+    width:56px;
+    height:2px;
+    background:var(--line);
+    transition:background .5s var(--ease);
+  }
+  .rail .seg.done{background:var(--accent);}
+  .rail .stop{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.85rem;
+    font-weight:600;
+    color:var(--text-faint);
+    background:var(--bg-panel);
+    flex-shrink:0;
+    transition:border-color .4s var(--ease), color .4s var(--ease), box-shadow .4s var(--ease), background .4s var(--ease);
+  }
+  .rail .stop.active{
+    border-color:var(--accent);
+    color:var(--accent);
+    box-shadow:0 0 0 5px var(--accent-soft);
+  }
+  .rail .stop.done{
+    border-color:var(--accent);
+    background:var(--accent);
+    color:#161927;
+  }
+
+  /* ---------- panel shell ---------- */
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius-lg);
+    padding:44px 40px;
+    display:none;
+    animation:enter .5s var(--ease);
+  }
+  .panel.active{display:block;}
+  @keyframes enter{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  @media (max-width:600px){
+    .panel{padding:30px 22px;}
+    body{padding:32px 14px 60px;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{text-align:center; margin-bottom:8px;}
+  .hero-icon{width:92px; height:92px; margin:0 auto 22px;}
+  .hero h1{
+    font-size:2.05rem;
+    font-weight:800;
+    margin:0 0 10px;
+    letter-spacing:-.01em;
+  }
+  .hero p.tagline{
+    color:var(--text-dim);
+    font-size:1.05rem;
+    max-width:440px;
+    margin:0 auto;
+  }
+
+  .wave-divider{display:block; width:100%; height:26px; margin:34px 0 30px; opacity:.55;}
+
+  h2.section-title{
+    font-size:1.28rem;
+    font-weight:700;
+    margin:0 0 6px;
+  }
+  p.section-sub{
+    color:var(--text-dim);
+    margin:0 0 26px;
+    font-size:.97rem;
+  }
+
+  .features{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:600px){ .features{grid-template-columns:1fr;} }
+
+  .feat{
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius-md);
+    padding:18px 18px 20px;
+    background:var(--bg-elev);
+  }
+  .feat .ficon{
+    width:34px; height:34px;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:12px;
+  }
+  .feat.amber .ficon{background:var(--accent-soft); color:var(--accent);}
+  .feat.teal .ficon{background:var(--teal-soft); color:var(--teal);}
+  .feat h3{
+    font-size:.98rem;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .feat p{
+    font-size:.87rem;
+    color:var(--text-dim);
+    margin:0;
+  }
+
+  /* ---------- buttons ---------- */
+  .actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:34px;
+    gap:14px;
+  }
+  .actions.center{justify-content:center;}
+  button.btn, a.btn{
+    font-family:inherit;
+    font-size:.96rem;
+    font-weight:600;
+    border-radius:12px;
+    padding:13px 26px;
+    border:none;
+    cursor:pointer;
+    transition:transform .15s var(--ease), box-shadow .2s var(--ease), opacity .2s var(--ease), background .2s var(--ease);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#181206;
+    box-shadow:0 8px 20px -8px rgba(242,169,59,.55);
+  }
+  .btn-primary:hover{transform:translateY(-1px);}
+  .btn-primary:disabled{
+    background:#3A3F52;
+    color:var(--text-faint);
+    box-shadow:none;
+    cursor:not-allowed;
+    transform:none;
+  }
+  .btn-ghost{
+    background:transparent;
+    color:var(--text-dim);
+    padding:13px 8px;
+  }
+  .btn-ghost:hover{color:var(--text);}
+  .btn-outline{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text);
+  }
+  .btn-outline:hover{border-color:var(--accent); color:var(--accent);}
+  .btn.shake{animation:shake .38s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(4px);}
+    75%{transform:translateX(-4px);}
+  }
+
+  /* ---------- privacy panel ---------- */
+  .policy-intro{color:var(--text-dim); margin:0 0 18px; font-size:.97rem;}
+  .datum{
+    display:flex;
+    gap:14px;
+    border:1px solid var(--line-soft);
+    background:var(--bg-elev);
+    border-radius:var(--radius-md);
+    padding:16px 18px;
+    margin-bottom:12px;
+  }
+  .datum .badge{
+    flex-shrink:0;
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--teal-soft);
+    color:var(--teal);
+    font-size:.78rem;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+  }
+  .datum p{margin:0; font-size:.9rem; color:var(--text-dim);}
+  .datum p strong{color:var(--text); font-weight:600;}
+
+  .consent{
+    margin-top:26px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  label.check{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius-md);
+    padding:15px 16px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), background .2s var(--ease);
+    background:var(--bg-elev);
+  }
+  label.check:hover{border-color:var(--text-faint);}
+  label.check.checked{border-color:var(--accent); background:var(--accent-soft);}
+  label.check input{position:absolute; opacity:0; width:0; height:0;}
+  label.check .box{
+    flex-shrink:0;
+    width:20px; height:20px;
+    border-radius:6px;
+    border:2px solid var(--text-faint);
+    margin-top:1px;
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color .2s var(--ease), background .2s var(--ease);
+  }
+  label.check.checked .box{border-color:var(--accent); background:var(--accent);}
+  label.check .box svg{width:12px; height:12px; opacity:0; transition:opacity .15s;}
+  label.check.checked .box svg{opacity:1;}
+  label.check span.txt{font-size:.9rem; color:var(--text); line-height:1.55;}
+  label.check input:focus-visible + .box{outline:2px solid var(--teal); outline-offset:2px;}
+
+  /* ---------- install panel ---------- */
+  .steps{
+    counter-reset:step;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+  .steps li{
+    counter-increment:step;
+    display:flex;
+    gap:16px;
+    padding:18px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .steps li:last-child{border-bottom:none;}
+  .steps li::before{
+    content:counter(step);
+    flex-shrink:0;
+    width:30px; height:30px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    font-size:.82rem;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+  }
+  .steps h4{margin:0 0 5px; font-size:.98rem; font-weight:600;}
+  .steps p{margin:0; font-size:.88rem; color:var(--text-dim);}
+  .steps code{
+    background:var(--bg-elev);
+    border:1px solid var(--line-soft);
+    padding:1px 7px;
+    border-radius:6px;
+    font-size:.85em;
+    color:var(--teal);
+    direction:ltr;
+    display:inline-block;
+  }
+  .steps .inline-btn{margin-top:10px;}
+
+  .close-note{
+    margin-top:30px;
+    border:1px dashed var(--line);
+    border-radius:var(--radius-md);
+    padding:16px 18px;
+    color:var(--text-dim);
+    font-size:.88rem;
+    text-align:center;
+  }
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 transition-colors duration-500">
+<body>
+<div class="app">
 
-<div class="max-w-4xl mx-auto px-4 py-12">
-    <!-- Header -->
-    <header class="text-center mb-12">
-        <div class="inline-block p-3 bg-blue-600 rounded-2xl shadow-lg mb-4">
-            <i data-lucide="mic" class="text-white w-8 h-8"></i>
-        </div>
-        <h1 class="text-3xl font-bold text-slate-900">התקנת מערכת הפודקאסטים</h1>
-        <p class="text-slate-500 mt-2">בוא נגדיר את האוטומציה שלך בכמה צעדים פשוטים</p>
-    </header>
+  <div class="rail" id="rail">
+    <div class="stop active" data-i="1">1</div>
+    <div class="seg" data-i="1"></div>
+    <div class="stop" data-i="2">2</div>
+    <div class="seg" data-i="2"></div>
+    <div class="stop" data-i="3">3</div>
+  </div>
 
-    <!-- Progress Bar -->
-    <div class="relative mb-12">
-        <div class="flex justify-between mb-2">
-            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200" id="progress-badge">שלב 1 מתוך 3</span>
-        </div>
-        <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
-            <div id="progress-bar" style="width: 33.33%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"></div>
-        </div>
+  <!-- ===================== PANEL 1 : ABOUT ===================== -->
+  <section class="panel active" id="panel-1">
+    <div class="hero">
+      <svg class="hero-icon" viewBox="0 0 100 100" fill="none">
+        <path d="M50 22a28 28 0 0 0-28 28v16a8 8 0 0 0 8 8h3a5 5 0 0 0 5-5V54a5 5 0 0 0-5-5h-6.2A21.2 21.2 0 0 1 71.2 49H65a5 5 0 0 0-5 5v15a5 5 0 0 0 5 5h2a10 10 0 0 0 10-10" stroke="#F2A93B" stroke-width="4.2" stroke-linecap="round"/>
+        <circle cx="50" cy="79" r="3.4" fill="#49CFC4"/>
+        <g id="wavebars" stroke="#49CFC4" stroke-width="3.2" stroke-linecap="round">
+          <line x1="50" y1="8" x2="50" y2="14"/>
+        </g>
+      </svg>
+      <h1>מוריד הפודקאסטים</h1>
+      <p class="tagline">כלי אוטומטי שסורק את הערוצים שלך ומוריד פרקים חדשים ישירות לגוגל דרייב — כל השליטה דרך מייל.</p>
     </div>
 
-    <!-- Step 1: Installation -->
-    <div id="step1" class="step-content active">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                <i data-lucide="settings" class="text-blue-500"></i> שלב 1: התקנת ה"מנוע" ב-Apps Script
-            </h2>
-            <p class="text-slate-600 mb-8">קוד ה-Script הוא המוח שמתזמן את ההורדות בכל לילה.</p>
+    <svg class="wave-divider" viewBox="0 0 400 26" preserveAspectRatio="none">
+      <path d="M0 13 L20 13 L26 4 L34 22 L42 13 L60 13 L66 8 L72 18 L78 13 L110 13 L116 3 L124 23 L132 13 L160 13 L166 9 L172 17 L178 13 L210 13 L216 4 L224 22 L232 13 L260 13 L266 8 L272 18 L278 13 L310 13 L316 3 L324 23 L332 13 L360 13 L366 9 L372 17 L378 13 L400 13"
+        stroke="#2A2F44" stroke-width="1.6" fill="none"/>
+    </svg>
 
-            <div class="grid md:grid-cols-2 gap-6">
-                <!-- Option 1 -->
-                <div class="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-                    <h3 class="font-bold text-lg mb-2">אפשרות 1 (מומלץ)</h3>
-                    <p class="text-sm text-slate-500 mb-4">העתק את הפרויקט המוכן ישירות לחשבון שלך:</p>
-                    <a href="https://script.google.com/d/18viYneQfyQOxm03l62uGWPtrdoZ1ZfZqpjYWRK66UUsVavJGGjG7yzq8/copy" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                        <i data-lucide="copy-plus"></i> יצירת עותק אוטומטי
-                    </a>
-                </div>
+    <h2 class="section-title">מה הכלי עושה</h2>
+    <p class="section-sub">שש תכונות עיקריות שרצות ברקע בלי שתצטרכו לגעת בכלום.</p>
 
-                <!-- Option 2 -->
-                <div class="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-                    <h3 class="font-bold text-lg mb-2 text-slate-400">אפשרות 2 (ידני)</h3>
-                    <p class="text-sm text-slate-500 mb-4">העתק את הקוד ישירות ללוח והדבק אותו בפרויקט חדש:</p>
-                    <button onclick="copySourceCode()" class="w-full border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                        <i data-lucide="clipboard"></i> העתק קוד מקור
-                    </button>
-                </div>
-            </div>
-
-            <div class="mt-8 bg-amber-50 border-r-4 border-amber-400 p-4 rounded">
-                <h4 class="font-bold text-amber-800 mb-2">🛠️ הנחיות הרצה והרשאות:</h4>
-                <ol class="list-decimal list-inside text-amber-900 space-y-2 text-sm">
-                    <li>בתוך עורך הסקריפט, בחר למעלה בפונקציה <b>setUp</b> ולחץ על <b>Run</b>.</li>
-                    <li>ייפתח חלון אישור - לחץ על <b>Advanced</b> ואז על <b>Go to ... (unsafe)</b>.</li>
-                    <li>אשר את כל ההרשאות. הסקריפט ייצור כעת את התיקיות ב-Google Drive שלך.</li>
-                </ol>
-            </div>
-            <button onclick="nextStep(2)" class="mt-10 w-full bg-slate-900 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800">
-                המשך לשלב הבא <i data-lucide="arrow-left"></i>
-            </button>
-        </div>
+    <div class="features">
+      <div class="feat amber">
+        <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></div>
+        <h3>הורדה אוטומטית לדרייב</h3>
+        <p>סריקה מתוזמנת של כל הערוצים שנרשמתם אליהם, והורדת פרקים חדשים ישירות לתיקיות מסודרות בדרייב.</p>
+      </div>
+      <div class="feat teal">
+        <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+        <h3>ניהול מינויים במייל</h3>
+        <p>נרשמים או מסירים ערוץ בשליחת מייל בלבד. אפשר גם לערוך ידנית את קובץ הערוצים בדרייב, בלי לשתף כלום עם המערכת.</p>
+      </div>
+      <div class="feat teal">
+        <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+        <h3>חיפוש פודקאסטים</h3>
+        <p>שולחים מייל חיפוש עם שם תוכנית, מגיש או נושא, ומקבלים תוצאות מ-iTunes עם כפתור הרשמה לכל תוצאה.</p>
+      </div>
+      <div class="feat amber">
+        <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
+        <h3>פרק בודד או קטלוג מלא</h3>
+        <p>אפשר לבקש פרק ספציפי מכל ערוץ, גם כזה שלא רשומים אליו, או לקבל במייל רשימה של כל הפרקים שיצאו אי פעם.</p>
+      </div>
+      <div class="feat amber">
+        <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="7" height="12" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg></div>
+        <h3>קבצים גדולים בלי לאבד התקדמות</h3>
+        <p>פרקים כבדים מתחלקים להורדה על פני כמה ריצות, כדי לעמוד במגבלת הזמן של גוגל סקריפט.</p>
+      </div>
+      <div class="feat teal">
+        <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+        <h3>דיווחים והתראות</h3>
+        <p>מייל סיכום שבועי, התראה כשנגמר מקום בדרייב, ושמירה אוטומטית של תמונת קאבר וקובץ תזמון לכל פרק.</p>
+      </div>
     </div>
 
-    <!-- Step 2: Search & Select -->
-    <div id="step2" class="step-content">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                <i data-lucide="search" class="text-blue-500"></i> שלב 2: בחירת פודקאסטים
-            </h2>
-            <p class="text-slate-600 mb-6">חפש ובחר את הפודקאסטים שברצונך לסנכרן. בסיום, הורד את הקובץ.</p>
-            
-            <div class="relative mb-6">
-                <input type="text" id="searchInput" oninput="searchPodcasts()" placeholder="חפש שם פודקאסט או מגיש..." class="w-full pr-12 pl-4 py-4 bg-slate-100 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                <i data-lucide="search" class="absolute right-4 top-4 text-slate-400"></i>
-            </div>
+    <div class="actions center">
+      <button class="btn btn-primary" onclick="goTo(2)">
+        הבא
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
+      </button>
+    </div>
+  </section>
 
-            <div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto mb-6 p-2">
-                <!-- Results injected here -->
-            </div>
+  <!-- ===================== PANEL 2 : PRIVACY ===================== -->
+  <section class="panel" id="panel-2">
+    <h2 class="section-title">מדיניות פרטיות</h2>
+    <p class="policy-intro">נאספים שני נתונים בלבד:</p>
 
-            <div id="selectionStatus" class="mb-6 p-4 bg-blue-50 rounded-lg hidden">
-                <p class="text-blue-800 font-semibold">נבחרו <span id="selectedCount">0</span> פודקאסטים</p>
-            </div>
-
-            <button id="downloadBtn" onclick="downloadFile()" disabled class="w-full bg-green-600 opacity-50 cursor-not-allowed text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-all">
-                <i data-lucide="download"></i> הורד קובץ podcasts.txt
-            </button>
-            
-            <button onclick="nextStep(3)" id="nextToStep3" class="hidden mt-4 w-full border border-slate-300 py-3 rounded-xl font-semibold hover:bg-slate-50 transition-all">
-                המשך לשלב הסופי
-            </button>
-        </div>
+    <div class="datum">
+      <div class="badge">א</div>
+      <p><strong>אישור שימוש בכלי</strong> — נאסף בכל הרצה של הכלי, וכולל את כתובת המייל של המשתמש בלבד.</p>
+    </div>
+    <div class="datum">
+      <div class="badge">ב</div>
+      <p><strong>הפעלת המערכת באמצעות מייל</strong> — כולל הרשמה לערוצים חדשים, הסרת ערוצים, קבלת קטלוג פרקים, חיפוש ערוצים וקבלת פרקים. כל מייל שהמשתמש שולח לכתובות הייעודיות נאסף. שימו לב: אפשר לבצע הרשמה והסרה של ערוצים גם באמצעות הוספה ידנית של כתובת ה-RSS לקובץ הייעודי בדרייב — בדרך זו לא נאסף מידע מהמשתמש על ידי מנהל המערכת.</p>
     </div>
 
-    <!-- Step 3: Upload -->
-    <div id="step3" class="step-content">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
-            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i data-lucide="cloud-upload" class="w-10 h-10"></i>
-            </div>
-            <h2 class="text-2xl font-bold mb-4">שלב אחרון: העלאה ל-Google Drive</h2>
-            <div class="text-right inline-block max-w-md mx-auto space-y-4 text-slate-600">
-                <p class="flex items-start gap-3">
-                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs">1</span>
-                    עבור לתיקיית <b>פודקאסטים 2.0</b> שנוצרה לך בדרייב.
-                </p>
-                <p class="flex items-start gap-3">
-                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs">2</span>
-                    היכנס לתוך תיקיית <b>קבצי מערכת</b>.
-                </p>
-                <p class="flex items-start gap-3">
-                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs">3</span>
-                    העלה לשם את הקובץ <code class="bg-slate-200 px-1 rounded text-red-600 font-bold">podcasts.txt</code> שהורדת הרגע.
-                </p>
-            </div>
-
-            <div class="mt-8 p-4 bg-rose-50 border border-rose-100 rounded-xl">
-                <p class="text-rose-700 text-sm italic">שים לב: חובה לשמור על שם הקובץ המדויק על מנת שהמערכת תזהה אותו.</p>
-            </div>
-
-            <button onclick="location.reload()" class="mt-10 w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700">
-                סיימתי, תודה!
-            </button>
-        </div>
+    <div class="consent">
+      <label class="check" id="chk1-label">
+        <input type="checkbox" id="chk1" onchange="onCheck()">
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#181206" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <span class="txt">קראתי ואני מאשר/ת את מדיניות הפרטיות.</span>
+      </label>
+      <label class="check" id="chk2-label">
+        <input type="checkbox" id="chk2" onchange="onCheck()">
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#181206" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <span class="txt">ידוע לי שכל מייל שאשלח למערכת יהיה גלוי למנהל המערכת. ידוע לי שניתן להוסיף ולהסיר ערוצים ידנית, ובדרך זו למנהל המערכת לא תהיה גישה לנתונים.</span>
+      </label>
     </div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="goTo(1)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
+        חזרה
+      </button>
+      <button class="btn btn-primary" id="next2" onclick="tryGoTo3()" disabled>
+        הבא
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== PANEL 3 : INSTALL ===================== -->
+  <section class="panel" id="panel-3">
+    <h2 class="section-title">התקנה</h2>
+    <p class="section-sub">כל ההתקנה מתבצעת בחשבון גוגל שלכם, ולוקחת כמה דקות.</p>
+
+    <ul class="steps">
+      <li>
+        <div>
+          <h4>יוצרים תיקיית בית בדרייב</h4>
+          <p>תיקייה חדשה בגוגל דרייב שתשמש כמקום שבו כל הפרקים, קובץ הערוצים וקבצי המערכת יישמרו — למשל בשם "פודקאסטים".</p>
+          <a class="btn btn-outline inline-btn" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">
+            פתיחת גוגל דרייב
+          </a>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>פותחים פרויקט Apps Script חדש</h4>
+          <p>נכנסים ל-Google Apps Script ויוצרים פרויקט ריק חדש.</p>
+          <a class="btn btn-outline inline-btn" href="https://script.google.com/create" target="_blank" rel="noopener">
+            פתיחת Apps Script חדש
+          </a>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>מדביקים את קוד המערכת</h4>
+          <p>מוחקים את התוכן שמופיע כברירת מחדל בקובץ <code>Code.gs</code>, ומדביקים במקומו את כל התוכן מהקובץ <code>podcast_v2.gs</code> שסופק לכם.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>שומרים ונותנים שם לפרויקט</h4>
+          <p>שומרים (Ctrl+S / ⌘S) ונותנים לפרויקט שם ברור, למשל "מוריד הפודקאסטים".</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>מריצים פעם אחת כדי לאשר הרשאות</h4>
+          <p>הרצה ראשונה תבקש הרשאה לגישה ל-Drive ול-Gmail. מאשרים את בקשת ההרשאות מול חשבון הגוגל שלכם.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>מגדירים הרצה אוטומטית</h4>
+          <p>בתפריט הצד לוחצים על Triggers, ומוסיפים טריגר מבוסס-זמן שמריץ את הפונקציה הראשית כל 15–30 דקות.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>מוסיפים ערוצים</h4>
+          <p>בתיקיית המערכת בדרייב ייווצר קובץ <code>podcasts.txt</code>. מוסיפים לשם כתובות RSS של הפודקאסטים שתרצו לעקוב אחריהם — או שולחים מייל הרשמה, בהתאם למה שבחרתם בשלב הקודם.</p>
+        </div>
+      </li>
+    </ul>
+
+    <div class="close-note">זהו — בהרצה הבאה של הטריגר, הפרקים החדשים כבר יתחילו לרדת לדרייב.</div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="goTo(2)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
+        חזרה
+      </button>
+      <span></span>
+    </div>
+  </section>
+
 </div>
 
 <script>
-    // Initialize Lucide Icons
-    lucide.createIcons();
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    let podcastDatabase = [];
-    let selectedPodcasts = [];
+  function goTo(i){
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-'+i).classList.add('active');
+    document.querySelectorAll('.rail .stop').forEach(s=>{
+      const si = +s.dataset.i;
+      s.classList.toggle('active', si === i);
+      s.classList.toggle('done', si < i);
+    });
+    document.querySelectorAll('.rail .seg').forEach(s=>{
+      s.classList.toggle('done', +s.dataset.i < i);
+    });
+    window.scrollTo({top:0, behavior: reduceMotion ? 'auto' : 'smooth'});
+  }
 
-    // Step Navigation
-    function nextStep(step) {
-        document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
-        document.getElementById('step' + step).classList.add('active');
-        
-        const progress = (step / 3) * 100;
-        document.getElementById('progress-bar').style.width = progress + '%';
-        document.getElementById('progress-badge').innerText = `שלב ${step} מתוך 3`;
+  function onCheck(){
+    const c1 = document.getElementById('chk1');
+    const c2 = document.getElementById('chk2');
+    document.getElementById('chk1-label').classList.toggle('checked', c1.checked);
+    document.getElementById('chk2-label').classList.toggle('checked', c2.checked);
+    document.getElementById('next2').disabled = !(c1.checked && c2.checked);
+  }
 
-        if (step === 2 && podcastDatabase.length === 0) {
-            loadDatabase();
-        }
+  function tryGoTo3(){
+    const btn = document.getElementById('next2');
+    if(btn.disabled){
+      btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+      return;
     }
+    goTo(3);
+  }
 
-    // Load Database
-    async function loadDatabase() {
-        try {
-            const response = await fetch('files/israeli_podcasts_database.json');
-            podcastDatabase = await response.json();
-        } catch (e) {
-            console.error("Error loading DB", e);
-            alert("לא ניתן לטעון את מאגר הפודקאסטים. וודא שהקובץ קיים בנתיב הנכון.");
-        }
+  // subtle looping waveform in the hero icon — single orchestrated moment, skipped for reduced motion
+  if(!reduceMotion){
+    const wave = document.getElementById('wavebars');
+    const heights = [6,14,22,12,18,8,16,10];
+    let bars = [];
+    heights.forEach((h,i)=>{
+      const x = 34 + i*4.6;
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', 40 - h/2); line.setAttribute('y2', 40 + h/2);
+      wave.appendChild(line);
+      bars.push({el:line, base:h, phase:i*0.6});
+    });
+    wave.removeChild(wave.firstElementChild); // remove placeholder line
+    let t = 0;
+    function tick(){
+      t += 0.045;
+      bars.forEach(b=>{
+        const h = b.base * (0.55 + 0.45*Math.abs(Math.sin(t + b.phase)));
+        b.el.setAttribute('y1', 40 - h/2);
+        b.el.setAttribute('y2', 40 + h/2);
+      });
+      requestAnimationFrame(tick);
     }
-
-    // Copy Source Code
-    async function copySourceCode() {
-        try {
-            const response = await fetch('files/podcast_v2.gs');
-            const code = await response.text();
-            await navigator.clipboard.writeText(code);
-            alert("הקוד הועתק ללוח!");
-        } catch (e) {
-            alert("שגיאה בהעתקת הקוד. נסה להעתיק ידנית מהקובץ.");
-        }
-    }
-
-    // Search Logic
-    function searchPodcasts() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const resultsDiv = document.getElementById('searchResults');
-        resultsDiv.innerHTML = '';
-
-        if (query.length < 2) return;
-
-        const filtered = podcastDatabase.filter(p => 
-            p.title.toLowerCase().includes(query) || 
-            p.author.toLowerCase().includes(query)
-        ).slice(0, 20);
-
-        filtered.forEach(p => {
-            const isSelected = selectedPodcasts.some(s => s.id === p.id);
-            const card = document.createElement('div');
-            card.className = `podcast-card border rounded-xl p-3 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-all ${isSelected ? 'selected' : ''}`;
-            card.onclick = () => togglePodcast(p, card);
-            
-            card.innerHTML = `
-                <img src="${p.image_url}" class="w-16 h-16 rounded-lg object-cover shadow-sm">
-                <div class="flex-1 overflow-hidden">
-                    <h4 class="font-bold truncate text-sm">${p.title}</h4>
-                    <p class="text-xs text-slate-500 truncate">${p.author}</p>
-                </div>
-                ${isSelected ? '<i data-lucide="check-circle" class="text-blue-500"></i>' : '<i data-lucide="plus" class="text-slate-300"></i>'}
-            `;
-            resultsDiv.appendChild(card);
-        });
-        lucide.createIcons();
-    }
-
-    // Toggle Selection
-    function togglePodcast(podcast, element) {
-        const index = selectedPodcasts.findIndex(s => s.id === podcast.id);
-        if (index > -1) {
-            selectedPodcasts.splice(index, 1);
-        } else {
-            selectedPodcasts.push(podcast);
-        }
-        
-        // UI Updates
-        document.getElementById('selectedCount').innerText = selectedPodcasts.length;
-        document.getElementById('selectionStatus').classList.toggle('hidden', selectedPodcasts.length === 0);
-        
-        const btn = document.getElementById('downloadBtn');
-        if (selectedPodcasts.length > 0) {
-            btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-        
-        searchPodcasts(); // Refresh to update icons
-    }
-
-    // Download File
-    function downloadFile() {
-        let content = '';
-        selectedPodcasts.forEach(p => {
-            content += `#${p.title}\n${p.rss_url}\n\n`;
-        });
-
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'podcasts.txt';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        
-        document.getElementById('nextToStep3').classList.remove('hidden');
-    }
+    requestAnimationFrame(tick);
+  }
 </script>
-
 </body>
 </html>
