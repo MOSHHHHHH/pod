@@ -4,8 +4,10 @@
  * נקודת כניסה יחידה. הלוגיקה נטענת ישירות מ-GitHub בכל ריצה.
  * קובץ JS ב-Drive — לא נדרש.
  *
- * קבצים הנדרשים בתיקיית "קבצי מערכת" ב-Drive:
- *   • podcasts.txt   — רשימת פידי ה-RSS של המשתמש
+ * מבנה התיקיות ב-Drive (כולל קובץ podcasts.txt) נוצר אוטומטית בריצה
+ * הראשונה — אין צורך להכין שום דבר מראש. אם podcasts.txt חסר (כולל
+ * ריצה ראשונה-ראשונה, כשגם התיקייה הראשית לא קיימת עדיין), נוצר קובץ
+ * ריק ונשלח למשתמש מייל חד-פעמי עם הנחיה להוספת ערוץ.
  */
 
 // ── הרשאות נדרשות (if false = לא מתבצע, מאלץ בקשת scopes) ─────────
@@ -20,8 +22,6 @@ if (false) {
   PropertiesService.getScriptProperties().setProperty("","");
   Session.getEffectiveUser().getEmail();
   UrlFetchApp.fetch("");
-  CalendarApp.getDefaultCalendar();
-  SpreadsheetApp.create("");
 }
 
 // ── קבועים ───────────────────────────────────────────────────────────
@@ -56,13 +56,9 @@ function setUp() {
   var sysIt      = mainFolder.getFoldersByName(SYS_FOLDER_NAME);
   var sysFolder  = sysIt.hasNext() ? sysIt.next() : mainFolder.createFolder(SYS_FOLDER_NAME);
 
-  // 3. בדיקת קובץ המינויים
-  if (!sysFolder.getFilesByName(RSS_FILE_NAME).hasNext()) {
-    Logger.log("⏳ קובץ " + RSS_FILE_NAME + " חסר בתיקייה '" + SYS_FOLDER_NAME + "'.");
-    return;
-  }
-
-  // 4. טעינת הלוגיקה מ-GitHub והרצתה
+  // 3. טעינת הלוגיקה מ-GitHub והרצתה
+  //    (בדיקת/יצירת קובץ podcasts.txt וכל שאר האתחול מתבצעים בתוך main(),
+  //    כולל שליחת מייל חד-פעמי אם הקובץ לא קיים — גם בריצה ראשונה לגמרי)
   try {
     var code = UrlFetchApp.fetch(GITHUB_JS_URL, { muteHttpExceptions: true }).getContentText();
     eval(code);
