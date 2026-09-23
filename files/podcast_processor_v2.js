@@ -478,19 +478,83 @@ function ensureRssFileExists(sysFolder, emailsData) {
 }
 
 /**
- * מייל חד-פעמי שנשלח כשקובץ podcasts.txt לא נמצא כלל ונוצר מאפס.
+ * מייל ברוך הבא מפורט — נשלח פעם אחת כשקובץ podcasts.txt לא נמצא כלל ונוצר מאפס
+ * (כולל ריצה ראשונה-ראשונה, כשגם התיקייה הראשית לא קיימת עדיין).
+ * כולל: אישור התקנה תקינה, הסבר כללי על פעולת המערכת, הוראות הוספה/הסרה
+ * של ערוצים, טיפ על הרצה ידנית, ופתרון בעיות נפוצות.
  */
 function sendMissingRssFileEmail() {
-  var body = '<p style="color:#64748b;margin-bottom:16px;">קובץ רשימת הפודקאסטים ('+RSS_FILE_NAME+') לא נמצא בתיקיית קבצי המערכת, ולכן נוצר קובץ ריק חדש במקומו.</p>'
-    +'<p style="color:#64748b;font-size:.9rem;margin-bottom:20px;">כדי להתחיל להוריד פרקים, הוסיפו ערוץ — אם ידועה לך כתובת ה-RSS, הכנס אותה ישירות; אחרת ניתן לחפש לפי שם.</p>'
-    +'<div style="text-align:center;padding:20px;">'+buildAddChannelBtn()+'</div>'
-    +'<p style="color:#94a3b8;font-size:.8rem;text-align:center;margin-top:12px;">ניתן גם לערוך את קובץ '+RSS_FILE_NAME+' ישירות ב-Google Drive.</p>';
+  var addBtn = buildMailtoBtn('+ הוסף ערוץ ראשון', CTRL_SUBSCRIBE,
+    '[כתובת RSS או מחרוזת חיפוש]',
+    'אם אתה יודע את כתובת הפיד RSS של הפודקאסט, מלא אותה בכותרת. אחרת מלא את שם הפודקאסט/נושא/מגיש לחיפוש. לאחר מכן שלח מייל זה. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE,
+    '#10b981');
+
+  var body =
+      '<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:14px;padding:18px 20px;margin-bottom:24px;text-align:center;">'
+    +   '<p style="margin:0;color:#047857;font-weight:700;font-size:1.05rem;">✅ אם אתה רואה מייל זה — ההתקנה עברה בהצלחה!</p>'
+    +   '<p style="margin:6px 0 0;color:#059669;font-size:.85rem;">הסקריפט מותקן, ההרשאות אושרו, והמערכת פעילה בחשבון ה-Drive/Gmail שלך.</p>'
+    + '</div>'
+
+    + '<p style="color:#64748b;margin-bottom:20px;">לא נמצא עדיין קובץ ערוצים ('+RSS_FILE_NAME+') בתיקיית המערכת, ולכן נוצר קובץ ריק חדש — וזה בדיוק הרגע להוסיף את הפודקאסט הראשון שלך.</p>'
+
+    + '<h2 style="font-size:1.05rem;margin:28px 0 10px;color:#1e293b;">איך המערכת עובדת</h2>'
+    + '<ul style="color:#475569;font-size:.9rem;line-height:1.9;padding-inline-start:20px;margin:0 0 8px;">'
+    +   '<li>הסקריפט רץ <strong>אוטומטית פעם בשעה</strong> ברקע — אין צורך להריץ שום דבר ידנית.</li>'
+    +   '<li>בכל ריצה הוא בודק פרקים חדשים בערוצים שלך, ומוריד אותם ל-Drive לתיקייה מסודרת לפי שם התוכנית.</li>'
+    +   '<li>הוא גם סורק את תיבת ה"נשלח" שלך ב-Gmail בשביל פקודות ניהול (הוספה/הסרה/חיפוש) — ככה כל הניהול נעשה במייל, בלי ממשק נפרד.</li>'
+    +   '<li>מבנה התיקיות נוצר אוטומטית — ואם משהו נמחק בטעות, המערכת תיצור אותו מחדש בריצה הבאה.</li>'
+    + '</ul>'
+
+    + '<div style="background:#f8fafc;border-radius:14px;padding:20px;margin:24px 0;">'
+    +   '<h2 style="font-size:1.05rem;margin:0 0 8px;color:#1e293b;">➕ הוספת ערוץ</h2>'
+    +   '<p style="color:#64748b;font-size:.9rem;margin:0 0 14px;">לחצו על הכפתור, ובשורת הנושא של המייל שנפתח מלאו <strong>כתובת RSS</strong> אם היא ידועה לכם, או <strong>שם/נושא/מגיש</strong> לחיפוש. לאחר מכן שלחו את המייל כמו שהוא — אין צורך לגעת בגוף ההודעה.</p>'
+    +   '<div style="text-align:center;">'+addBtn+'</div>'
+    +   '<p style="color:#94a3b8;font-size:.78rem;text-align:center;margin:12px 0 0;">אפשר גם לערוך ישירות את הקובץ '+RSS_FILE_NAME+' בתיקיית "קבצי מערכת" ב-Drive.</p>'
+    +   '<p style="color:#94a3b8;font-size:.78rem;text-align:center;margin:6px 0 0;">תוכלו לשלוח עכשיו מספר מיילים על מנת להוסיף מספר ערוצים, אין צורך להמתין שהבקשה הקודמת תטופל.</p>'
+    + '</div>'
+
+    + '<div style="background:#f8fafc;border-radius:14px;padding:20px;margin:24px 0;">'
+    +   '<h2 style="font-size:1.05rem;margin:0 0 8px;color:#1e293b;">🛠️ עריכה ידנית של הקובץ (למתקדמים)</h2>'
+    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 12px;">ניתן למצוא את הקובץ ב-<strong dir="ltr" style="unicode-bidi:embed;">Drive ‎›‎ פודקאסטים 2.0 ‎›‎ קבצי מערכת ‎›‎ '+RSS_FILE_NAME+'</strong> — אפשר להוריד אותו למחשב, לערוך בעורך טקסט רגיל, ולהעלות בחזרה לאותה תיקייה (מחליפים את הקובץ הקיים).</p>'
+    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 12px;"><strong>לגבי פרטיות:</strong> עריכת הקובץ ישירות ב-Drive לא עוברת דרך כתובות המייל של המערכת, ולכן לא נשלח ולא נאסף שום מייל בתהליך — זו הדרך המצומצמת ביותר מבחינת פרטיות להוסיף או להסיר ערוצים. שימו לב: הפרט המצוין בסעיף א׳ במדיניות הפרטיות — כתובת המייל שלכם בלבד — עדיין נאסף בכל ריצה רגילה של המערכת, ללא קשר לעריכת קובץ זה.</p>'
+    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 12px;"><strong>מהי כתובת RSS ואיך מוצאים אותה:</strong> כל פודקאסט מתפרסם דרך "פיד" — כתובת שמתחילה ב-http/https ומתעדכנת אוטומטית בכל פרק חדש. הדרך הפשוטה ביותר: להשתמש בכפתור "הוסף ערוץ ראשון" למעלה ולמלא רק את שם הפודקאסט — המערכת תחפש ותמצא את כתובת ה-RSS בעצמה. אם אתם מעדיפים למצוא אותה בעצמכם: אפשר לחפש בגוגל "&lt;שם הפודקאסט&gt; rss feed", או לבדוק באתר הרשמי של הפודקאסט (בדרך כלל יש שם קישור RSS/הרשמה).</p>'
+    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 10px;"><strong>תחביר הקובץ:</strong></p>'
+    +   '<ul style="color:#64748b;font-size:.85rem;line-height:1.8;padding-inline-start:20px;margin:0 0 14px;">'
+    +     '<li>שורה שמתחילה ב-<code style="background:#e2e8f0;padding:1px 5px;border-radius:5px;">#</code> היא הערה בלבד (אפשר לרשום שם ערוץ כתזכורת) — המערכת מתעלמת ממנה.</li>'
+    +     '<li>שורה ריקה מפרידה בין ערוצים.</li>'
+    +     '<li>שורת הערוץ עצמה חייבת להתחיל ב-<code style="background:#e2e8f0;padding:1px 5px;border-radius:5px;">http</code> או <code style="background:#e2e8f0;padding:1px 5px;border-radius:5px;">https</code> — זו כתובת ה-RSS.</li>'
+    +     '<li>אופציונלי: מיד אחרי כתובת ה-RSS אפשר להוסיף שורה עם מספר בלבד — כמה ימים אחורה לסרוק פרקים עבור הערוץ הזה (ברירת מחדל: 7 ימים).</li>'
+    +   '</ul>'
+    +   '<pre style="background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;font-family:monospace;font-size:.78rem;overflow-x:auto;direction:ltr;text-align:left;white-space:pre;margin:0;">'
+    +     '# רשימת פודקאסטים\n\n# עושים היסטוריה\nhttps://example.com/feed1.xml\n\n# פודקאסט טכנולוגי, סורק חודש אחורה\nhttps://example.com/feed2.xml\n30'
+    +   '</pre>'
+    + '</div>'
+
+    + '<div style="background:#f8fafc;border-radius:14px;padding:20px;margin:24px 0;">'
+    +   '<h2 style="font-size:1.05rem;margin:0 0 8px;color:#1e293b;">➖ הסרת ערוץ</h2>'
+    +   '<p style="color:#64748b;font-size:.9rem;margin:0;">לכל ערוץ שתוסיפו, המייל השוטף לעדכון מינויים יכלול כפתור "הסר מנוי" מוכן — לא צריך לזכור כתובות.</p>'
+    + '</div>'
+
+    + '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:18px 20px;margin:24px 0;">'
+    +   '<p style="margin:0 0 6px;color:#1d4ed8;font-weight:700;font-size:.95rem;">💡 טיפ!</p>'
+    +   '<p style="margin:0;color:#1e40af;font-size:.87rem;line-height:1.7;">המערכת רצה כל שעה, ומה שהיא לא הספיקה מחכה לשעה הבאה באופן אוטומטי — אין צורך להריץ ידנית את הסקריפט. אם בכל זאת אתם צריכים פרק דחוף, או רוצים לבדוק עכשיו אם יצאו פרקים חדשים — ניתן להריץ ידנית: היכנסו לפרויקט ב-<span dir="ltr" style="unicode-bidi:embed;">script.google.com</span> ולחצו על הפעלה.</p>'
+    + '</div>'
+
+    + '<h2 style="font-size:1.05rem;margin:28px 0 10px;color:#1e293b;">🔧 פתרון בעיות נפוצות</h2>'
+    + '<div style="color:#475569;font-size:.87rem;line-height:1.7;">'
+    +   '<p style="margin:0 0 10px;"><strong>לא מקבלים מיילים בכלל?</strong><br>בדקו בתיקיית ספאם/קידומים ב-Gmail, ווודאו שאישרתם את כל ההרשאות בריצה הראשונה.</p>'
+    +   '<p style="margin:0 0 10px;"><strong>רוצים לוודא שהמערכת פעילה?</strong><br>בעורך ה-Apps Script → לשונית "טריגרים" (השעון בצד) — אמור להופיע טריגר בשם <code style="background:#f1f5f9;padding:1px 5px;border-radius:5px;">setUp</code> שרץ פעם בשעה.</p>'
+    +   '<p style="margin:0 0 10px;"><strong>שלחתם מייל ולא קורה כלום?</strong><br>המתינו מספר שעות — או היכנסו לפרויקט ב-<span dir="ltr" style="unicode-bidi:embed;">script.google.com</span> ולחצו על הפעלה.</p>'
+    +   '<p style="margin:0 0 10px;"><strong>הורדתי כבר את הפודקאסטים, האם ניתן למחוק אותם מהדרייב?</strong><br>בהחלט, ואפילו מומלץ! המערכת זוכרת את הפודקאסטים שהיא הורידה ולא תוריד אותם שוב. (אם בכל זאת אתם צריכים את הפרק שוב, אפשר לבקש באמצעות מערכת המיילים!) רק צריך להיזהר לא למחוק את תיקיית \'קבצי מערכת\'.</p>'
+    +   '<p style="margin:0;"><strong>רוצים לראות מה בדיוק קרה בריצה מסוימת?</strong><br>בעורך ה-Apps Script → לשונית "הרצות" (Executions) מציגה יומן מפורט לכל ריצה.</p>'
+    + '</div>';
+
   try {
     MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '⏳ פודקאסטים 2.0 — נוצר קובץ ערוצים ריק',
-      htmlBody: _emailWrap('קובץ הערוצים נוצר', body) });
-    Logger.log('📧 מייל קובץ ערוצים חסר נשלח.');
-  } catch(e) { Logger.log('⚠️  מייל קובץ חסר נכשל: '+e.message); }
+      subject: '🎉 פודקאסטים 2.0 — ההתקנה הושלמה בהצלחה!',
+      htmlBody: _emailWrap('ברוכים הבאים למערכת', body) });
+    Logger.log('📧 מייל ברוך הבא נשלח.');
+  } catch(e) { Logger.log('⚠️  מייל ברוך הבא נכשל: '+e.message); }
 }
 
 
