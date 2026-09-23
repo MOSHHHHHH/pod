@@ -1523,18 +1523,11 @@ function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime, mainFo
 
 // =====================================================================
 // sendEmptySubscriptionsEmail — נשלח פעם אחת כשאין ערוצים
+// (מאוחד עם sendMissingRssFileEmail: אותו מייל עשיר, בין אם הקובץ חסר
+// לגמרי ובין אם הוא קיים אך ריק — כך שהמשתמש תמיד מקבל את אותה חוויה.)
 // =====================================================================
 function sendEmptySubscriptionsEmail(emailsData) {
-  var body = '<p style="color:#64748b;margin-bottom:16px;">רשימת הפודקאסטים שלך ריקה. הוסף ערוצים כדי להתחיל בהורדה אוטומטית.</p>'
-    +'<p style="color:#64748b;font-size:.9rem;margin-bottom:20px;">אם ידוע לך כתובת ה-RSS של פודקאסט — הכנס אותה ישירות. אחרת תוכל לחפש לפי שם.</p>'
-    +'<div style="text-align:center;padding:20px;">'+buildAddChannelBtn()+'</div>'
-    +'<p style="color:#94a3b8;font-size:.8rem;text-align:center;margin-top:12px;">ניתן גם לערוך את קובץ podcasts.txt ישירות ב-Google Drive</p>';
-  try {
-    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '🎙️ פודקאסטים 2.0 — הוסף ערוצים להתחלה',
-      htmlBody: _emailWrap('ברוך הבא!', body) });
-    Logger.log('📧 מייל ערוצים ריקים נשלח.');
-  } catch(e) { Logger.log('⚠️  מייל ריק נכשל: '+e.message); }
+  sendMissingRssFileEmail();
 }
 
 
