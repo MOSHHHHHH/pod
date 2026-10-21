@@ -38,6 +38,7 @@ var EMAIL_TIME_BUFFER_MS = 90 * 1000;                // זמן שמור לבני
 // =====================================================================
 var _downloadHistory = [];
 var _emailsData      = null;
+var _rssList         = [];
 var _sysFolder       = null;  // reference לשימוש בפונקציות עזר
 
 
@@ -46,6 +47,13 @@ var _sysFolder       = null;  // reference לשימוש בפונקציות עז�
 // מחזירה true אם נותרו הורדות בתור לריצה הבאה, אחרת false.
 // =====================================================================
 function main(sysFolder, mainFolder) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) { Logger.log('⏸️ ריצה אחרת פעילה; ממשיכים בשעה הבאה.'); return true; }
+  try { return runPodcastMain(sysFolder, mainFolder); }
+  finally { lock.releaseLock(); }
+}
+
+function runPodcastMain(sysFolder, mainFolder) {
   var startTime = new Date();
   Logger.log("🚀 פודקאסטים v2 — " + formatDate(startTime));
 
@@ -64,9 +72,16 @@ function main(sysFolder, mainFolder) {
   for (var q = 0; q < queue.length; q++) seenUrls[queue[q].url] = true;
 
   var rssList = loadRssList(sysFolder);
+  _rssList = rssList;
   var processedEmails = checkSentMailbox(sysFolder, mainFolder, queue, rssList, startTime);
   // reload rssList — unsubscribe/subscribe may have changed it
   rssList = loadRssList(sysFolder);
+
+  _rssList = rssList;
+  reconcileAutomaticQueue(queue, rssList, _emailsData);
+  repairSavedFeedUrls(queue, _emailsData, rssList);
+  seenUrls = {};
+  for (var qi = 0; qi < queue.length; qi++) seenUrls[queue[qi].url] = true;
 
   // ── 3. בדיקה: רשימת ערוצים ריקה ──
   if (rssList.length === 0) {
@@ -74,15 +89,14 @@ function main(sysFolder, mainFolder) {
       sendEmptySubscriptionsEmail(_emailsData);
       _emailsData.emptySubsEmailSent = true;
     }
+    if (queue.length) saveStatusQueue(sysFolder, queue);
+    else deleteStatusQueue(sysFolder);
     saveEmailsData(sysFolder, _emailsData);
     saveDownloadHistory(sysFolder, _downloadHistory);
-    if (processedEmails.length > 0 && hasEnoughTimeForEmails(startTime)) {
-      sendProcessedEmailsSummary(processedEmails);
-    }
     Logger.log("⚠️  רשימת ערוצים ריקה.");
-    return false;
+
   }
-  _emailsData.emptySubsEmailSent = false;  // reset flag when channels exist
+  if (rssList.length) _emailsData.emptySubsEmailSent = false;
 
   // ── 4. סריקת פידים ──
   var folderCache = {};
@@ -92,12 +106,14 @@ function main(sysFolder, mainFolder) {
       Logger.log("⏰ מגבלת זמן בסריקה."); break;
     }
     try {
-      scanFeed(rssList[f].url, rssList[f].days, mainFolder, queue, seenUrls, folderCache);
+      scanFeed(rssList[f].url, rssList[f].days, mainFolder, queue, seenUrls, folderCache, rssList[f].notifyOnly);
     } catch(e) {
       Logger.log("❌ סריקה " + rssList[f].url + ": " + e.message);
     }
   }
   Logger.log("📊 " + queue.length + " פרקים בתור.");
+
+  reconcileAutomaticQueue(queue, rssList, _emailsData);
 
   // ── 5. הורדה ──
   var downloaded = 0, idx = 0;
@@ -106,6 +122,9 @@ function main(sysFolder, mainFolder) {
       Logger.log("⏰ מגבלת זמן — עוצר הורדות."); break;
     }
     var item         = queue[idx];
+    if (item.source !== 'manual' && !item.rssUrl && hasNotifyOnlySubscriptions(rssList)) {
+      Logger.log('⏸️ פריט ישן ללא זיהוי ערוץ ודאי ממתין לסריקה: '+item.episodeTitle); idx++; continue;
+    }
     var targetFolder = getOrCreateFolder(mainFolder, item.folderName);
     if (fileExistsInFolder(targetFolder, item.fileName)) {
       Logger.log("🔁 קיים: " + item.fileName); queue.splice(idx, 1); continue;
@@ -161,9 +180,9 @@ function main(sysFolder, mainFolder) {
   var needWeekly  = shouldSendWeeklyEmail(_emailsData);
   var needSubs    = checkSubscriptionChanges(rssList, _emailsData);
   if ((needStorage || needWeekly || needSubs) && hasEnoughTimeForEmails(startTime)) {
-    if (needStorage) { sendStorageEmail(sysFolder, _emailsData, mainFolder);  needStorage = false; }
-    if (needWeekly)  { sendWeeklyEmail(sysFolder, _emailsData, rssList, mainFolder); needWeekly = false; }
-    if (needSubs)    { sendSubscriptionEmail(rssList, sysFolder, _emailsData, startTime, mainFolder); needSubs = false; }
+    if (needStorage) { needStorage = !sendStorageEmail(sysFolder, _emailsData, mainFolder); }
+    if (needWeekly)  { needWeekly = !sendWeeklyEmail(sysFolder, _emailsData, rssList, mainFolder); }
+    if (needSubs)    { needSubs = !sendSubscriptionEmail(rssList, sysFolder, _emailsData, startTime, mainFolder); }
     saveEmailsData(sysFolder, _emailsData);
   } else if (needStorage || needWeekly || needSubs) {
     Logger.log("⏰ אין מספיק זמן לשליחת מיילים — יטופלו בריצה הבאה.");
@@ -171,13 +190,8 @@ function main(sysFolder, mainFolder) {
 
   // ── 8. סיכום פרקים שהתקבלו בבקשה ספציפית ──
   // הוסף לרשימה המצטברת ב-emails.json
-  var newEpisodeItems = (processedEmails || []).filter(function(it){ return it.type === 'episode_queued' && it.ok; });
-  if (newEpisodeItems.length > 0) {
-    newEpisodeItems.forEach(function(it){ _emailsData.pendingEpisodeSummary.push(it); });
-  }
   if (_emailsData.pendingEpisodeSummary.length > 0 && hasEnoughTimeForEmails(startTime)) {
-    sendProcessedEmailsSummary(_emailsData.pendingEpisodeSummary);
-    _emailsData.pendingEpisodeSummary = [];
+    if (sendProcessedEmailsSummary(_emailsData.pendingEpisodeSummary)) _emailsData.pendingEpisodeSummary = [];
     saveEmailsData(sysFolder, _emailsData);
   } else if (_emailsData.pendingEpisodeSummary.length > 0) {
     Logger.log("⏰ סיכום פרקים ידחה לריצה הבאה (" + _emailsData.pendingEpisodeSummary.length + " פרקים).");
@@ -191,7 +205,7 @@ function main(sysFolder, mainFolder) {
 // =====================================================================
 // סריקת פיד בודד — מוסיף פרקים חדשים לתור (queue מתעדכן by reference)
 // =====================================================================
-function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache) {
+function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache, notifyOnly) {
   Logger.log("\n──────────────────────────────────────");
   Logger.log("🔍 סורק: " + rssUrl);
 
@@ -235,6 +249,26 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache) {
     var enclosureInfo = getEnclosureInfo(item);
     if (!enclosureInfo) continue;
 
+    for (var queued = 0; queued < queue.length; queued++) {
+      if (queue[queued].url === enclosureInfo.url && !queue[queued].rssUrl) queue[queued].rssUrl = rssUrl;
+    }
+    if (notifyOnly) {
+      var notificationGuid = item.getChildText("guid") || enclosureInfo.url;
+      var notificationKey = JSON.stringify([rssUrl, notificationGuid]);
+      if (!_emailsData.notificationSeen[notificationKey]) {
+        addToWeeklyPending(_emailsData, {
+          rssUrl: rssUrl, url: enclosureInfo.url, guid: notificationGuid,
+          channelTitle: channelTitle, channelImageUrl: channelImageUrl,
+          episodeTitle: title, pubDate: pubDateStr,
+          duration: item.getChildText("duration", itunesNs) || ""
+        }, "notification", null);
+        // Persisted separately from download_history; survives successful digest sends.
+        _emailsData.notificationSeen[notificationKey] = true;
+        newOnes++;
+      }
+      continue;
+    }
+
     if (seenUrls[enclosureInfo.url]) continue;  // כבר בתור (מריצה קודמת/פיד אחר)
 
     // בדיקת היסטוריית הורדות — לא מוריד פרק שכבר הורד בעבר
@@ -262,6 +296,8 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache) {
     }
 
     queue.push({
+      rssUrl          : rssUrl,
+      source          : "automatic",
       url             : enclosureInfo.url,
       mimeType        : enclosureInfo.type || "audio/mpeg",
       fileName        : fileName,
@@ -319,19 +355,10 @@ function deleteStatusQueue(sysFolder) {
  */
 function sendFailureEmail(item, lastError) {
   try {
-    MailApp.sendEmail(
-      Session.getEffectiveUser().getEmail(),
-      "⚠️ פרק לא הורד אחרי " + MAX_RETRIES + " נסיונות — " + item.channelTitle,
-      "הפרק הבא הוסר מתור ההורדות לאחר " + MAX_RETRIES + " נסיונות כושלים:\n\n" +
-      "פודקאסט: " + item.channelTitle + "\n" +
-      "פרק: " + item.episodeTitle + "\n" +
-      "תאריך פרסום: " + item.pubDate + "\n" +
-      "כתובת: " + item.url + "\n\n" +
-      "שגיאה אחרונה: " + lastError
-    );
-  } catch (e) {
-    Logger.log("⚠️  שליחת מייל כשלון נכשלה: " + e.message);
-  }
+    MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),subject:'⚠️ פרק לא הורד אחרי '+MAX_RETRIES+' נסיונות — '+item.channelTitle,
+      htmlBody:_emailWrap('הורדת פרק נכשלה',channelCard(item.channelTitle,item.rssUrl,item.channelImageUrl,
+      '<p dir="auto">'+escapeHtml(item.episodeTitle)+'</p><p>שגיאה אחרונה: '+escapeHtml(lastError)+'</p>',null))});
+  } catch(e) { Logger.log('⚠️ שליחת מייל כשלון נכשלה: '+e.message); }
 }
 
 
@@ -349,62 +376,58 @@ function sendFailureEmail(item, lastError) {
  * עבור כפולי URL — שומר את ה-comment הראשון שנמצא, ואת הימים המרביים.
  */
 function parsePodcastsFiles(sysFolder) {
-  var byUrl = {}, order = [];
-  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
-  var files = [];
-  while (it.hasNext()) files.push(it.next());
-
-  files.forEach(function(file) {
-    var raw;
+  var byUrl = {}, order = [], it = sysFolder.getFilesByName(RSS_FILE_NAME);
+  while (it.hasNext()) {
+    var file = it.next(), raw;
     try {
       raw = file.getMimeType() === MimeType.GOOGLE_DOCS
         ? file.getAs('text/plain').getDataAsString('UTF-8')
         : file.getBlob().getDataAsString('UTF-8');
-    } catch(e) { return; }
-    var lines = raw.split('\n');
-    var pendingComment = null;
-    var i = 0;
-    while (i < lines.length) {
+    } catch(e) { throw new Error('לא ניתן לקרוא קובץ מינויים: ' + e.message); }
+    var lines = raw.split(/\r?\n/), comment = null;
+    for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
-      if (!line)                    { pendingComment = null; i++; continue; }
-      if (line.startsWith('#'))     { pendingComment = line.slice(1).trim(); i++; continue; }
-      if (!line.startsWith('http')) { pendingComment = null; i++; continue; }
-      var days = 7;
-      if (i + 1 < lines.length && /^\d+$/.test(lines[i+1].trim())) {
-        days = parseInt(lines[i+1].trim(), 10); i++;
+      if (!line) { comment = null; continue; }
+      if (line.charAt(0) === '#') { comment = line.slice(1).trim(); continue; }
+      var parsed = parseSubscriptionInput(line), days = 7, next = i + 1;
+      if (parsed.error) throw new Error(parsed.error + ': ' + line);
+      if (!parsed.url) { comment = null; continue; }
+      while (next < lines.length && (!lines[next].trim() || lines[next].trim().charAt(0) === '#')) next++;
+      if (next < lines.length && /^\d+$/.test(lines[next].trim())) {
+        days = Math.max(1, parseInt(lines[next].trim(), 10)); i = next;
       }
-      if (!byUrl[line]) {
-        byUrl[line] = { comment: pendingComment, days: days };
-        order.push(line);
+      if (!byUrl[parsed.url]) {
+        byUrl[parsed.url] = {comment: comment, days: days, notifyOnly: parsed.notifyOnly};
+        order.push(parsed.url);
       } else {
-        // כפול — שמור ימים מרביים, comment ראשון נשמר
-        if (days > byUrl[line].days) byUrl[line].days = days;
+        byUrl[parsed.url].days = Math.max(byUrl[parsed.url].days, days);
+        // Conflicting copies must not enable unintended automatic downloads.
+        byUrl[parsed.url].notifyOnly = byUrl[parsed.url].notifyOnly || parsed.notifyOnly;
       }
-      pendingComment = null;
-      i++;
+      comment = null;
     }
-  });
-  return { byUrl: byUrl, order: order };
+  }
+  return {byUrl: byUrl, order: order};
 }
 
 /**
  * מוחק את כל קבצי podcasts.txt הקיימים וכותב קובץ אחד ממוזג.
  */
 function writeMergedPodcastsFile(sysFolder, merged) {
-  // מחק את כולם
-  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
-  while (it.hasNext()) it.next().setTrashed(true);
-  // כתוב קובץ חדש
   var lines = ['# רשימת פודקאסטים'];
   merged.order.forEach(function(url) {
     var entry = merged.byUrl[url];
     if (!entry) return;
     lines.push('');
     if (entry.comment) lines.push('# ' + entry.comment);
-    lines.push(url);
+    lines.push(url + (entry.notifyOnly ? ' --notify-only' : ''));
     if (entry.days && entry.days !== 7) lines.push(String(entry.days));
   });
+  var it = sysFolder.getFilesByName(RSS_FILE_NAME), old = [];
+  while (it.hasNext()) old.push(it.next());
+  // Create successfully before retiring the old files.
   sysFolder.createFile(RSS_FILE_NAME, lines.join('\n'), MimeType.PLAIN_TEXT);
+  old.forEach(function(file) { file.setTrashed(true); });
 }
 
 /**
@@ -425,37 +448,11 @@ function mergePodcastsFiles(sysFolder) {
 }
 
 function loadRssList(sysFolder) {
-  var it = sysFolder.getFilesByName(RSS_FILE_NAME);
-  if (!it.hasNext()) return [];
-
-  var rssFile = it.next();
-  var content = (rssFile.getMimeType() === MimeType.GOOGLE_DOCS)
-    ? rssFile.getAs("text/plain").getDataAsString("UTF-8")
-    : rssFile.getBlob().getDataAsString("UTF-8");
-
-  var lines   = content.split("\n").map(function(l) { return l.trim(); });
-  var rssList = [];
-
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i];
-    if (line === "" || line.charAt(0) === "#") continue;
-    if (line.indexOf("http") !== 0) {
-      Logger.log("⚠️  שורה לא תקינה בקובץ הרשימה (מדולגת): " + line);
-      continue;
-    }
-
-    var days = 7;
-    var next = i + 1;
-    while (next < lines.length && (lines[next] === "" || lines[next].charAt(0) === "#")) { next++; }
-    if (next < lines.length && /^\d+$/.test(lines[next])) {
-      days = parseInt(lines[next], 10);
-      i = next;
-    }
-
-    rssList.push({ url: line, days: days });
-  }
-
-  return rssList;
+  var merged = parsePodcastsFiles(sysFolder);
+  return merged.order.map(function(url) {
+    var entry = merged.byUrl[url];
+    return {url: url, days: entry.days, notifyOnly: !!entry.notifyOnly};
+  });
 }
 
 /**
@@ -484,77 +481,36 @@ function ensureRssFileExists(sysFolder, emailsData) {
  * של ערוצים, טיפ על הרצה ידנית, ופתרון בעיות נפוצות.
  */
 function sendMissingRssFileEmail() {
-  var addBtn = buildMailtoBtn('+ הוסף ערוץ ראשון', CTRL_SUBSCRIBE,
-    '[כתובת RSS או מחרוזת חיפוש]',
-    'אם אתה יודע את כתובת הפיד RSS של הפודקאסט, מלא אותה בכותרת. אחרת מלא את שם הפודקאסט/נושא/מגיש לחיפוש. לאחר מכן שלח מייל זה. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE,
-    '#10b981');
-
-  var body =
-      '<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:14px;padding:18px 20px;margin-bottom:24px;text-align:center;">'
-    +   '<p style="margin:0;color:#047857;font-weight:700;font-size:1.05rem;">✅ אם אתה רואה מייל זה — ההתקנה עברה בהצלחה!</p>'
-    +   '<p style="margin:6px 0 0;color:#059669;font-size:.85rem;">הסקריפט מותקן, ההרשאות אושרו, והמערכת פעילה בחשבון ה-Drive/Gmail שלך.</p>'
-    + '</div>'
-
-    + '<p style="color:#64748b;margin-bottom:20px;">לא נמצא עדיין קובץ ערוצים ('+RSS_FILE_NAME+') בתיקיית המערכת, ולכן נוצר קובץ ריק חדש — וזה בדיוק הרגע להוסיף את הפודקאסט הראשון שלך.</p>'
-
-    + '<h2 style="font-size:1.05rem;margin:28px 0 10px;color:#1e293b;">איך המערכת עובדת</h2>'
-    + '<ul style="color:#475569;font-size:.9rem;line-height:1.9;padding-inline-start:20px;margin:0 0 8px;">'
-    +   '<li>הסקריפט רץ <strong>אוטומטית פעם בשעה</strong> ברקע — אין צורך להריץ שום דבר ידנית.</li>'
-    +   '<li>בכל ריצה הוא בודק פרקים חדשים בערוצים שלך, ומוריד אותם ל-Drive לתיקייה מסודרת לפי שם התוכנית.</li>'
-    +   '<li>הוא גם סורק את תיבת ה"נשלח" שלך ב-Gmail בשביל פקודות ניהול (הוספה/הסרה/חיפוש) — ככה כל הניהול נעשה במייל, בלי ממשק נפרד.</li>'
-    +   '<li>מבנה התיקיות נוצר אוטומטית — ואם משהו נמחק בטעות, המערכת תיצור אותו מחדש בריצה הבאה.</li>'
-    + '</ul>'
-
-    + '<div style="background:#f8fafc;border-radius:14px;padding:20px;margin:24px 0;">'
-    +   '<h2 style="font-size:1.05rem;margin:0 0 8px;color:#1e293b;">➕ הוספת ערוץ</h2>'
-    +   '<p style="color:#64748b;font-size:.9rem;margin:0 0 14px;">לחצו על הכפתור, ובשורת הנושא של המייל שנפתח מלאו <strong>כתובת RSS</strong> אם היא ידועה לכם, או <strong>שם/נושא/מגיש</strong> לחיפוש. לאחר מכן שלחו את המייל כמו שהוא — אין צורך לגעת בגוף ההודעה.</p>'
-    +   '<div style="text-align:center;">'+addBtn+'</div>'
-    +   '<p style="color:#94a3b8;font-size:.78rem;text-align:center;margin:12px 0 0;">אפשר גם לערוך ישירות את הקובץ '+RSS_FILE_NAME+' בתיקיית "קבצי מערכת" ב-Drive.</p>'
-    +   '<p style="color:#94a3b8;font-size:.78rem;text-align:center;margin:6px 0 0;">תוכלו לשלוח עכשיו מספר מיילים על מנת להוסיף מספר ערוצים, אין צורך להמתין שהבקשה הקודמת תטופל.</p>'
-    + '</div>'
-
-    + '<div style="background:#f8fafc;border-radius:14px;padding:20px;margin:24px 0;">'
-    +   '<h2 style="font-size:1.05rem;margin:0 0 8px;color:#1e293b;">🛠️ עריכה ידנית של הקובץ (למתקדמים)</h2>'
-    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 12px;">ניתן למצוא את הקובץ ב-<strong dir="ltr" style="unicode-bidi:embed;">Drive ‎›‎ פודקאסטים 2.0 ‎›‎ קבצי מערכת ‎›‎ '+RSS_FILE_NAME+'</strong> — אפשר להוריד אותו למחשב, לערוך בעורך טקסט רגיל, ולהעלות בחזרה לאותה תיקייה (מחליפים את הקובץ הקיים).</p>'
-    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 12px;"><strong>לגבי פרטיות:</strong> עריכת הקובץ ישירות ב-Drive לא עוברת דרך כתובות המייל של המערכת, ולכן לא נשלח ולא נאסף שום מייל בתהליך — זו הדרך המצומצמת ביותר מבחינת פרטיות להוסיף או להסיר ערוצים. שימו לב: הפרט המצוין בסעיף א׳ במדיניות הפרטיות — כתובת המייל שלכם בלבד — עדיין נאסף בכל ריצה רגילה של המערכת, ללא קשר לעריכת קובץ זה.</p>'
-    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 12px;"><strong>מהי כתובת RSS ואיך מוצאים אותה:</strong> כל פודקאסט מתפרסם דרך "פיד" — כתובת שמתחילה ב-http/https ומתעדכנת אוטומטית בכל פרק חדש. הדרך הפשוטה ביותר: להשתמש בכפתור "הוסף ערוץ ראשון" למעלה ולמלא רק את שם הפודקאסט — המערכת תחפש ותמצא את כתובת ה-RSS בעצמה. אם אתם מעדיפים למצוא אותה בעצמכם: אפשר לחפש בגוגל "&lt;שם הפודקאסט&gt; rss feed", או לבדוק באתר הרשמי של הפודקאסט (בדרך כלל יש שם קישור RSS/הרשמה).</p>'
-    +   '<p style="color:#64748b;font-size:.87rem;margin:0 0 10px;"><strong>תחביר הקובץ:</strong></p>'
-    +   '<ul style="color:#64748b;font-size:.85rem;line-height:1.8;padding-inline-start:20px;margin:0 0 14px;">'
-    +     '<li>שורה שמתחילה ב-<code style="background:#e2e8f0;padding:1px 5px;border-radius:5px;">#</code> היא הערה בלבד (אפשר לרשום שם ערוץ כתזכורת) — המערכת מתעלמת ממנה.</li>'
-    +     '<li>שורה ריקה מפרידה בין ערוצים.</li>'
-    +     '<li>שורת הערוץ עצמה חייבת להתחיל ב-<code style="background:#e2e8f0;padding:1px 5px;border-radius:5px;">http</code> או <code style="background:#e2e8f0;padding:1px 5px;border-radius:5px;">https</code> — זו כתובת ה-RSS.</li>'
-    +     '<li>אופציונלי: מיד אחרי כתובת ה-RSS אפשר להוסיף שורה עם מספר בלבד — כמה ימים אחורה לסרוק פרקים עבור הערוץ הזה (ברירת מחדל: 7 ימים).</li>'
-    +   '</ul>'
-    +   '<pre style="background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;font-family:monospace;font-size:.78rem;overflow-x:auto;direction:ltr;text-align:left;white-space:pre;margin:0;">'
-    +     '# רשימת פודקאסטים\n\n# עושים היסטוריה\nhttps://example.com/feed1.xml\n\n# פודקאסט טכנולוגי, סורק חודש אחורה\nhttps://example.com/feed2.xml\n30'
-    +   '</pre>'
-    + '</div>'
-
-    + '<div style="background:#f8fafc;border-radius:14px;padding:20px;margin:24px 0;">'
-    +   '<h2 style="font-size:1.05rem;margin:0 0 8px;color:#1e293b;">➖ הסרת ערוץ</h2>'
-    +   '<p style="color:#64748b;font-size:.9rem;margin:0;">לכל ערוץ שתוסיפו, המייל השוטף לעדכון מינויים יכלול כפתור "הסר מנוי" מוכן — לא צריך לזכור כתובות.</p>'
-    + '</div>'
-
-    + '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:18px 20px;margin:24px 0;">'
-    +   '<p style="margin:0 0 6px;color:#1d4ed8;font-weight:700;font-size:.95rem;">💡 טיפ!</p>'
-    +   '<p style="margin:0;color:#1e40af;font-size:.87rem;line-height:1.7;">המערכת רצה כל שעה, ומה שהיא לא הספיקה מחכה לשעה הבאה באופן אוטומטי — אין צורך להריץ ידנית את הסקריפט. אם בכל זאת אתם צריכים פרק דחוף, או רוצים לבדוק עכשיו אם יצאו פרקים חדשים — ניתן להריץ ידנית: היכנסו לפרויקט ב-<span dir="ltr" style="unicode-bidi:embed;">script.google.com</span> ולחצו על הפעלה.</p>'
-    + '</div>'
-
-    + '<h2 style="font-size:1.05rem;margin:28px 0 10px;color:#1e293b;">🔧 פתרון בעיות נפוצות</h2>'
-    + '<div style="color:#475569;font-size:.87rem;line-height:1.7;">'
-    +   '<p style="margin:0 0 10px;"><strong>לא מקבלים מיילים בכלל?</strong><br>בדקו בתיקיית ספאם/קידומים ב-Gmail, ווודאו שאישרתם את כל ההרשאות בריצה הראשונה.</p>'
-    +   '<p style="margin:0 0 10px;"><strong>רוצים לוודא שהמערכת פעילה?</strong><br>בעורך ה-Apps Script → לשונית "טריגרים" (השעון בצד) — אמור להופיע טריגר בשם <code style="background:#f1f5f9;padding:1px 5px;border-radius:5px;">setUp</code> שרץ פעם בשעה.</p>'
-    +   '<p style="margin:0 0 10px;"><strong>שלחתם מייל ולא קורה כלום?</strong><br>המתינו מספר שעות — או היכנסו לפרויקט ב-<span dir="ltr" style="unicode-bidi:embed;">script.google.com</span> ולחצו על הפעלה.</p>'
-    +   '<p style="margin:0 0 10px;"><strong>הורדתי כבר את הפודקאסטים, האם ניתן למחוק אותם מהדרייב?</strong><br>בהחלט, ואפילו מומלץ! המערכת זוכרת את הפודקאסטים שהיא הורידה ולא תוריד אותם שוב. (אם בכל זאת אתם צריכים את הפרק שוב, אפשר לבקש באמצעות מערכת המיילים!) רק צריך להיזהר לא למחוק את תיקיית \'קבצי מערכת\'.</p>'
-    +   '<p style="margin:0;"><strong>רוצים לראות מה בדיוק קרה בריצה מסוימת?</strong><br>בעורך ה-Apps Script → לשונית "הרצות" (Executions) מציגה יומן מפורט לכל ריצה.</p>'
-    + '</div>';
-
+  var example = '# הרשמה רגילה — הורדה אוטומטית\nhttps://example.com/regular/feed.xml\n\n' +
+    '# התראות בלבד — ללא הורדה אוטומטית\nhttps://example.com/alerts/feed.xml --notify-only\n\n' +
+    '# התראות בלבד, עם סריקה של 30 ימים לאחור\nhttps://example.com/month/feed.xml --notify-only\n30';
+  var body = '<p><strong>ברוכים הבאים לפודקאסטים 2.0!</strong></p>' +
+    '<p>המערכת פעילה בחשבון שלך ופועלת אוטומטית פעם בשעה. אפשר להתחיל בהוספת ערוץ באמצעות הכפתור הבא. בנושא המייל שייפתח יש להזין כתובת RSS או שם פודקאסט לחיפוש, ולשלוח.</p>' +
+    buildAddChannelBtn() +
+    '<h2 style="font-size:18px;">איך רוצים לעקוב אחר הערוצים?</h2>' +
+    '<p><strong>הירשם</strong> — פרקים חדשים יורדו אוטומטית לתיקיית הערוץ בדרייב.</p>' +
+    '<p><strong>הירשם להתראות בלבד</strong> — פרקים חדשים יופיעו במייל השבועי, ללא הורדה אוטומטית. ליד כל פרק יופיע <strong>קבל פרק</strong>, כדי לבקש רק את הפרקים הרצויים לך.</p>' +
+    '<p>אפשר לשנות את סוג ההרשמה או להסיר ערוץ באמצעות הכפתורים שלידו במיילים. הכפתור קבל פרק אינו משנה את סוג ההרשמה.</p>' +
+    '<h2 style="font-size:18px;">רוצים לבחור מתוך פרקים קודמים?</h2>' +
+    '<p>הכפתור <strong>קבל פרקים</strong> שליד כל ערוץ שולח קטלוג פרקים במייל. משם אפשר לבקש פרק בודד, גם בלי להירשם לערוץ.</p>' +
+    '<h2 style="font-size:18px;">ניהול ידני בדרייב</h2>' +
+    '<p>אפשר לערוך את הקובץ <span dir="ltr">podcasts.txt</span> בתיקיית פודקאסטים 2.0, בתוך תיקיית קבצי מערכת.</p>' +
+    '<p>להרשמה רגילה מוסיפים כתובת RSS בשורה נפרדת. להתראות בלבד מוסיפים בסוף אותה שורה רווח ואת הדגל <span dir="ltr">--notify-only</span>. אפשר להשתמש באותו דגל גם בסוף נושא מייל ההרשמה.</p>' +
+    '<p>בשורה שאחרי כתובת הערוץ אפשר להוסיף מספר ימים לסריקה לאחור. ברירת המחדל היא שבעה ימים. שורות שמתחילות בסימן # הן הערות.</p>' +
+    '<p><strong>דוגמת קובץ TXT תקינה מבחינת התחביר:</strong></p>' +
+    '<pre dir="ltr" style="direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f9;padding:12px;font-family:monospace;">'+escapeHtml(example)+'</pre>' +
+    '<p>הכתובות בדוגמה הן להמחשה בלבד. יש להחליף אותן בכתובות RSS אמיתיות של הערוצים שלך.</p>' +
+    '<h2 style="font-size:18px;">הדיווח השבועי</h2>' +
+    '<p>המייל השבועי יכלול דוח הורדות ופרקים חדשים מערוצי התראות בלבד, עם הבחנה ברורה ביניהם. לאחר הרשמה, הסריקה הראשונה כוללת את טווח הימים המוגדר לערוץ.</p>' +
+    '<h2 style="font-size:18px;">כדאי לדעת</h2>' +
+    '<p>הטיפול בבקשות מתבצע בריצות האוטומטיות, ולכן עשוי להימשך מספר שעות. אפשר לשלוח כמה בקשות בלי להמתין לטיפול בקודמת. ניתן להריץ ידנית את הפונקציה <span dir="ltr">setUp</span> בפרויקט Apps Script.</p>' +
+    '<p>אפשר למחוק קובצי פרקים שכבר הורדת. חשוב לשמור את תיקיית <strong>קבצי מערכת</strong>, שבה נמצאים המינויים, ההיסטוריה וההתקדמות.</p>' +
+    '<p>לא קיבלת מייל? בדוק ספאם וקידומים ואת הרשאות הפרויקט. ביומן הרצות בפרויקט אפשר לבדוק אם התרחשה שגיאה.</p>' +
+    '<h2 style="font-size:18px;">פרטיות</h2>' +
+    '<p>פקודות המייל מעובדות מתוך תיבת נשלח. מיילים לכתובות הבקרה הייעודיות גלויים למנהל השירות ונאספים בהתאם למדיניות הפרטיות. עריכה ידנית של קובץ המינויים אינה שולחת פקודת מייל; איסוף כתובת המייל בכל ריצה, כפי שמתואר במדיניות הקיימת, ממשיך לחול.</p>';
   try {
-    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '🎉 פודקאסטים 2.0 — ההתקנה הושלמה בהצלחה!',
-      htmlBody: _emailWrap('ברוכים הבאים למערכת', body) });
-    Logger.log('📧 מייל ברוך הבא נשלח.');
-  } catch(e) { Logger.log('⚠️  מייל ברוך הבא נכשל: '+e.message); }
+    MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),subject:'🎉 פודקאסטים 2.0 — המערכת מוכנה לשימוש',htmlBody:_emailWrap('ברוכים הבאים למערכת',body)});
+  } catch(e) { Logger.log('⚠️ מייל ברוך הבא נכשל: '+e.message); }
 }
 
 
@@ -956,6 +912,7 @@ function initEmailsStructure(data) {
   }
   if (!_emailsData.subscriptions.details) _emailsData.subscriptions.details = {};
   if (_emailsData.emptySubsEmailSent === undefined) _emailsData.emptySubsEmailSent = false;
+  if (!_emailsData.notificationSeen) _emailsData.notificationSeen = {};
   if (!_emailsData.processedEmailIds) _emailsData.processedEmailIds = [];
   if (!_emailsData.pendingSearches)     _emailsData.pendingSearches = {};
   if (!_emailsData.pendingEpisodeSummary) _emailsData.pendingEpisodeSummary = [];
@@ -989,6 +946,8 @@ function addToStoragePending(emailsData, item) {
     episodeTitle    : item.episodeTitle,
     pubDate         : item.pubDate ? formatDate(new Date(item.pubDate)) : '',
     duration        : item.duration,
+    rssUrl          : item.rssUrl || null,
+    source          : item.source || (item.fromSubscription === false ? "manual" : "automatic"),
     url             : item.url,
     skippedAt       : new Date().toISOString()
   });
@@ -1006,16 +965,15 @@ function shouldSendStorageEmail(emailsData) {
 
 function addToWeeklyPending(emailsData, item, status, error) {
   var ch = emailsData.weekly.channels;
-  var t  = item.channelTitle;
-  if (!ch[t]) ch[t] = { image: item.channelImageUrl || null, rssUrl: item.url, fromSubscription: item.fromSubscription !== false, items: [] };
-  ch[t].items.push({
-    episodeTitle : item.episodeTitle,
-    pubDate      : item.pubDate ? formatDate(new Date(item.pubDate)) : "",
-    duration     : item.duration,
-    status       : status,
-    error        : error || null,
-    fileUrl      : item.fileUrl || null
-  });
+  var key = item.rssUrl || item.channelTitle;
+  if (!ch[key]) ch[key] = {title: item.channelTitle, image: item.channelImageUrl || null,
+    rssUrl: item.rssUrl || null, items: []};
+  var group = ch[key];
+  if (group.items.some(function(x) { return x.url === item.url && x.status === status; })) return;
+  group.items.push({episodeTitle: item.episodeTitle,
+    pubDate: item.pubDate ? formatDate(new Date(item.pubDate)) : '', duration: item.duration,
+    status: status, error: error || null, fileUrl: item.fileUrl || null,
+    url: item.url, guid: item.guid || item.url, rssUrl: item.rssUrl || null});
 }
 
 function shouldSendWeeklyEmail(emailsData) {
@@ -1032,19 +990,13 @@ function shouldSendWeeklyEmail(emailsData) {
  * מחזיר true אם יש שינוי (ויעדכן _emailsData.subscriptions.list).
  */
 function checkSubscriptionChanges(rssList, emailsData) {
-  var current = rssList.map(function(r) { return { url: r.url, days: r.days }; });
-  var stored  = emailsData.subscriptions.list || [];
-
-  if (current.length === 0) return false;
-
-  var sortFn = function(a, b) { return a.url < b.url ? -1 : 1; };
-  var curStr = JSON.stringify(current.slice().sort(sortFn));
-  var stoStr = JSON.stringify(stored.slice().sort(sortFn));
-
-  if (curStr === stoStr) return false;
-
-  emailsData.subscriptions.list = current;
-  return true;
+  function normalized(list) {
+    return list.map(function(r) { return {url:r.url, days:r.days, notifyOnly:!!r.notifyOnly}; })
+      .sort(function(a,b) { return a.url < b.url ? -1 : a.url > b.url ? 1 : 0; });
+  }
+  var current = normalized(rssList), stored = normalized(emailsData.subscriptions.list || []);
+  // Only record an acknowledged snapshot after the email has actually been sent.
+  return JSON.stringify(current) !== JSON.stringify(stored);
 }
 
 
@@ -1115,15 +1067,15 @@ function _channelImgTag(dataUri, title) {
 }
 
 function _emailWrap(title, body) {
-  var now = formatDate(new Date());
-  return '<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8"></head><body style="font-family:Heebo,Arial,sans-serif;background:#f1f5f9;padding:24px;color:#1e293b;">' +
-    '<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">' +
-    '<div style="background:linear-gradient(135deg,#6366f1,#ec4899);padding:28px 32px;color:#fff;">' +
-    '<h1 style="margin:0;font-size:1.5rem;">🎙️ פודקאסטים 2.0</h1>' +
-    '<p style="margin:6px 0 0;opacity:.85;">' + title + '</p></div>' +
-    '<div style="padding:28px 32px;">' + body + '</div>' +
-    '<div style="background:#f8fafc;padding:16px 32px;color:#64748b;font-size:.8rem;text-align:center;">פודקאסטים 2.0 — מערכת הורדה אוטומטית | ' + now + '</div>' +
-    '</div></body></html>';
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>' +
+    '<body dir="rtl" style="direction:rtl;text-align:right;margin:0;padding:12px;background:#f1f5f9;font-family:Arial,sans-serif;color:#1e293b;">' +
+    '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;"><tr><td align="center">' +
+    '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;text-align:right;max-width:600px;background:#fff;border-radius:16px;">' +
+    '<tr><td dir="rtl" style="direction:rtl;text-align:right;background:#6366f1;color:#fff;padding:24px;">' +
+    '<h1 style="margin:0;font-size:24px;">🎙️ פודקאסטים 2.0</h1><p>' + escapeHtml(title) + '</p></td></tr>' +
+    '<tr><td dir="rtl" style="direction:rtl;text-align:right;padding:20px;line-height:1.7;">' + body + '</td></tr>' +
+    '<tr><td dir="rtl" style="direction:rtl;text-align:center;padding:16px;color:#64748b;font-size:12px;">פודקאסטים 2.0 | ' +
+    escapeHtml(formatDate(new Date())) + '</td></tr></table></td></tr></table></body></html>';
 }
 
 
@@ -1134,72 +1086,7 @@ function _emailWrap(title, body) {
  * שולח מייל עדכון מינויים עם פרטי כל הערוצים.
  * אוסף פרטי ערוץ (כותרת, תיאור, תמונה) ישירות מהפיד.
  */
-function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime) {
-  var body     = '<p style="color:#64748b;margin-bottom:20px;">רשימת הפודקאסטים עודכנה. הרשימה הנוכחית:</p>';
-  var invalid  = [];
-  var channels = [];
 
-  for (var i = 0; i < rssList.length; i++) {
-    if (new Date() - startTime > TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) break;
-    var rss = rssList[i];
-    try {
-      var resp = UrlFetchApp.fetch(rss.url, { muteHttpExceptions: true, followRedirects: true });
-      if (resp.getResponseCode() !== 200) {
-        invalid.push({ url: rss.url, reason: "HTTP " + resp.getResponseCode() });
-        continue;
-      }
-      var doc  = XmlService.parse(resp.getContentText("UTF-8"));
-      var ch   = doc.getRootElement().getChild("channel");
-      if (!ch) { invalid.push({ url: rss.url, reason: "RSS לא תקין" }); continue; }
-
-      var ns    = XmlService.getNamespace(ITUNES_NS_URL);
-      var title = ch.getChildText("title") || rss.url;
-      var desc  = (ch.getChildText("description") || ch.getChildText("subtitle", ns) || "")
-                    .replace(/<[^>]*>/g, "").substring(0, 160);
-      var imgUrl= getChannelCoverArtUrl(ch, ns);
-      channels.push({ title: title, desc: desc, imgUrl: imgUrl, days: rss.days });
-    } catch(e) {
-      invalid.push({ url: rss.url, reason: e.message.substring(0, 80) });
-    }
-  }
-
-  for (var j = 0; j < channels.length; j++) {
-    var c = channels[j];
-    // שימוש ב-URL ישיר (לא base64) — שומר על גודל מייל קטן
-    var imgTag = c.imgUrl
-      ? '<img src="' + c.imgUrl + '" width="44" height="44" style="border-radius:8px;vertical-align:middle;object-fit:cover;" alt="">'
-      : '<div style="width:44px;height:44px;background:#e0e7ff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;">🎙️</div>';
-
-    body += '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;padding:14px;border:1px solid #e2e8f0;border-radius:12px;">' +
-      imgTag +
-      '<div style="margin-right:12px;flex:1;min-width:0;">' +
-        '<div><strong>' + c.title + '</strong>' +
-        '<span style="background:#e0e7ff;color:#4f46e5;font-size:.75rem;padding:2px 8px;border-radius:20px;margin-right:8px;white-space:nowrap;">' + c.days + ' ימים</span></div>' +
-        (c.desc ? '<p style="color:#64748b;font-size:.83rem;margin:4px 0 0;line-height:1.5;">' + c.desc + '</p>' : '') +
-      '</div></div>';
-  }
-
-  if (invalid.length) {
-    body += '<div style="background:#fef2f2;border-right:4px solid #ef4444;padding:14px 18px;border-radius:10px;margin-top:16px;">' +
-      '<strong>⚠️ כתובות שלא הגיבו כצפוי:</strong><ul style="margin:8px 0 0;padding-right:18px;">';
-    for (var k = 0; k < invalid.length; k++) {
-      body += '<li style="font-size:.85rem;margin-bottom:4px;">' +
-        '<code style="font-size:.78rem;">' + invalid[k].url + '</code> — ' + invalid[k].reason + '</li>';
-    }
-    body += '</ul></div>';
-  }
-
-  try {
-    MailApp.sendEmail({
-      to      : Session.getEffectiveUser().getEmail(),
-      subject : "📋 פודקאסטים 2.0 — רשימת מינויים עודכנה (" + channels.length + " ערוצים)",
-      htmlBody: _emailWrap("עדכון רשימת מינויים", body)
-    });
-    Logger.log("📧 נשלח מייל עדכון מינויים (" + channels.length + " ערוצים).");
-  } catch(e) {
-    Logger.log("⚠️  שליחת מייל מינויים נכשלה: " + e.message);
-  }
-}
 
 
 // =====================================================================
@@ -1267,17 +1154,21 @@ function buildMailtoBtn(label, to, subject, body, color) {
   color = color || '#6366f1';
   // to לא מקודד (@ חייב להישאר כפשוטו בכתובת הנמען)
   var uri = 'mailto:'+to+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-  return '<a href="'+uri+'" style="display:inline-block;padding:5px 13px;background:'+color+
-         ';color:#fff;border-radius:20px;text-decoration:none;font-size:.78rem;font-weight:600;margin:2px 3px;">'+label+'</a>';
+  return '<a dir="rtl" href="'+escapeHtml(uri)+'" style="display:inline-block;padding:5px 13px;background:'+color+
+         ';direction:rtl;text-align:center;color:#fff;border-radius:20px;text-decoration:none;font-size:.78rem;font-weight:600;margin:2px 3px;">'+escapeHtml(label)+'</a>';
 }
 
-/** כפתורי שליטה לערוץ: הסר מנוי + קבל פרקים */
+/** שני כפתורי הרשמה לפי מצב נוכחי, ובנוסף קבל פרקים (קטלוג). */
 function buildChannelControlButtons(channelTitle, rssUrl) {
-  var unsubBtn = buildMailtoBtn('הסר מנוי', CTRL_UNSUBSCRIBE, rssUrl,
-    'שלח מייל זה על מנת לבטל מינוי לערוץ \''+channelTitle+'\', הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE, '#ef4444');
-  var epBtn = buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, rssUrl,
-    'שלח מייל זה על מנת לקבל את קטלוג הפרקים מערוץ \''+channelTitle+'\'. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE);
-  return unsubBtn + epBtn;
+  if (!rssUrl) return '<span style="color:#64748b;">פרטי הערוץ יעודכנו בסריקה הבאה</span>';
+  var sub = _rssList.filter(function(r) { return r.url === rssUrl; })[0];
+  var buttons = '';
+  if (!sub || sub.notifyOnly) buttons += buildSubscriptionButton(channelTitle, rssUrl, false);
+  if (sub) buttons += buildMailtoBtn('הסר', CTRL_UNSUBSCRIBE, rssUrl,
+    'שלח מייל זה להסרת הערוץ ' + channelTitle + '.\n\n' + PRIVACY_NOTE, '#ef4444');
+  if (!sub || !sub.notifyOnly) buttons += buildSubscriptionButton(channelTitle, rssUrl, true);
+  return buttons + buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, rssUrl,
+    'שלח מייל זה לקבלת קטלוג הפרקים של ' + channelTitle + '.\n\n' + PRIVACY_NOTE);
 }
 
 /** כפתור הוסף ערוץ */
@@ -1300,26 +1191,21 @@ function getFolderLink(channelTitle, mainFolder) {
 
 /** כפתור הירשם (לערוץ שאינו ברשימת המינויים) */
 function buildSubscribeButton(channelTitle, rssUrl) {
-  return buildMailtoBtn('+ הירשם לערוץ', CTRL_SUBSCRIBE, rssUrl,
-    'שלח מייל זה להוספת הערוץ \'' + channelTitle + '\' לרשימת המינויים שלך. הבקשה תטופל תוך מספר שעות.\n\n' + PRIVACY_NOTE,
-    '#10b981');
+  return buildChannelControlButtons(channelTitle, rssUrl);
 }
 
 /** שם ערוץ עם קישור לתיקייה (או ללא קישור אם לא קיימת) */
 function channelNameTag(channelTitle, mainFolder, extra) {
-  extra = extra || '';
   var link = getFolderLink(channelTitle, mainFolder);
-  var nameHtml = link
-    ? '<a href="'+link+'" style="color:#1e293b;font-weight:700;text-decoration:none;">'+channelTitle+'</a>'
-    : '<strong>'+channelTitle+'</strong>';
-  return nameHtml + extra;
+  var text = '<span dir="auto">' + escapeHtml(channelTitle) + '</span>';
+  return (link ? '<a href="'+escapeHtml(link)+'" style="color:#1e293b;font-weight:700;text-decoration:none;">'+text+'</a>' : '<strong>'+text+'</strong>') + (extra || '');
 }
 
 /** תמונת ערוץ עם src ישיר (לא base64) */
 function channelImgTag(imgUrl) {
   return imgUrl
-    ? '<img src="'+imgUrl+'" width="44" height="44" style="border-radius:8px;object-fit:cover;vertical-align:middle;flex-shrink:0;" alt="">'
-    : '<div style="width:44px;height:44px;background:#e0e7ff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎙️</div>';
+    ? '<img src="'+escapeHtml(imgUrl)+'" width="44" height="44" style="border-radius:8px;object-fit:cover;vertical-align:middle;flex-shrink:0;" alt="">'
+    : '<div style="width:44px;height:44px;background:#e0e7ff;border-radius:8px;display:inline-block;text-align:center;line-height:44px;font-size:18px;flex-shrink:0;">🎙️</div>';
 }
 
 
@@ -1327,95 +1213,59 @@ function channelImgTag(imgUrl) {
 // sendWeeklyEmail — עם ערוצים לא פעילים, קישורים, כפתורים
 // =====================================================================
 function sendWeeklyEmail(sysFolder, emailsData, rssList, mainFolder) {
-  var channels    = emailsData.weekly.channels;
-  var activeNames = Object.keys(channels);
-  var total       = 0;
-  for (var ch in channels) total += channels[ch].items.length;
-
-  // ── סיכום מספרי ──
-  var successCount = 0, failCount = 0;
-  for (var ch in channels) {
-    channels[ch].items.forEach(function(it){ if(it.status==='success') successCount++; else failCount++; });
-  }
-
-  var summary = '<div style="display:flex;gap:12px;margin-bottom:20px;">'
-    +'<div style="background:#f0fdf4;border-radius:10px;padding:12px 18px;flex:1;text-align:center;">'
-    +'<div style="font-size:1.6rem;font-weight:700;color:#10b981;">'+successCount+'</div>'
-    +'<div style="color:#166534;font-size:.88rem;">הורדו בהצלחה</div></div>'
-    +(failCount?'<div style="background:#fef2f2;border-radius:10px;padding:12px 18px;flex:1;text-align:center;">'
-    +'<div style="font-size:1.6rem;font-weight:700;color:#ef4444;">'+failCount+'</div>'
-    +'<div style="color:#b91c1c;font-size:.88rem;">נכשלו</div></div>':'')
-    +'</div>';
-
-  var body = summary;
-
-  // ── ערוצים פעילים ──
-  if (activeNames.length > 0) {
-    body += '<h3 style="color:#1e293b;margin:0 0 12px;">פרקים שהורדו</h3>';
-    for (var ch in channels) {
-      var d = channels[ch];
-      var succ = d.items.filter(function(x){ return x.status==='success'; });
-      var fail = d.items.filter(function(x){ return x.status==='failed'; });
-      body += '<div style="margin-bottom:14px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">'
-        +'<div style="background:#f8fafc;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-        +channelImgTag(d.image)
-        +'<span style="margin-right:10px;">'+channelNameTag(ch, mainFolder)+'</span>'
-        +'<span style="color:#10b981;font-size:.82rem;">✅ '+succ.length+'</span>'
-        +(fail.length?'<span style="color:#ef4444;font-size:.82rem;margin-right:4px;">❌ '+fail.length+'</span>':'')
-        +(d.fromSubscription !== false ? buildChannelControlButtons(ch, d.rssUrl||'') : buildSubscribeButton(ch, d.rssUrl||''))
-        +'</div><div style="padding:4px 14px 8px;">';
-      succ.concat(fail).forEach(function(it){
-        var icon = it.status==='success' ? '✅' : '❌';
-        var titleHtml = it.fileUrl
-          ? '<a href="'+it.fileUrl+'" style="color:#1e293b;text-decoration:none;font-weight:600;">'+icon+' '+it.episodeTitle+'</a>'
-          : icon+' <span style="font-weight:600;">'+it.episodeTitle+'</span>';
-        body += '<div style="padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.85rem;">'+titleHtml
-          +'<span style="color:#94a3b8;font-size:.78rem;margin-right:8px;"> '+it.pubDate+(it.error?' | '+it.error:'')+'</span></div>';
-      });
-      body += '</div></div>';
-    }
-  }
-
-  // ── ערוצים לא פעילים ──
-  var inactiveChannels = rssList.filter(function(r){
-    return activeNames.indexOf(r._title||'') < 0 && !channels[r.url];
-  });
-  // Try to get titles from DB by rescanning (we stored channelTitle in rssList if available)
-  // For inactive: we show by URL since we don't have title without fetching RSS
-  // Better: get title from subscriptions list in emailsData
-  var subs = emailsData.subscriptions && emailsData.subscriptions.details ? emailsData.subscriptions.details : {};
-
-  var inactiveItems = rssList.filter(function(r){
-    var title = subs[r.url] ? subs[r.url].title : null;
-    return title && !channels[title];
-  });
-
-  if (inactiveItems.length > 0) {
-    body += '<div style="margin-top:20px;padding:14px 16px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">'
-      +'<h3 style="color:#64748b;font-size:.95rem;margin:0 0 10px;">ערוצים שאתה מנוי אליהם אך לא ירדו פרקים השבוע</h3>';
-    inactiveItems.forEach(function(r){
-      var info  = subs[r.url] || {};
-      var title = info.title;
-      var imgUrl = info.image || null;
-      body += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">'
-        +channelImgTag(imgUrl)
-        +'<span style="margin-right:8px;">'+channelNameTag(title, mainFolder)+'</span>'
-        +buildChannelControlButtons(title, r.url)
-        +'</div>';
+  _rssList = rssList;
+  var channels = emailsData.weekly.channels, success = 0, failed = 0, alerts = 0, body = '';
+  Object.keys(channels).forEach(function(key) {
+    channels[key].items.forEach(function(it) {
+      if (it.status === 'success') success++;
+      if (it.status === 'failed') failed++;
+      if (it.status === 'notification') alerts++;
     });
-    body += '</div>';
-  }
-
-  body += '<div style="margin-top:20px;text-align:center;">'+buildAddChannelBtn()+'</div>';
-
+  });
+  body += '<p>✅ ' + success + ' פרקים הורדו' + (failed ? ' · ❌ ' + failed + ' נכשלו' : '') +
+    (alerts ? ' · 🔔 ' + alerts + ' פרקים חדשים להתראות בלבד' : '') + '</p>';
+  var activeFeeds = {};
+  ['downloads', 'notifications'].forEach(function(section) {
+    var heading = false;
+    Object.keys(channels).forEach(function(key) {
+      var d = channels[key], title = d.title || key;
+      var items = d.items.filter(function(it) {
+        return section === 'notifications' ? it.status === 'notification' : it.status !== 'notification';
+      });
+      if (!items.length) return;
+      if (!heading) { body += '<h2 style="font-size:18px;">' + (section === 'notifications' ? 'פרקים חדשים — התראות בלבד' : 'דוח הורדות') + '</h2>'; heading = true; }
+      if (d.rssUrl) activeFeeds[d.rssUrl] = true;
+      var content = '';
+      items.forEach(function(it) {
+        var text = '<span dir="auto">' + escapeHtml(it.episodeTitle) + '</span>';
+        if (it.fileUrl) text = '<a href="' + escapeHtml(it.fileUrl) + '">' + text + '</a>';
+        content += '<div dir="rtl" style="direction:rtl;text-align:right;padding:8px 0;border-bottom:1px solid #e2e8f0;">' +
+          (it.status === 'success' ? '✅ ' : it.status === 'failed' ? '❌ ' : '🔔 ') + text +
+          '<div style="color:#64748b;font-size:12px;">' + escapeHtml(it.pubDate) +
+          (it.duration ? ' · <span dir="ltr">' + escapeHtml(it.duration) + '</span>' : '') +
+          (it.error ? ' · ' + escapeHtml(it.error) : '') + '</div>' +
+          (it.status === 'notification' ? buildGetEpisodeButton(title, it.episodeTitle, d.rssUrl, it.guid) : '') + '</div>';
+      });
+      body += channelCard(title, d.rssUrl, d.image, content, mainFolder);
+    });
+  });
+  var details = emailsData.subscriptions.details || {};
+  var inactive = rssList.filter(function(r) { return !activeFeeds[r.url]; });
+  if (inactive.length) body += '<h2 style="font-size:18px;">ערוצים ללא פעילות בדוח השבוע</h2>';
+  inactive.forEach(function(r) {
+    var info = details[r.url] || {};
+    body += channelCard(info.title || r.url, r.url, info.image,
+      '<p>' + (r.notifyOnly ? 'התראות בלבד — אין פרקים חדשים בדוח.' : 'הרשמה רגילה — אין הורדות בדוח.') + '</p>', mainFolder);
+  });
+  body += buildAddChannelBtn();
   try {
-    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '📊 פודקאסטים 2.0 — סיכום שבועי | '+successCount+' פרקים הורדו',
-      htmlBody: _emailWrap('סיכום שבועי', body) });
-    Logger.log('📧 סיכום שבועי נשלח.');
+    MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),
+      subject:'📊 פודקאסטים 2.0 — סיכום שבועי | '+success+' פרקים הורדו'+(alerts?' | '+alerts+' פרקים להתראות':''),
+      htmlBody:_emailWrap('סיכום שבועי',body)});
     emailsData.weekly.nextSendAt = _nextThursday();
-    emailsData.weekly.channels   = {};
-  } catch(e) { Logger.log('⚠️  סיכום שבועי נכשל: '+e.message); }
+    emailsData.weekly.channels = {};
+    return true;
+  } catch(e) { Logger.log('⚠️ סיכום שבועי נכשל: '+e.message); return false; }
 }
 
 
@@ -1424,42 +1274,25 @@ function sendWeeklyEmail(sysFolder, emailsData, rssList, mainFolder) {
 // =====================================================================
 function sendStorageEmail(sysFolder, emailsData, mainFolder) {
   var pending = emailsData.storage.pending;
-  if (!pending.length) return;
-
-  var byChannel = {};
-  pending.forEach(function(p){
-    if (!byChannel[p.channelTitle]) byChannel[p.channelTitle] = { img: p.channelImageUrl, items: [], rssUrl: p.url };
-    byChannel[p.channelTitle].items.push(p);
+  if (!pending.length) return true;
+  var groups = {};
+  pending.forEach(function(p) {
+    var key = p.rssUrl || p.channelTitle;
+    if (!groups[key]) groups[key] = {title:p.channelTitle, rssUrl:p.rssUrl, image:p.channelImageUrl, items:[]};
+    groups[key].items.push(p);
   });
-
-  var body = '<div style="background:#fffbeb;border-right:4px solid #f59e0b;padding:12px 16px;border-radius:10px;margin-bottom:18px;">'
-    +'⚠️ <strong>נפח אחסון ב-Drive נמוך מ-2GB.</strong> הפרקים הבאים ממתינים:</div>';
-
-  for (var ch in byChannel) {
-    var d = byChannel[ch];
-    body += '<div style="margin-bottom:14px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">'
-      +'<div style="background:#f8fafc;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-      +channelImgTag(d.img)
-      +'<span style="margin-right:10px;">'+channelNameTag(ch, mainFolder)+'</span>'
-      +buildChannelControlButtons(ch, d.rssUrl||'')
-      +'</div><div style="padding:4px 14px 8px;">';
-    d.items.forEach(function(it){
-      body += '<div style="padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.85rem;">'
-        +'<span style="font-weight:600;">'+it.episodeTitle+'</span>'
-        +'<span style="color:#94a3b8;font-size:.78rem;margin-right:8px;"> '+formatDate(new Date(it.skippedAt||Date.now()))+'</span></div>';
-    });
-    body += '</div></div>';
-  }
-  body += '<p style="color:#64748b;font-size:.88rem;margin-top:12px;">פנה מקום ב-Drive — הפרקים יורדו אוטומטית.</p>'
-    +'<div style="margin-top:16px;text-align:center;">'+buildAddChannelBtn()+'</div>';
-
+  var body = '<p>⚠️ נפח האחסון ב־Drive נמוך מ־2GB. הפרקים הבאים ממתינים להורדה:</p>';
+  Object.keys(groups).forEach(function(key) {
+    var d = groups[key], content = '';
+    d.items.forEach(function(it) { content += '<p dir="auto">'+escapeHtml(it.episodeTitle)+'</p>'; });
+    body += channelCard(d.title,d.rssUrl,d.image,content,mainFolder);
+  });
+  body += '<p>לאחר פינוי מקום, ההורדות הממתינות יוכלו להמשיך אוטומטית.</p>'+buildAddChannelBtn();
   try {
-    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '💾 פודקאסטים 2.0 — נפח אחסון נמוך',
-      htmlBody: _emailWrap('פרקים ממתינים לאחסון', body) });
-    Logger.log('📧 מייל אחסון נשלח.');
+    MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),subject:'💾 פודקאסטים 2.0 — נפח אחסון נמוך',htmlBody:_emailWrap('פרקים ממתינים לאחסון',body)});
     emailsData.storage.nextSendAt = _daysFromNow(STORAGE_EMAIL_DAYS);
-  } catch(e) { Logger.log('⚠️  מייל אחסון נכשל: '+e.message); }
+    return true;
+  } catch(e) { Logger.log('⚠️ מייל אחסון נכשל: '+e.message); return false; }
 }
 
 
@@ -1467,54 +1300,32 @@ function sendStorageEmail(sysFolder, emailsData, mainFolder) {
 // sendSubscriptionEmail — עם קישורים וכפתורים
 // =====================================================================
 function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime, mainFolder) {
-  var body    = '<p style="color:#64748b;margin-bottom:16px;">רשימת הפודקאסטים עודכנה:</p>';
-  var invalid = [];
-  var details = emailsData.subscriptions.details || {};
-
-  rssList.forEach(function(rss){
-    if (new Date() - startTime > TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) return;
-    try {
-      var resp = UrlFetchApp.fetch(rss.url, { muteHttpExceptions: true, followRedirects: true });
-      if (resp.getResponseCode() !== 200) { invalid.push({ url: rss.url, reason: 'HTTP '+resp.getResponseCode() }); return; }
-      var doc  = XmlService.parse(resp.getContentText('UTF-8'));
-      var ch   = doc.getRootElement().getChild('channel');
-      if (!ch) { invalid.push({ url: rss.url, reason: 'RSS לא תקין' }); return; }
-      var ns    = XmlService.getNamespace(ITUNES_NS_URL);
-      var title = ch.getChildText('title') || rss.url;
-      var desc  = (ch.getChildText('description') || ch.getChildText('subtitle', ns) || '').replace(/<[^>]*>/g,'').substring(0, 150);
-      var imgUrl= getChannelCoverArtUrl(ch, ns);
-      details[rss.url] = { title: title, image: imgUrl };
-      var folderLink = getFolderLink(title, mainFolder);
-      var nameHtml   = folderLink
-        ? '<a href="'+folderLink+'" style="color:#1e293b;font-weight:700;text-decoration:none;">'+title+'</a>'
-        : '<strong>'+title+'</strong>';
-      body += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;flex-wrap:wrap;">'
-        +channelImgTag(imgUrl)
-        +'<div style="margin-right:12px;flex:1;min-width:0;">'
-        +'<div style="margin-bottom:4px;">'+nameHtml
-        +'<span style="background:#e0e7ff;color:#4f46e5;font-size:.72rem;padding:2px 8px;border-radius:20px;margin-right:8px;">'+rss.days+' ימים</span></div>'
-        +(desc?'<p style="color:#64748b;font-size:.82rem;margin:0 0 6px;">'+desc+'</p>':'')
-        +buildChannelControlButtons(title, rss.url)
-        +'</div></div>';
-    } catch(e) { invalid.push({ url: rss.url, reason: e.message.substring(0,60) }); }
+  _rssList = rssList;
+  var body = '<p>רשימת הערוצים וסוגי ההרשמה עודכנו:</p>', details = emailsData.subscriptions.details;
+  rssList.forEach(function(rss) {
+    var info = details[rss.url] || {}, reason = '';
+    if (new Date() - startTime < TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) {
+      try {
+        var resp = UrlFetchApp.fetch(rss.url,{muteHttpExceptions:true,followRedirects:true});
+        if (resp.getResponseCode() !== 200) throw new Error('HTTP '+resp.getResponseCode());
+        var ch = XmlService.parse(resp.getContentText('UTF-8')).getRootElement().getChild('channel');
+        if (!ch) throw new Error('RSS לא תקין');
+        info = {title:ch.getChildText('title') || rss.url,image:getChannelCoverArtUrl(ch,XmlService.getNamespace(ITUNES_NS_URL))};
+        details[rss.url] = info;
+      } catch(e) { reason = e.message; }
+    }
+    var content = '<p>'+ (rss.notifyOnly ? '🔔 התראות בלבד — פרקים חדשים יופיעו במייל השבועי, ללא הורדה אוטומטית.' : '⬇️ הרשמה רגילה — פרקים חדשים יורדו אוטומטית לדרייב.') +
+      '</p><p>טווח סריקה: '+rss.days+' ימים</p>' +
+      (reason ? '<p>לא ניתן היה לעדכן פרטי ערוץ: '+escapeHtml(reason)+'</p>' : '');
+    body += channelCard(info.title || rss.url,rss.url,info.image,content,mainFolder);
   });
-
-  emailsData.subscriptions.details = details;
-
-  if (invalid.length) {
-    body += '<div style="background:#fef2f2;border-right:4px solid #ef4444;padding:12px 16px;border-radius:10px;margin-top:14px;">'
-      +'<strong>⚠️ כתובות שלא הגיבו:</strong><ul style="margin:8px 0 0;padding-right:18px;">';
-    invalid.forEach(function(x){ body += '<li style="font-size:.82rem;margin-bottom:3px;"><code>'+x.url+'</code> — '+x.reason+'</li>'; });
-    body += '</ul></div>';
-  }
-  body += '<div style="margin-top:18px;text-align:center;">'+buildAddChannelBtn()+'</div>';
-
+  if (!rssList.length) body += '<p>אין כרגע ערוצים ברשימת ההרשמה.</p>';
+  body += buildAddChannelBtn();
   try {
-    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '📋 פודקאסטים 2.0 — רשימת מינויים עודכנה',
-      htmlBody: _emailWrap('עדכון רשימת מינויים', body) });
-    Logger.log('📧 מייל מינויים נשלח.');
-  } catch(e) { Logger.log('⚠️  מייל מינויים נכשל: '+e.message); }
+    MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),subject:'📋 פודקאסטים 2.0 — רשימת מינויים עודכנה',htmlBody:_emailWrap('עדכון רשימת מינויים',body)});
+    emailsData.subscriptions.list = rssList.map(function(r) { return {url:r.url,days:r.days,notifyOnly:!!r.notifyOnly}; });
+    return true;
+  } catch(e) { Logger.log('⚠️ מייל מינויים נכשל: '+e.message); return false; }
 }
 
 // update initEmailsStructure to include subscriptions.details and emptySubsEmailSent
@@ -1535,36 +1346,43 @@ function sendEmptySubscriptionsEmail(emailsData) {
 // checkSentMailbox — סורק תיבת הדואר היוצא לכתובות הבקרה
 // =====================================================================
 function checkSentMailbox(sysFolder, mainFolder, queue, rssList, startTime) {
-  var processed    = [];
-  var processedIds = (_emailsData.processedEmailIds || []);
-  var CTRL_ADDRS   = [CTRL_UNSUBSCRIBE, CTRL_SUBSCRIBE, CTRL_GET_EPISODE];
-
-  CTRL_ADDRS.forEach(function(addr){
-    if (new Date() - startTime > TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) return;
-    try {
-      var threads = GmailApp.search('in:sent to:'+addr, 0, 10);
-      threads.forEach(function(thread){
-        if (new Date() - startTime > TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) return;
-        var tid = thread.getId();
-        if (processedIds.indexOf(tid) > -1) return;
-        var result = null;
-        if (addr === CTRL_UNSUBSCRIBE)  result = processUnsubscribeEmail(thread, sysFolder, rssList);
-        else if (addr === CTRL_SUBSCRIBE) result = processSubscribeEmail(thread, sysFolder, rssList, mainFolder, startTime);
-        else if (addr === CTRL_GET_EPISODE) result = processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime);
-        if (result !== null) {
-          // רק אם לא נדחה — מסמן כטופל ומוחק
-          if (result.type !== 'subscribe_search_pending') {
-            thread.moveToTrash();
-            processedIds.push(tid);
-          }
-          if (result.type !== 'subscribe_search_pending') processed.push(result);
-        }
+  var processed = [], ids = _emailsData.processedEmailIds || [], messages = [], found = {};
+  [CTRL_UNSUBSCRIBE, CTRL_SUBSCRIBE, CTRL_GET_EPISODE].forEach(function(addr) {
+    if (!hasEnoughTimeForEmails(startTime)) return;
+    GmailApp.search('in:sent to:'+addr,0,10).forEach(function(thread) {
+      thread.getMessages().forEach(function(message) {
+        var id = 'message:'+message.getId();
+        if (found[id] || ids.indexOf(id) >= 0 || message.isInTrash()) return;
+        var from = message.getFrom().toLowerCase(), own = Session.getEffectiveUser().getEmail().toLowerCase();
+        if (from !== own && from.indexOf('<'+own+'>') < 0) return;
+        // A thread may include replies unrelated to this control address.
+        if (message.getTo().toLowerCase().indexOf(addr.toLowerCase()) < 0) return;
+        found[id] = true;
+        messages.push({message:message,id:id,addr:addr});
       });
-    } catch(e) { Logger.log('⚠️  checkSentMailbox ('+addr+'): '+e.message); }
+    });
   });
-
-  // שמור רק 200 אחרונים
-  _emailsData.processedEmailIds = processedIds.slice(-200);
+  // Apply commands in the order they were sent, including changes within one Gmail thread.
+  messages.sort(function(a,b) { return a.message.getDate() - b.message.getDate(); });
+  messages.forEach(function(entry) {
+    if (!hasEnoughTimeForEmails(startTime)) return;
+    var one = {getMessages:function() { return [entry.message]; }}, result;
+    try {
+      if (entry.addr === CTRL_UNSUBSCRIBE) result = processUnsubscribeEmail(one,sysFolder,rssList);
+      else if (entry.addr === CTRL_SUBSCRIBE) result = processSubscribeEmail(one,sysFolder,rssList,mainFolder,startTime);
+      else result = processGetEpisodeEmail(one,queue,rssList,mainFolder,startTime);
+      if (!result || result.type === 'subscribe_search_pending') return;
+      if (result.type === 'subscribe_invalid') sendInvalidSubscriptionEmail(result.error);
+      // Save requests and dedup state before moving just this message to Trash.
+      if (result.type === 'episode_queued' && result.ok) _emailsData.pendingEpisodeSummary.push(result);
+      ids.push(entry.id);
+      _emailsData.processedEmailIds = ids.slice(-200);
+      saveStatusQueue(sysFolder,queue);
+      saveEmailsData(sysFolder,_emailsData);
+      entry.message.moveToTrash();
+      processed.push(result);
+    } catch(e) { Logger.log('⚠️ עיבוד מייל בקרה נכשל: '+e.message); }
+  });
   return processed;
 }
 
@@ -1596,33 +1414,33 @@ function removeFromPodcastsFile(sysFolder, urlToRemove) {
 
 // ── subscribe ──
 function processSubscribeEmail(thread, sysFolder, rssList, mainFolder, startTime) {
-  var subject = thread.getMessages()[0].getSubject().trim();
-  if (subject.startsWith('http')) {
-    if (rssList.some(function(r){ return r.url === subject; }))
-      return { type: 'subscribe_duplicate', url: subject };
-    addToPodcastsFile(sysFolder, subject, null, 7);
-    rssList.push({ url: subject, days: 7 });
-    return { type: 'subscribe_added', url: subject };
+  var parsed = parseSubscriptionInput(thread.getMessages()[0].getSubject().trim());
+  if (parsed.error) return {type:'subscribe_invalid',error:parsed.error};
+  if (parsed.url) {
+    var current = rssList.filter(function(r) { return r.url === parsed.url; })[0];
+    if (current && !!current.notifyOnly === parsed.notifyOnly) return {type:'subscribe_duplicate',url:parsed.url};
+    addToPodcastsFile(sysFolder,parsed.url,null,current ? current.days : 7,parsed.notifyOnly);
+    if (current) current.notifyOnly = parsed.notifyOnly;
+    else rssList.push({url:parsed.url,days:7,notifyOnly:parsed.notifyOnly});
+    return {type:current?'subscribe_changed':'subscribe_added',url:parsed.url,notifyOnly:parsed.notifyOnly};
   }
-  // חיפוש iTunes (עם retry logic)
-  var results = handleITunesRetry(subject, sysFolder, startTime);
-  if (results === null) return { type: 'subscribe_search_pending', query: subject };  // נדחה לריצה הבאה
-  if (results.length === 0) {
-    sendNoResultsEmail(subject);
-    return { type: 'subscribe_no_results', query: subject };
-  }
-  sendPodcastSearchResultsEmail(subject, results, mainFolder);
-  return { type: 'subscribe_search', query: subject, count: results.length };
+  if (!parsed.query) return null;
+  var results = handleITunesRetry(parsed.query,sysFolder,startTime);
+  if (results === null) return {type:'subscribe_search_pending',query:parsed.query};
+  if (!results.length) { sendNoResultsEmail(parsed.query); return {type:'subscribe_no_results',query:parsed.query}; }
+  sendPodcastSearchResultsEmail(parsed.query,results,mainFolder);
+  return {type:'subscribe_search',query:parsed.query,count:results.length};
 }
 
-function addToPodcastsFile(sysFolder, url, comment, days) {
+function addToPodcastsFile(sysFolder, url, comment, days, notifyOnly) {
   var merged = parsePodcastsFiles(sysFolder);
   if (!merged.byUrl[url]) {
-    merged.byUrl[url] = { comment: comment || null, days: days || 7 };
+    merged.byUrl[url] = {comment:comment || null,days:days || 7,notifyOnly:!!notifyOnly};
     merged.order.push(url);
-    Logger.log("📋 ערוץ חדש נוסף לרשימה: " + url);
+  } else {
+    merged.byUrl[url].notifyOnly = !!notifyOnly;
   }
-  writeMergedPodcastsFile(sysFolder, merged);
+  writeMergedPodcastsFile(sysFolder,merged);
 }
 
 
@@ -1687,32 +1505,14 @@ function sendITunesErrorEmail(query, attempts) {
 }
 
 function sendPodcastSearchResultsEmail(query, results, mainFolder) {
-  var body = '<p style="color:#64748b;margin-bottom:16px;">תוצאות חיפוש עבור: <strong>'+query+'</strong></p>';
-  if (!results.length) {
-    body += '<p>לא נמצאו תוצאות. נסה לחפש עם מילות מפתח שונות, או הכנס כתובת RSS ישירות.</p>';
-  } else {
-    results.forEach(function(r){
-      var addBtn = buildMailtoBtn('+ הוסף ערוץ', CTRL_SUBSCRIBE, r.rssUrl,
-        'שלח מייל זה להוספת הערוץ \''+r.title+'\' לרשימת המינויים שלך.\n\n'+PRIVACY_NOTE, '#10b981');
-      var epBtn  = buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, r.rssUrl,
-        'שלח מייל זה לקבלת קטלוג פרקי הערוץ \''+r.title+'\'.\n\n'+PRIVACY_NOTE);
-      body += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;flex-wrap:wrap;">'
-        +channelImgTag(r.image)
-        +'<div style="flex:1;min-width:0;margin-right:12px;">'
-        +'<div style="font-weight:700;">'+r.title+'</div>'
-        +'<div style="color:#64748b;font-size:.82rem;margin-bottom:4px;">'+r.author
-        +(r.episodeCount?' | '+r.episodeCount+' פרקים':'')
-        +(r.lastDate?' | אחרון: '+r.lastDate:'')+'</div>'
-        +addBtn+epBtn
-        +'</div></div>';
-    });
-  }
-  body += '<div style="margin-top:16px;text-align:center;">'+buildAddChannelBtn()+'</div>';
-  try {
-    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '🔍 תוצאות חיפוש: '+query,
-      htmlBody: _emailWrap('תוצאות חיפוש פודקאסטים', body) });
-  } catch(e) { Logger.log('⚠️  מייל חיפוש: '+e.message); }
+  var body = '<p>תוצאות חיפוש עבור: <span dir="auto">'+escapeHtml(query)+'</span></p>';
+  results.forEach(function(r) {
+    body += channelCard(r.title,r.rssUrl,r.image,'<p dir="auto">'+escapeHtml(r.author)+
+      (r.episodeCount?' · '+r.episodeCount+' פרקים':'')+'</p>',mainFolder);
+  });
+  body += buildAddChannelBtn();
+  try { MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),subject:'🔍 תוצאות חיפוש: '+query,htmlBody:_emailWrap('תוצאות חיפוש פודקאסטים',body)}); }
+  catch(e) { Logger.log('⚠️ מייל חיפוש: '+e.message); }
 }
 
 
@@ -1752,10 +1552,10 @@ function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder)
   var RET = { ok: false, channelTitle: '', episodeTitle: '' };
   try {
     var resp = UrlFetchApp.fetch(channelUrl, { muteHttpExceptions: true, followRedirects: true });
-    if (resp.getResponseCode() !== 200) return false;
+    if (resp.getResponseCode() !== 200) return RET;
     var doc     = XmlService.parse(resp.getContentText('UTF-8'));
     var channel = doc.getRootElement().getChild('channel');
-    if (!channel) return false;
+    if (!channel) return RET;
     var ns      = XmlService.getNamespace(ITUNES_NS_URL);
     var chanTitle = channel.getChildText('title') || channelUrl;
     var chanImg   = getChannelCoverArtUrl(channel, ns);
@@ -1769,14 +1569,19 @@ function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder)
     var items = channel.getChildren('item');
     for (var j = 0; j < items.length; j++) {
       var item = items[j];
-      var guid = item.getChildText('guid') || '';
+      var candidateEnclosure = getEnclosureInfo(item);
+      var guid = item.getChildText('guid') || (candidateEnclosure && candidateEnclosure.url) || '';
       if (guid !== episodeGuid) continue;
       var encl = getEnclosureInfo(item);
-      if (!encl) return false;
+      if (!encl) return RET;
       var title  = item.getChildText('title') || 'פרק';
       var epNum  = item.getChildText('episode', ns) || '';
       var fileExt= getFileExtension(encl.url, encl.type);
+      var existingRequest = queue.filter(function(q) { return q.url === encl.url; })[0];
+      if (existingRequest) { existingRequest.source = 'manual'; existingRequest.rssUrl = channelUrl; RET.ok = true; RET.channelTitle = chanTitle; RET.episodeTitle = title; return RET; }
       queue.push({
+        rssUrl:         channelUrl,
+        source:         "manual",
         url:            encl.url,
         mimeType:       encl.type || 'audio/mpeg',
         fileName:       buildFileName(title, epNum, fileExt),
@@ -1830,7 +1635,9 @@ function sendEpisodeCatalogEmail(channelUrl, startTime) {
       for (var j = start; j < end; j++) {
         var item  = items[j];
         var title = item.getChildText('title') || 'פרק '+(j+1);
-        var guid  = item.getChildText('guid') || String(j);
+        var enc = getEnclosureInfo(item);
+        var guid = item.getChildText('guid') || (enc && enc.url);
+        if (!guid) continue;
         var pd    = item.getChildText('pubDate') || '';
         var pdFmt = pd ? formatDate(new Date(pd)) : '';
         var dur   = item.getChildText('duration', ns) || '';
@@ -1839,15 +1646,15 @@ function sendEpisodeCatalogEmail(channelUrl, startTime) {
           JSON.stringify({ channelUrl: channelUrl, episodeGuid: guid }),
           'שלח מייל זה על מנת להוסיף את הפרק \''+title+'\' מערוץ \''+chanTitle+'\' לרשימת ההורדות. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE);
         body += '<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;">'
-          +'<div style="font-weight:600;margin-bottom:3px;">'+title+'</div>'
+          +'<div dir="auto" style="font-weight:600;margin-bottom:3px;">'+escapeHtml(title)+'</div>'
           +'<div style="color:#94a3b8;font-size:.8rem;margin-bottom:4px;">'+pdFmt+(dur?' | '+dur:'')+'</div>'
-          +(desc?'<div style="color:#64748b;font-size:.82rem;margin-bottom:6px;">'+desc+'</div>':'')
+          +(desc?'<div style="color:#64748b;font-size:.82rem;margin-bottom:6px;">'+escapeHtml(desc)+'</div>':'')
           +getBtn+'</div>';
       }
 
       MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
         subject: '📻 '+chanTitle+' — קטלוג פרקים'+(pages>1?' ('+( page+1)+'/'+pages+')':''),
-        htmlBody: _emailWrap('קטלוג: '+chanTitle, '<div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">'+channelImgTag(chanImg)+'<strong>'+chanTitle+'</strong></div>'+body) });
+        htmlBody: _emailWrap('קטלוג: '+chanTitle, '<div dir="rtl" style="direction:rtl;text-align:right;margin-bottom:12px;">'+channelImgTag(chanImg)+'<strong dir="auto">'+escapeHtml(chanTitle)+'</strong></div>'+buildChannelControlButtons(chanTitle,channelUrl)+body) });
     }
   } catch(e) { Logger.log('⚠️  sendEpisodeCatalogEmail: '+e.message); }
 }
@@ -1859,12 +1666,13 @@ function sendEpisodeCatalogEmail(channelUrl, startTime) {
 function sendProcessedEmailsSummary(items) {
   // שולח מייל רק עבור פרקים ספציפיים שנוספו לתור — שאר הפעולות כבר מקבלות מייל ייעודי
   var episodeItems = (items || []).filter(function(it){ return it.type === 'episode_queued' && it.ok; });
-  if (!episodeItems.length) return;
+  if (!episodeItems.length) return true;
   var body = '<p style="color:#64748b;margin-bottom:14px;">הפרקים הבאים נוספו לתור ההורדות לפי בקשתך:</p>';
   episodeItems.forEach(function(it){
     body += '<div style="padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.9rem;">'
-      +'<span style="font-weight:600;">'+(it.episodeTitle||'פרק')+'</span>'
-      +(it.channelTitle?'<span style="color:#64748b;font-size:.82rem;margin-right:8px;"> — '+it.channelTitle+'</span>':'')
+      +'<span style="font-weight:600;">'+escapeHtml(it.episodeTitle||'פרק')+'</span>'
+      +(it.channelTitle?'<span dir="auto" style="color:#64748b;font-size:.82rem;margin-right:8px;"> — '+escapeHtml(it.channelTitle)+'</span>':'')
+      +buildChannelControlButtons(it.channelTitle,it.channelUrl)
       +'</div>';
   });
   body += '<p style="color:#94a3b8;font-size:.82rem;margin-top:12px;">הפרקים יורדו בריצה הקרובה.</p>';
@@ -1872,5 +1680,102 @@ function sendProcessedEmailsSummary(items) {
     MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
       subject: '📥 פודקאסטים 2.0 — '+episodeItems.length+' פרקים נוספו לתור',
       htmlBody: _emailWrap('פרקים בתור הורדה', body) });
-  } catch(e) { Logger.log('⚠️  סיכום פרקים: '+e.message); }
+    return true;
+  } catch(e) { Logger.log('⚠️  סיכום פרקים: '+e.message); return false; }
+}
+
+// Subscription parsing is shared by TXT imports and control email subjects.
+function parseSubscriptionInput(input) {
+  var text = String(input || '').trim(), notifyOnly = false;
+  if (/(?:^|\s)--notify-only$/.test(text)) {
+    notifyOnly = true;
+    text = text.replace(/(?:^|\s)--notify-only$/, '').trim();
+  }
+  if (/(?:^|\s)--\S+/.test(text)) return {error:'דגל הרשמה לא מוכר; השתמש ב־--notify-only'};
+  if (/^https?:\/\//i.test(text)) {
+    if (/\s/.test(text)) return {error:'כתובת RSS אינה יכולה להכיל רווחים'};
+    return {url:text,notifyOnly:notifyOnly};
+  }
+  return {query:text,notifyOnly:notifyOnly};
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function buildSubscriptionButton(title, rssUrl, notifyOnly) {
+  return buildMailtoBtn(notifyOnly ? 'הירשם להתראות בלבד' : 'הירשם', CTRL_SUBSCRIBE,
+    rssUrl + (notifyOnly ? ' --notify-only' : ''),
+    'שלח מייל זה '+(notifyOnly?'לקבלת התראות שבועיות בלבד, ללא הורדה אוטומטית':'להפעלת הורדה אוטומטית')+
+    ' עבור הערוץ '+title+'.\n\n'+PRIVACY_NOTE,notifyOnly?'#b45309':'#059669');
+}
+
+function buildGetEpisodeButton(channelTitle, episodeTitle, rssUrl, guid) {
+  if (!rssUrl || !guid) return '';
+  return buildMailtoBtn('קבל פרק', CTRL_GET_EPISODE,
+    JSON.stringify({channelUrl:rssUrl,episodeGuid:guid}),
+    'שלח מייל זה לבקשת הפרק '+episodeTitle+' מהערוץ '+channelTitle+
+    '. סוג ההרשמה לערוץ לא ישתנה.\n\n'+PRIVACY_NOTE);
+}
+
+function channelCard(title, rssUrl, image, content, mainFolder) {
+  return '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;text-align:right;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px;">'+
+    '<tr><td dir="rtl" style="direction:rtl;text-align:right;padding:12px;background:#f8fafc;">'+
+    channelImgTag(image)+' <span style="margin-right:8px;">'+channelNameTag(title,mainFolder)+'</span>'+
+    '<div dir="rtl" style="direction:rtl;text-align:right;margin-top:8px;">'+buildChannelControlButtons(title,rssUrl)+'</div></td></tr>'+
+    '<tr><td dir="rtl" style="direction:rtl;text-align:right;padding:12px;">'+content+'</td></tr></table>';
+}
+
+function hasNotifyOnlySubscriptions(rssList) {
+  return rssList.some(function(r) { return r.notifyOnly; });
+}
+
+// Resolve old records only when exactly one known feed matches the channel title.
+function knownFeedUrl(item, rssList, emailsData) {
+  if (item.rssUrl && item.rssUrl !== item.url && rssList.some(function(r) { return r.url === item.rssUrl; })) return item.rssUrl;
+  var details = emailsData.subscriptions.details || {};
+  var candidates = Object.keys(details).filter(function(url) {
+    return details[url].title === item.channelTitle;
+  });
+  (emailsData.subscriptions.list || []).concat(rssList).forEach(function(r) {
+    if (r.url === item.rssUrl && candidates.indexOf(r.url) < 0) candidates.push(r.url);
+  });
+  if (candidates.length === 1) return candidates[0];
+  return null;
+}
+
+function repairSavedFeedUrls(queue, emailsData, rssList) {
+  queue.forEach(function(it) {
+    if (!it.source) it.source = it.fromSubscription === false ? 'manual' : 'automatic';
+    if (!it.rssUrl) it.rssUrl = knownFeedUrl(it,rssList,emailsData);
+  });
+  emailsData.storage.pending.forEach(function(it) {
+    it.rssUrl = knownFeedUrl(it,rssList,emailsData);
+  });
+  Object.keys(emailsData.weekly.channels).forEach(function(key) {
+    var d = emailsData.weekly.channels[key];
+    if (!d.title) d.title = key;
+    // Old weekly.rssUrl actually held an audio URL.
+    if (!d.items.some(function(it) { return it.rssUrl === d.rssUrl; })) {
+      d.rssUrl = knownFeedUrl({channelTitle:d.title},rssList,emailsData);
+    }
+  });
+}
+
+function reconcileAutomaticQueue(queue, rssList, emailsData) {
+  repairSavedFeedUrls(queue,emailsData,rssList);
+  var notify = {};
+  rssList.forEach(function(r) { if (r.notifyOnly) notify[r.url] = true; });
+  for (var i = queue.length - 1; i >= 0; i--) {
+    if (queue[i].source !== 'manual' && notify[queue[i].rssUrl]) queue.splice(i,1);
+  }
+  emailsData.storage.pending = emailsData.storage.pending.filter(function(it) {
+    return it.source === 'manual' || !notify[it.rssUrl];
+  });
+}
+
+function sendInvalidSubscriptionEmail(error) {
+  MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),subject:'⚠️ פודקאסטים 2.0 — בקשת הרשמה לא תקינה',
+    htmlBody:_emailWrap('לא שינינו את ההרשמה','<p>'+escapeHtml(error)+'</p><p>דוגמה לנושא תקין:</p><pre dir="ltr" style="direction:ltr;text-align:left;">https://example.com/feed.xml --notify-only</pre>')});
 }
