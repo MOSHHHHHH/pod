@@ -1657,7 +1657,7 @@ function sendInvalidSubscriptionEmail(error) {
 
 
 /** Podki feature source; bundled into podcast_processor_v2.js. No GS changes needed. */
-var PODKI_VERSION = '4.0';
+var PODKI_VERSION = '4.0.1';
 var PODKI_BODY_BYTES = 70 * 1024;
 var PODKI_ATTACHMENT_BYTES = 18 * 1024 * 1024;
 var PODKI_REQUEST_BYTES = 2 * 1024 * 1024;
@@ -1734,7 +1734,7 @@ function podkiSendEmail(message) {
 
 function podkiEnqueueJob(type, payload, id) {
   var p=podkiState();
-  if (p.receipts[id] || p.jobs.some(function(j){return j.id===id;})) return false;
+  if (p.receipts[id] || p.jobs.some(function(j){return j.id===id || (j.receiptIds || []).indexOf(id)>=0;})) return false;
   p.jobs.push({id:id,type:type,payload:payload,index:0,results:[],attempts:0,createdAt:new Date().toISOString()});
   return true;
 }
@@ -1858,7 +1858,26 @@ function podkiQueueEpisode(request,queue) {
   return {status:status,episodeTitle:episode.episodeTitle,channelTitle:episode.channelTitle,channelUrl:request.channelUrl};
 }
 
+// Collect separate episode emails into one durable confirmation batch. Once any
+// summary page was sent, keep that batch frozen so retries cannot repeat pages.
+function podkiMergeEpisodeJobs(sysFolder) {
+  var p=podkiState(),jobs=p.jobs.filter(function(j){return j.type==='episodes' && !(j.summaryIndex>0);});
+  if(jobs.length<2)return;
+  var batch=jobs[0],resolved=[],pending=[],results=[],ids=[];
+  jobs.forEach(function(j){
+    resolved=resolved.concat(j.payload.slice(0,j.index));
+    pending=pending.concat(j.payload.slice(j.index));
+    results=results.concat(j.results);
+    (j.receiptIds || [j.id]).forEach(function(id){if(ids.indexOf(id)<0)ids.push(id);});
+  });
+  batch.payload=resolved.concat(pending);batch.index=resolved.length;
+  batch.results=results;batch.receiptIds=ids;
+  p.jobs=p.jobs.filter(function(j){return j===batch || jobs.indexOf(j)<0;});
+  saveEmailsData(sysFolder,_emailsData);
+}
+
 function podkiPumpJobs(sysFolder,queue,mainFolder,startTime) {
+  podkiMergeEpisodeJobs(sysFolder);
   var p=podkiState(),n=0;
   while(p.jobs.length && n<30 && hasEnoughTimeForEmails(startTime)){
     var job=p.jobs[0];
@@ -1877,7 +1896,7 @@ function podkiPumpJobs(sysFolder,queue,mainFolder,startTime) {
       }else if(job.type==='notice'){
         podkiSendNotice(job.payload);
       }
-      p.receipts[job.id]=new Date().toISOString();p.jobs.shift();n++;
+      (job.receiptIds || [job.id]).forEach(function(id){p.receipts[id]=new Date().toISOString();});p.jobs.shift();n++;
       var receipts=Object.keys(p.receipts);
       if(receipts.length>500) receipts.sort(function(a,b){return p.receipts[a]<p.receipts[b]?-1:1;}).slice(0,receipts.length-500).forEach(function(k){delete p.receipts[k];});
       saveEmailsData(sysFolder,_emailsData);
