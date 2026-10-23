@@ -4,26 +4,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מוריד הפודקאסטים</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1117'/%3E%3Cpath d='M32 14a16 16 0 0 0-16 16v10a5 5 0 0 0 5 5h2a3 3 0 0 0 3-3V33a3 3 0 0 0-3-3h-3.6A12.6 12.6 0 0 1 44 30h-3.6a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h1a6 6 0 0 0 6-6' fill='none' stroke='%23F2A93B' stroke-width='3.4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='47' r='2.6' fill='%234FD1C5'/%3E%3C/svg%3E">
+<title>פודקי — בוט הפודקאסטים שלך</title>
+<meta name="description" content="פודקי מנהל את הפודקאסטים שלך דרך המייל: הורדות לגוגל דרייב, התראות בלבד, חיפוש פרקים וקטלוג לבחירה מרובה. התקנה בחשבון Google שלך.">
+<meta name="theme-color" content="#1764c0">
+<meta property="og:title" content="פודקי — בוט הפודקאסטים שלך">
+<meta property="og:description" content="מורידים, מחפשים ובוחרים פרקים. פודקי מסדר את הפודקאסטים שלך בדרייב — בשליטה דרך המייל.">
+<meta property="og:image" content="https://moshhhhhh.github.io/pod/assets/podki/welcome.png">
+<link rel="canonical" href="https://moshhhhhh.github.io/pod/">
+<link rel="icon" type="image/png" href="assets/podki/welcome.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0F1117;
-    --bg-panel:#161927;
-    --bg-elev:#1D2233;
-    --line:#2A2F44;
-    --line-soft:#232840;
-    --text:#ECEEF6;
-    --text-dim:#9AA0BC;
-    --text-faint:#6B7191;
-    --accent:#F2A93B;
-    --accent-soft:rgba(242,169,59,.14);
-    --teal:#49CFC4;
-    --teal-soft:rgba(73,207,196,.14);
-    --danger:#E5637A;
+    --bg:#edf4fb;
+    --bg-panel:#ffffff;
+    --bg-elev:#f5f9ff;
+    --line:#bed3eb;
+    --line-soft:#dce8f5;
+    --text:#17324d;
+    --text-dim:#4c6680;
+    --text-faint:#5e7690;
+    --accent:#1764c0;
+    --accent-soft:rgba(23,100,192,.09);
+    --teal:#087d92;
+    --teal-soft:rgba(8,125,146,.09);
+    --danger:#b93b59;
     --radius-lg:20px;
     --radius-md:14px;
     --radius-sm:9px;
@@ -33,8 +39,8 @@
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(1100px 620px at 82% -8%, rgba(242,169,59,.09), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(73,207,196,.08), transparent 55%),
+      radial-gradient(1100px 620px at 82% -8%, rgba(23,100,192,.09), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(38,174,207,.08), transparent 55%),
       var(--bg);
     color:var(--text);
     font-family:'Heebo', system-ui, sans-serif;
@@ -42,12 +48,12 @@
     display:flex;
     align-items:flex-start;
     justify-content:center;
-    padding:48px 20px 80px;
+    padding:30px 20px 50px;
     line-height:1.6;
   }
   .app{
     width:100%;
-    max-width:760px;
+    max-width:820px;
   }
 
   /* ---------- progress rail ---------- */
@@ -56,7 +62,7 @@
     align-items:center;
     justify-content:center;
     gap:0;
-    margin-bottom:40px;
+    margin-bottom:28px;
     user-select:none;
   }
   .rail .seg{
@@ -89,7 +95,7 @@
   .rail .stop.done{
     border-color:var(--accent);
     background:var(--accent);
-    color:#161927;
+    color:#ffffff;
   }
 
   /* ---------- panel shell ---------- */
@@ -97,7 +103,8 @@
     background:var(--bg-panel);
     border:1px solid var(--line-soft);
     border-radius:var(--radius-lg);
-    padding:44px 40px;
+    padding:40px;
+    box-shadow:0 18px 60px rgba(34,76,124,.07);
     display:none;
     animation:enter .5s var(--ease);
   }
@@ -197,12 +204,12 @@
   }
   .btn-primary{
     background:var(--accent);
-    color:#181206;
-    box-shadow:0 8px 20px -8px rgba(242,169,59,.55);
+    color:#ffffff;
+    box-shadow:0 8px 20px -8px rgba(23,100,192,.25);
   }
   .btn-primary:hover{transform:translateY(-1px);}
   .btn-primary:disabled{
-    background:#3A3F52;
+    background:#e3edf7;
     color:var(--text-faint);
     box-shadow:none;
     cursor:not-allowed;
@@ -327,7 +334,7 @@
     display:inline-block;
   }
   .steps .inline-btn{margin-top:10px;}
-  .copy-btn.copied{background:var(--teal); color:#0F1117; box-shadow:0 8px 20px -8px rgba(73,207,196,.55);}
+  .copy-btn.copied{background:var(--teal); color:#edf4fb; box-shadow:0 8px 20px -8px rgba(73,207,196,.55);}
   .copy-btn.busy{opacity:.7; cursor:wait;}
   .sub-steps{
     margin:12px 0 10px;
@@ -356,40 +363,66 @@
     font-size:.88rem;
     text-align:center;
   }
+
+  .masthead{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:0 4px 24px}
+  .brand{font-size:25px;font-weight:800;color:var(--accent);text-decoration:none;line-height:1.3}
+  .brand span{display:block;font-size:12px;font-weight:500;color:var(--text-dim)}
+  .source-link{font-size:13px;color:var(--text-dim);text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:20px;background:white}
+  .step-caption{text-align:center;color:var(--text-dim);font-size:13px;margin:0 0 12px}
+  .hero-mascot{display:block;width:168px;height:168px;object-fit:contain;margin:0 auto 12px}
+  .hero h1{font-size:3.2rem;line-height:1.15;color:var(--accent);margin:2px 0 16px}
+  .eyebrow{display:block;color:var(--text-dim);font-size:13px;font-weight:600}
+  .hero-tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px}
+  .hero-tags span{font-size:12px;border-radius:20px;padding:5px 11px;background:var(--accent-soft);color:#24598f}
+  .wave-divider{margin:26px 0 22px;height:18px}
+  .feat{transition:border-color .2s,transform .2s}.feat:hover{border-color:#9dbfe6;transform:translateY(-2px)}
+  .feat h3{color:#1c4773}.feat .ficon{margin-bottom:10px}.feat p{line-height:1.8}
+  .btn-primary{color:white}.btn-outline{border:1px solid var(--line)!important;background:white}
+  .rail .stop.done{color:white}.rail .stop{width:32px;height:32px}.rail .seg{width:65px}
+  .panel-heading{display:flex;align-items:center;gap:16px;margin-bottom:20px}.panel-heading img{object-fit:contain;flex-shrink:0}
+  .panel-heading h2{margin:3px 0 0;font-size:1.6rem}
+  .site-footer{text-align:center;font-size:13px;color:var(--text-dim);padding:24px 10px 0}
+  .site-footer span{display:block;font-size:12px;margin:5px 0}.site-footer a{font-size:12px}
+  a{color:var(--accent);text-underline-offset:3px}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #087d92;outline-offset:4px}
+  .copy-status,.fallback-link{font-size:13px!important;margin-top:10px!important}.copy-status:empty{display:none}
+  .quick-guide{margin-top:26px;border:1px solid var(--line);border-radius:14px;background:var(--bg-elev)}
+  .quick-guide summary{cursor:pointer;padding:17px;font-weight:600;color:#1c4773}.guide-body{padding:0 18px 18px;font-size:14px;color:var(--text-dim)}
+  .guide-body p{margin:12px 0}.guide-body pre{background:white;border:1px solid var(--line-soft);border-radius:9px;padding:14px;text-align:left;direction:ltr;overflow-x:auto;font-size:12px}
+  .guide-body code{direction:ltr;unicode-bidi:isolate;display:inline-block;color:#135c9b}
+  .steps li>div{min-width:0}.steps code{overflow-wrap:anywhere}.steps .btn{flex-wrap:wrap;justify-content:center}
+  h1:focus,h2:focus{outline:none}
+  @media(max-width:600px){.panel{padding:26px 20px}.hero-mascot{width:142px;height:142px}.hero h1{font-size:2.8rem}.masthead{margin-bottom:24px}.actions{gap:8px}.btn{padding:12px 18px!important}.panel-heading{gap:10px}.panel-heading h2{font-size:1.4rem}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.feat:hover{transform:none}}
 </style>
 </head>
 <body>
 <div class="app">
+  <header class="masthead"><a class="brand" href="./" aria-label="פודקי — דף הבית">פודקי<span>בוט הפודקאסטים שלך</span></a><a class="source-link" href="https://github.com/MOSHHHHHH/pod" target="_blank" rel="noopener">קוד פתוח ↗</a></header>
+  <p class="step-caption" id="step-caption" aria-live="polite">שלב 1 מתוך 3 · נעים להכיר</p>
 
-  <div class="rail" id="rail">
-    <div class="stop active" data-i="1">1</div>
+  <div class="rail" id="rail" role="group" aria-label="שלבי ההתקנה">
+    <div class="stop active" data-i="1" aria-current="step" aria-label="שלב 1: היכרות">1</div>
     <div class="seg" data-i="1"></div>
-    <div class="stop" data-i="2">2</div>
+    <div class="stop" data-i="2" aria-label="שלב 2: פרטיות">2</div>
     <div class="seg" data-i="2"></div>
-    <div class="stop" data-i="3">3</div>
+    <div class="stop" data-i="3" aria-label="שלב 3: התקנה">3</div>
   </div>
 
   <!-- ===================== PANEL 1 : ABOUT ===================== -->
   <section class="panel active" id="panel-1">
     <div class="hero">
-      <svg class="hero-icon" viewBox="0 0 100 100" fill="none">
-        <path d="M50 22a28 28 0 0 0-28 28v16a8 8 0 0 0 8 8h3a5 5 0 0 0 5-5V54a5 5 0 0 0-5-5h-6.2A21.2 21.2 0 0 1 71.2 49H65a5 5 0 0 0-5 5v15a5 5 0 0 0 5 5h2a10 10 0 0 0 10-10" stroke="#F2A93B" stroke-width="4.2" stroke-linecap="round"/>
-        <circle cx="50" cy="79" r="3.4" fill="#49CFC4"/>
-        <g id="wavebars" stroke="#49CFC4" stroke-width="3.2" stroke-linecap="round">
-          <line x1="50" y1="8" x2="50" y2="14"/>
-        </g>
-      </svg>
-      <h1>מוריד הפודקאסטים</h1>
-      <p class="tagline">כלי אוטומטי שסורק את הערוצים שלך ומוריד פרקים חדשים ישירות לגוגל דרייב — כל השליטה דרך מייל.</p>
+      <img class="hero-mascot" src="assets/podki/welcome.png" alt="פודקי, רובוט כחול עם אוזניות, מנופף לשלום" width="168" height="168" fetchpriority="high">
+      <span class="eyebrow">נעים להכיר, אני</span><h1>פודקי</h1>
+      <p class="tagline">בוט הפודקאסטים שלך. מורידים לדרייב, מקבלים התראות או בוחרים רק את הפרקים שמעניינים אותך — דרך המייל.</p><div class="hero-tags"><span>חינם וקוד פתוח</span><span>בחשבון Google שלך</span><span>בלי אפליקציה נוספת</span></div>
     </div>
 
     <svg class="wave-divider" viewBox="0 0 400 26" preserveAspectRatio="none">
       <path d="M0 13 L20 13 L26 4 L34 22 L42 13 L60 13 L66 8 L72 18 L78 13 L110 13 L116 3 L124 23 L132 13 L160 13 L166 9 L172 17 L178 13 L210 13 L216 4 L224 22 L232 13 L260 13 L266 8 L272 18 L278 13 L310 13 L316 3 L324 23 L332 13 L360 13 L366 9 L372 17 L378 13 L400 13"
-        stroke="#2A2F44" stroke-width="1.6" fill="none"/>
+        stroke="#bed3eb" stroke-width="1.6" fill="none"/>
     </svg>
 
-    <h2 class="section-title">מה הכלי עושה</h2>
-    <p class="section-sub">שש תכונות עיקריות שרצות ברקע בלי שתצטרכו לגעת בכלום.</p>
+    <h2 class="section-title">מה עושים עם פודקי</h2>
+    <p class="section-sub">בוחרים איך לעקוב. פודקי מטפל בשאר בריצות אוטומטיות, בדרך כלל פעם בשעה.</p>
 
     <div class="features">
       <div class="feat amber">
@@ -399,18 +432,18 @@
       </div>
       <div class="feat teal">
         <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
-        <h3>ניהול מינויים במייל</h3>
-        <p>נרשמים או מסירים ערוץ בשליחת מייל בלבד. אפשר גם לערוך ידנית את קובץ הערוצים בדרייב, בלי לשתף כלום עם המערכת.</p>
+        <h3>הורדות או התראות בלבד</h3>
+        <p>בוחרים הרשמה רגילה להורדה אוטומטית, או התראות בלבד במייל השבועי. אפשר לשנות מצב או להסיר ערוץ במייל, וגם לערוך את רשימת הערוצים בדרייב.</p>
       </div>
       <div class="feat teal">
         <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
-        <h3>חיפוש פודקאסטים</h3>
-        <p>שולחים מייל חיפוש עם שם תוכנית, מגיש או נושא, ומקבלים תוצאות מ-iTunes עם כפתור הרשמה לכל תוצאה.</p>
+        <h3>חיפוש ערוצים וגם פרקים</h3>
+        <p>מחפשים ערוץ דרך ״הוסף ערוץ״, או פרק דרך ״חפש פרק״. כותבים שם או מילות חיפוש בנושא המייל, ושולחים. תוצאות מאפל פודקאסטים מגיעות עם כפתורי פעולה.</p>
       </div>
       <div class="feat amber">
         <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
-        <h3>פרק בודד או קטלוג מלא</h3>
-        <p>אפשר לבקש פרק ספציפי מכל ערוץ, גם כזה שלא רשומים אליו, או לקבל במייל רשימה של כל הפרקים שיצאו אי פעם.</p>
+        <h3>קטלוג עם בחירה מרובה</h3>
+        <p>״קבל פרקים״ שולח קטלוג HTML של הפרקים הזמינים בפיד: מחפשים, ממיינים ובוחרים כמה יחד. מורידים JSON, מצרפים למייל ושולחים — גם בלי נושא. הבחירה אינה משנה את המינוי.</p>
       </div>
       <div class="feat amber">
         <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="7" height="12" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg></div>
@@ -420,7 +453,7 @@
       <div class="feat teal">
         <div class="ficon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
         <h3>דיווחים והתראות</h3>
-        <p>מייל סיכום שבועי, התראה כשנגמר מקום בדרייב, ושמירה אוטומטית של תמונת הפודקאסט וקובץ מידע לכל פרק.</p>
+        <p>דוח שבועי של הורדות ופרקים חדשים מערוצי התראות, עם ״קבל פרק״ לבחירה ידנית. דוח ארוך מפוצל לחלקים. פודקי גם מתריע על מחסור במקום ושומר תמונה ומידע לצד הפרקים.</p>
       </div>
     </div>
 
@@ -434,28 +467,28 @@
 
   <!-- ===================== PANEL 2 : PRIVACY ===================== -->
   <section class="panel" id="panel-2">
-    <h2 class="section-title">מדיניות פרטיות</h2>
-    <p class="policy-intro">נאספים שני נתונים בלבד:</p>
+    <div class="panel-heading"><img src="assets/podki/waiting.png" alt="" width="76" height="76"><div><span class="eyebrow">לפני שמתחילים</span><h2 class="section-title" tabindex="-1">מדיניות פרטיות</h2></div></div>
+    <p class="policy-intro">הסקריפט פועל בחשבון שלך. חשוב להכיר את שני סוגי המידע שמועברים למנהל השירות:</p>
 
     <div class="datum">
       <div class="badge">א</div>
-      <p><strong>אישור שימוש בכלי</strong> — נאסף בכל הרצה של הכלי, וכולל את כתובת המייל של המשתמש בלבד.</p>
+      <p><strong>כתובת המייל שלך</strong> — נשלחת לטופס של מנהל השירות בכל הרצה, גם אם מנהלים את רשימת הערוצים ידנית בדרייב.</p>
     </div>
     <div class="datum">
       <div class="badge">ב</div>
-      <p><strong>הפעלת המערכת באמצעות מייל</strong> — כולל הרשמה לערוצים חדשים, הסרת ערוצים, קבלת קטלוג פרקים, חיפוש ערוצים וקבלת פרקים. כל מייל שהמשתמש שולח לכתובות הייעודיות נאסף. שימו לב: אפשר לבצע הרשמה והסרה של ערוצים גם באמצעות הוספה ידנית של כתובת ה-RSS לקובץ הייעודי בדרייב — בדרך זו לא נאסף מידע מהמשתמש על ידי מנהל המערכת.</p>
+      <p><strong>פקודות וקבצים שנשלחים במייל</strong> — הודעות לכתובות הבקרה הייעודיות, כולל נושא, גוף ההודעה וקובצי בחירה מצורפים, גלויים למנהל השירות. אלה כוללים הרשמה והסרה, מעבר להתראות בלבד, חיפוש ודרישת פרקים או קטלוג. הסקריפט מעבד את הפקודות מתוך תיבת ״נשלח״ שלך. עריכה ידנית של רשימת הערוצים אינה שולחת פקודת מייל; דיווח כתובת המייל בכל הרצה ממשיך לחול.</p>
     </div>
 
     <div class="consent">
       <label class="check" id="chk1-label">
         <input type="checkbox" id="chk1" onchange="onCheck()">
-        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#181206" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
         <span class="txt">קראתי ואני מאשר/ת את מדיניות הפרטיות.</span>
       </label>
       <label class="check" id="chk2-label">
         <input type="checkbox" id="chk2" onchange="onCheck()">
-        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#181206" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
-        <span class="txt">ידוע לי שכל מייל שאשלח למערכת יהיה גלוי למנהל המערכת. ידוע לי שניתן להוסיף ולהסיר ערוצים ידנית, ובדרך זו למנהל המערכת לא תהיה גישה לנתונים.</span>
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <span class="txt">ידוע לי שהודעות וקובצי בחירה שאשלח לכתובות הבקרה יהיו גלויים למנהל השירות. עריכת רשימת הערוצים בדרייב אינה שולחת פקודה, אך כתובת המייל שלי נשלחת בכל הרצה.</span>
       </label>
     </div>
 
@@ -473,8 +506,8 @@
 
   <!-- ===================== PANEL 3 : INSTALL ===================== -->
   <section class="panel" id="panel-3">
-    <h2 class="section-title">התקנה</h2>
-    <p class="section-sub">כל ההתקנה מתבצעת בחשבון גוגל שלכם, ולוקחת כמה דקות.</p>
+    <div class="panel-heading"><img src="assets/podki/success.png" alt="" width="76" height="76"><div><span class="eyebrow">עוד כמה דקות ואנחנו יחד</span><h2 class="section-title" tabindex="-1">התקנת פודקי</h2></div></div>
+    <p class="section-sub">אותו תהליך התקנה, בחשבון Google שלך. ההרצה הראשונה יוצרת את התיקיות ואת התזמון האוטומטי.</p>
 
     <ul class="steps">
       <li>
@@ -495,35 +528,49 @@
       <li>
         <div>
           <h4>מעתיקים ומדביקים את התוכן</h4>
-          <p>לוחצים על הכפתור, וקוד המערכת המלא (<code>files/podcast_v2.gs</code>) נטען ומועתק אוטומטית ללוח ההעתקה. עוברים לחלון של Apps Script (GAS) שנפתח בשלב 1, לוחצים בתוך קובץ <code>Code.gs</code> הריק, ומדביקים (Ctrl+V / ⌘V).</p>
+          <p>לוחצים על הכפתור, וקוד ההפעלה (<code>files/podcast_v2.gs</code>) נטען ומועתק אוטומטית ללוח ההעתקה. עוברים לחלון של Apps Script (GAS) שנפתח בשלב 1, לוחצים בתוך קובץ <code>Code.gs</code> הריק, ומדביקים (Ctrl+V / ⌘V).</p>
           <button type="button" class="btn btn-outline inline-btn copy-btn" id="copyGsBtn" onclick="copyGsCode()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             <span id="copyGsBtnLabel">העתקת קוד המערכת</span>
-          </button>
+          </button><p class="copy-status" id="copy-status" role="status" aria-live="polite"></p><p class="fallback-link">ההעתקה לא זמינה? <a href="files/podcast_v2.gs" target="_blank" rel="noopener">פתח את קוד ההפעלה והעתק ידנית</a>.</p>
         </div>
       </li>
       <li>
         <div>
           <h4>מריצים פעם אחת בלבד ומאשרים הרשאות</h4>
-          <p>אין צורך להגדיר שום דבר אחר — לא תיקיות ולא טריגרים בנפרד. שומרים את הפרויקט (Ctrl+S / ⌘S), ולוחצים על <strong>Run</strong> (▶) כדי להריץ אותו פעם אחת. בהרצה הראשונה תיפתח בקשת הרשאות — אלה השלבים לאישור:</p>
+          <p>אין צורך להגדיר שום דבר אחר — לא תיקיות ולא טריגרים בנפרד. שומרים את הפרויקט (Ctrl+S / ⌘S), בוחרים את הפונקציה <code>setUp</code> ולוחצים על <strong>Run</strong> (▶) כדי להריץ אותה פעם אחת. בהרצה הראשונה תיפתח בקשת הרשאות — אלה השלבים לאישור:</p>
           <ul class="sub-steps">
             <li>בחלון "Authorization required" לוחצים על <strong>Review permissions</strong>, ובוחרים את חשבון הגוגל שאיתו רוצים להשתמש בכלי.</li>
             <li>מופיעה אזהרה שגוגל לא אימתה את האפליקציה ("Google hasn't verified this app") — זה תקין ומצופה עבור סקריפט שכתבתם/הדבקתם בעצמכם. לוחצים על <strong>Advanced</strong> (מתקדם).</li>
             <li>לוחצים על הקישור <strong>Go to [שם הפרויקט] (unsafe)</strong> שמופיע בהמשך המסך.</li>
             <li>בודקים ברשימת ההרשאות המבוקשות (גישה ל-Drive ול-Gmail) ולוחצים <strong>Allow</strong> / <strong>Continue</strong> כדי לאשר.</li>
           </ul>
-          <p>זה מתבצע פעם אחת בלבד לכל חשבון גוגל — מריצות הבאות ואילך הכלי פועל בלי לבקש אישור נוסף.</p>
+          <p>בדרך כלל אישור ההרשאות נדרש בהתקנה. Google עשויה לבקש אישור מחדש בהמשך, למשל לאחר שינוי בהרשאות הפרויקט.</p>
         </div>
       </li>
       <li>
         <div>
           <h4>בודקים במייל</h4>
-          <p>בודקים את המייל שהתקבל — אפשר להתחיל להשתמש!</p>
+          <p>פודקי ישלח מייל היכרות עם הוראות ודוגמת TXT. מתחילים ב״הוסף ערוץ״ ובוחרים הורדה אוטומטית או התראות בלבד. לא הגיע מייל? בדקו ספאם וקידומים ואת יומן ההרצות ב-Apps Script.</p>
         </div>
       </li>
     </ul>
 
-    <div class="close-note">זהו — המערכת פועלת, והפרקים החדשים יתחילו לרדת לדרייב.</div>
+    <details class="quick-guide"><summary>איך משתמשים בפודקי אחרי ההתקנה?</summary><div class="guide-body">
+<p><strong>שלושת כפתורי הערוץ:</strong> ״הירשם״ מפעיל הורדה אוטומטית, ״הירשם להתראות בלבד״ מוסיף פרקים חדשים לדוח השבועי, ו״הסר״ מבטל את המינוי. מוצגים שני הכפתורים שמתאימים למצב הנוכחי. ״קבל פרקים״ זמין לקבלת קטלוג בכל מצב.</p>
+<p><strong>פרק בודד:</strong> ״קבל פרק״ מוסיף פרק לתור ההורדה בלי לשנות את המינוי לערוץ. יש לשלוח את המייל שנפתח כדי לבצע את הפעולה.</p>
+<p><strong>כמה פרקים יחד:</strong> מורידים את קובץ ה-HTML מהקטלוג ופותחים בדפדפן, לא בתצוגה המקדימה של Gmail. באנדרואיד נדרש דפדפן שתומך בקובצי HTML מקומיים. מסמנים עד 1,000 פרקים, מורידים JSON ומצרפים למייל שנפתח מתוך הקטלוג. הכפתור אינו מצרף קובץ אוטומטית. אפשר להשאיר נושא ריק; טקסט בנושא יבצע גם חיפוש, וכתובת RSS תבקש גם קטלוג.</p>
+<p>הקטלוג כולל את הפרקים הזמינים כרגע בפיד, לא בהכרח את כל פרקי העבר. התיאורים עשויים להיות מקוצרים. קטלוג גדול במיוחד נשמר בדרייב ונשלח קישור פרטי אליו.</p>
+<p><strong>עריכה ידנית:</strong> הקובץ <code>podcasts.txt</code> נמצא ב״פודקאסטים 2.0״ ← ״קבצי מערכת״. הדוגמה הבאה תקינה מבחינת התחביר; מחליפים את הכתובות ב-RSS אמיתי.</p>
+<pre dir="ltr"># Automatic downloads
+https://example.com/podcast/feed.xml
+
+# Weekly notifications only
+https://example.com/alerts/feed.xml --notify-only
+30</pre>
+<p>המספר בשורה שאחרי כתובת הערוץ מגדיר כמה ימים לאחור לסרוק. ללא מספר, ברירת המחדל היא 7 ימים. אפשר להוסיף <code>--notify-only</code> גם לנושא מייל ההרשמה. חשוב לשמור את תיקיית ״קבצי מערכת״, שבה נמצאים המינויים וההתקדמות.</p>
+</div></details>
+    <div class="close-note">פודקי מוכן. אחרי הוספת ערוצים, פרקים יורדו לדרייב או יופיעו בהתראות — בהתאם לבחירה שלך. הטיפול בבקשות עשוי להימשך כמה שעות.</div>
 
     <div class="actions">
       <button class="btn btn-ghost" onclick="goTo(2)">
@@ -533,7 +580,8 @@
       <span></span>
     </div>
   </section>
-
+  <footer class="site-footer">פודקי · בוט הפודקאסטים שלך <span>קוד פתוח · נבנה למי שאוהבים להקשיב</span><a href="https://github.com/MOSHHHHHH/pod/blob/main/CHANGELOG.md" target="_blank" rel="noopener">מה חדש בגרסה 4.0 ↗</a></footer>
+  <noscript><p class="close-note">כדי לעבור בין שלבי ההתקנה ולהעתיק את הקוד, יש להפעיל JavaScript בדפדפן. <a href="https://github.com/MOSHHHHHH/pod">פתיחת המאגר</a></p></noscript>
 </div>
 
 <script>
@@ -545,6 +593,7 @@
     if(btn.classList.contains('busy')) return;
     btn.classList.add('busy');
     label.textContent = 'טוען קוד…';
+    document.getElementById('copy-status').textContent = '';
     try{
       const res = await fetch('files/podcast_v2.gs', {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP '+res.status);
@@ -553,6 +602,7 @@
       btn.classList.remove('busy');
       btn.classList.add('copied');
       label.textContent = 'הקוד הועתק!';
+      document.getElementById('copy-status').textContent = 'הקוד הועתק. כעת מדביקים אותו בפרויקט Apps Script.';
       setTimeout(()=>{
         btn.classList.remove('copied');
         label.textContent = 'העתקת קוד המערכת';
@@ -560,6 +610,7 @@
     } catch(err){
       btn.classList.remove('busy');
       label.textContent = 'ההעתקה נכשלה — נסו שוב';
+      document.getElementById('copy-status').textContent = 'אפשר לפתוח את קוד ההפעלה בקישור שמתחת לכפתור ולהעתיק ידנית.';
       setTimeout(()=>{ label.textContent = 'העתקת קוד המערכת'; }, 3000);
     }
   }
@@ -575,7 +626,7 @@
       ta.style.opacity = '0';
       document.body.appendChild(ta);
       ta.select();
-      try{ document.execCommand('copy'); resolve(); }
+      try{ if(document.execCommand('copy')) resolve(); else reject(new Error('Copy failed')); }
       catch(e){ reject(e); }
       document.body.removeChild(ta);
     });
@@ -592,6 +643,11 @@
     document.querySelectorAll('.rail .seg').forEach(s=>{
       s.classList.toggle('done', +s.dataset.i < i);
     });
+    const names = ['נעים להכיר','פרטיות','התקנה'];
+    document.getElementById('step-caption').textContent = 'שלב '+i+' מתוך 3 · '+names[i-1];
+    document.querySelectorAll('.rail .stop').forEach(s=>{if(+s.dataset.i===i)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
+    const heading = document.querySelector('#panel-'+i+' h1, #panel-'+i+' h2');
+    heading.setAttribute('tabindex','-1'); heading.focus({preventScroll:true});
     window.scrollTo({top:0, behavior: reduceMotion ? 'auto' : 'smooth'});
   }
 
@@ -612,32 +668,7 @@
     goTo(3);
   }
 
-  // subtle looping waveform in the hero icon — single orchestrated moment, skipped for reduced motion
-  if(!reduceMotion){
-    const wave = document.getElementById('wavebars');
-    const heights = [6,14,22,12,18,8,16,10];
-    let bars = [];
-    heights.forEach((h,i)=>{
-      const x = 34 + i*4.6;
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1', x); line.setAttribute('x2', x);
-      line.setAttribute('y1', 40 - h/2); line.setAttribute('y2', 40 + h/2);
-      wave.appendChild(line);
-      bars.push({el:line, base:h, phase:i*0.6});
-    });
-    wave.removeChild(wave.firstElementChild); // remove placeholder line
-    let t = 0;
-    function tick(){
-      t += 0.045;
-      bars.forEach(b=>{
-        const h = b.base * (0.55 + 0.45*Math.abs(Math.sin(t + b.phase)));
-        b.el.setAttribute('y1', 40 - h/2);
-        b.el.setAttribute('y2', 40 + h/2);
-      });
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
 </script>
 </body>
 </html>
+
