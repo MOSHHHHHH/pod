@@ -336,3 +336,39 @@ test('welcome explains all new actions, attachment detection and independent sub
   const {ctx,mails}=setup();ctx.sendMissingRssFileEmail();const html=mails[0].htmlBody;
   for(const phrase of ['JSON','HTML','אין צורך בנושא מיוחד','נושא ההודעה נבדק בנפרד','חפש פרק','הודעות ממוספרות','1,000','אינה מצרפת','--notify-only'])assert.ok(html.includes(phrase),phrase);
 });
+
+test('separate single-episode emails share one persisted confirmation batch',()=>{
+  const items=Array.from({length:3},(_,i)=>xmlItem({guid:'g'+i,audio:'https://audio.test/'+i+'.mp3',title:'Requested '+i}));
+  const {ctx,mails}=setup(items),sys=folder(),q=[];ctx._sysFolder=sys;
+  items.forEach((_,i)=>ctx.processGetEpisodeEmail(incoming(JSON.stringify({channelUrl:feed,episodeGuid:'g'+i}),[],'mail-'+i),q,[],null,new Date()));
+  ctx.podkiPumpJobs(sys,q,null,new Date());
+  assert.equal(mails.length,1);assert.equal(q.length,3);assert.equal(ctx.podkiState().jobs.length,0);
+  for(let i=0;i<3;i++){assert.match(mails[0].htmlBody,new RegExp('Requested '+i));assert.ok(ctx.podkiState().receipts['subject:mail-'+i]);}
+});
+test('merged JSON selection IDs remain deduplicated before and after a retry',()=>{
+  const items=[xmlItem({guid:'a'}),xmlItem({guid:'b',audio:'https://audio.test/b.mp3'})];
+  const {ctx,mails}=setup(items),sys=folder(),q=[];ctx._sysFolder=sys;
+  ['a','b'].forEach(id=>ctx.processGetEpisodeEmail(incoming('',[attachment(selection(id,[{channelUrl:feed,episodeGuid:id}]))],id),q,[],null,new Date()));
+  ctx.MailApp.sendEmail=()=>{throw Error('quota');};ctx.podkiPumpJobs(sys,q,null,new Date());
+  assert.equal(q.length,2);assert.equal(ctx.podkiState().jobs.length,1);
+  assert.equal(ctx.podkiEnqueueJob('episodes',[{channelUrl:feed,episodeGuid:'b'}],'selection:b'),false);
+  const restarted=setup(items);restarted.ctx._emailsData=JSON.parse(JSON.stringify(ctx._emailsData));restarted.ctx._sysFolder=sys;
+  restarted.ctx.podkiPumpJobs(sys,q,null,new Date());assert.equal(restarted.mails.length,1);assert.equal(q.length,2);
+  assert.equal(restarted.ctx.podkiEnqueueJob('episodes',[{channelUrl:feed,episodeGuid:'b'}],'selection:b'),false);
+});
+test('new episode requests join an unfinished batch without losing resolved work',()=>{
+  const {ctx,mails}=setup(),sys=folder(),q=[];ctx._sysFolder=sys;
+  ctx.podkiEnqueueJob('episodes',[{channelUrl:feed,episodeGuid:'guid-1'}],'first');
+  ctx.MailApp.sendEmail=()=>{throw Error('quota');};ctx.podkiPumpJobs(sys,q,null,new Date());
+  ctx.podkiEnqueueJob('episodes',[{channelUrl:feed,episodeGuid:'missing',episodeTitle:'Missing episode'}],'next');
+  ctx.MailApp.sendEmail=m=>mails.push(m);ctx.podkiPumpJobs(sys,q,null,new Date());
+  assert.equal(mails.length,1);assert.equal(q.length,1);assert.match(mails[0].htmlBody,/Missing episode/);
+  assert.ok(ctx.podkiState().receipts.first);assert.ok(ctx.podkiState().receipts.next);
+});
+test('partly delivered summaries stay frozen while other episode jobs combine',()=>{
+  const {ctx}=setup(),sys=folder();
+  ['sent','one','two'].forEach(id=>ctx.podkiEnqueueJob('episodes',[{channelUrl:feed,episodeGuid:id}],id));
+  ctx.podkiState().jobs[0].summaryIndex=1;ctx.podkiMergeEpisodeJobs(sys);
+  const jobs=ctx.podkiState().jobs;assert.equal(jobs.length,2);assert.equal(jobs[0].summaryIndex,1);
+  assert.equal(jobs[0].payload.length,1);assert.equal(jobs[1].payload.length,2);
+});
