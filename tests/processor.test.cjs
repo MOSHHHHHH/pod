@@ -16,7 +16,7 @@ function xmlItem(fields={}) {
 function setup(items=[xmlItem()]) {
   const mails=[];
   const ch={getChildText:n=>({title:'ערוץ Test',author:'מחבר'})[n] || '',getChildren:()=>items,getChild:()=>null};
-  const ctx={console,Date,JSON,Math,Logger:{log(){}},MimeType:{PLAIN_TEXT:'text/plain',GOOGLE_DOCS:'docs'},
+  const ctx={console,Date,JSON,Math,Utilities:{newBlob:(text,type,name)=>({getBytes:()=>[...Buffer.from(String(text),'utf8')],getDataAsString:()=>String(text),getContentType:()=>type,getName:()=>name})},Logger:{log(){}},MimeType:{PLAIN_TEXT:'text/plain',GOOGLE_DOCS:'docs'},
     Session:{getEffectiveUser:()=>({getEmail:()=> 'me@test.invalid'})},
     MailApp:{sendEmail:m=>mails.push(m)},GmailApp:{search:()=>[]},
     UrlFetchApp:{fetch:()=>({getResponseCode:()=>200,getContentText:()=>'<rss/>'})},
@@ -81,8 +81,8 @@ test('all three modes have correct subscription controls plus unchanged catalog 
 test('weekly separates notification items from failure counts, retains them after failure',()=>{
   const {ctx,mails}=setup(),data=ctx._emailsData;
   ctx.scanFeed(feed,7,null,[],{},{},true);const before=JSON.stringify(data.weekly.channels);
-  ctx.MailApp.sendEmail=()=>{throw Error('quota');};assert.equal(ctx.sendWeeklyEmail(null,data,[{url:feed,notifyOnly:true}],null),false);assert.equal(JSON.stringify(data.weekly.channels),before);
-  ctx.MailApp.sendEmail=m=>mails.push(m);assert.equal(ctx.sendWeeklyEmail(null,data,[{url:feed,notifyOnly:true}],null),true);
+  ctx.MailApp.sendEmail=()=>{throw Error('quota');};assert.equal(ctx.sendWeeklyEmail(folder(),data,[{url:feed,notifyOnly:true}],null),false);assert.ok(data.weekly.delivery);assert.equal(Object.keys(data.weekly.channels).length,0);
+  ctx.MailApp.sendEmail=m=>mails.push(m);assert.equal(ctx.sendWeeklyEmail(folder(),data,[{url:feed,notifyOnly:true}],null),true);
   const html=mails.at(-1).htmlBody;assert.match(html,/התראות בלבד/);assert.doesNotMatch(html,/נכשלו/);
   const get=buttons(html).find(b=>b.label==='קבל פרק');const payload=JSON.parse(new URL('mailto:'+get.uri).searchParams.get('subject'));
   assert.equal(payload.channelUrl,feed);assert.equal(payload.episodeGuid,'guid-1');assert.equal(Object.keys(data.weekly.channels).length,0);
@@ -106,7 +106,7 @@ test('old queue and digest records recover feed from unique metadata without usi
   const q=[{channelTitle:'ערוץ Test',url:'https://audio.test/1.mp3',chunkState:{offset:12}}];
   ctx.repairSavedFeedUrls(q,d,[{url:feed}]);assert.equal(q[0].rssUrl,feed);assert.equal(q[0].chunkState.offset,12);
   ctx.sendStorageEmail(null,d,null);for(const b of buttons(mails.at(-1).htmlBody)) if(b.label!=='הירשם להתראות בלבד') assert.doesNotMatch(b.uri,/audio\.test/);
-  ctx.sendWeeklyEmail(null,d,[{url:feed}],null);assert.doesNotMatch(mails.at(-1).htmlBody,/subject=https%3A%2F%2Faudio/);
+  ctx.sendWeeklyEmail(folder(),d,[{url:feed}],null);assert.doesNotMatch(mails.at(-1).htmlBody,/subject=https%3A%2F%2Faudio/);
 });
 test('subscription snapshots change only after successful delivery, including mode-only changes',()=>{
   const {ctx}=setup(),d=ctx._emailsData,list=[{url:feed,days:7,notifyOnly:true}];
@@ -122,8 +122,8 @@ test('welcome contains parseable TXT example for both modes and 30-day scanning'
 });
 test('catalog keeps channel actions and per-episode requests including no-GUID case',()=>{
   const {ctx,mails}=setup([xmlItem({guid:''})]);ctx._rssList=[{url:feed,notifyOnly:true}];ctx.sendEpisodeCatalogEmail(feed,new Date());
-  const b=buttons(mails[0].htmlBody);assert.equal(b.length,4);assert.ok(b.some(x=>x.label==='קבל פרקים'));assert.ok(b.some(x=>x.label==='קבל פרק זה'));
-  const payload=JSON.parse(new URL('mailto:'+b.find(x=>x.label==='קבל פרק זה').uri).searchParams.get('subject'));assert.equal(payload.episodeGuid,'https://audio.test/1.mp3');
+  const b=buttons(mails[0].htmlBody);assert.equal(b.length,6);assert.ok(b.some(x=>x.label==='קבל פרקים'));assert.ok(b.some(x=>x.label==='קבל פרק'));
+  const payload=JSON.parse(new URL('mailto:'+b.find(x=>x.label==='קבל פרק').uri).searchParams.get('subject'));assert.equal(payload.episodeGuid,'https://audio.test/1.mp3');
 });
 test('same Gmail conversation can change mode more than once and messages apply chronologically',()=>{
   const {ctx}=setup(),f=folder([feed]);const list=ctx.loadRssList(f);ctx._rssList=list;
@@ -182,4 +182,157 @@ test('large-file downloader resumes the original session and uses correct byte r
 });
 test('lock contention prevents a second hourly run from touching persisted state',()=>{
   const {ctx}=setup();ctx.LockService={getScriptLock:()=>({tryLock:()=>false})};assert.equal(ctx.main(null,null),true);
+});
+
+function attachment(value,name='podki-selection.json',type='application/json') {
+  const text=typeof value==='string'?value:JSON.stringify(value);
+  return {getName:()=>name,getContentType:()=>type,getSize:()=>Buffer.byteLength(text),getDataAsString:()=>text};
+}
+function incoming(subject='',files=[],id='message-1') {
+  return {getMessages:()=>[{getSubject:()=>subject,getId:()=>id,getAttachments:()=>files}]};
+}
+const selection=(id='selection-1',episodes=[{channelUrl:feed,episodeGuid:'guid-1'}])=>({format:'podki-request',version:1,requestId:id,episodes});
+
+test('JSON attachments need no subject and do not implicitly initiate a search',()=>{
+  const {ctx}=setup();const result=ctx.processGetEpisodeEmail(incoming('',[attachment(selection())]),[],[],null,new Date());
+  assert.equal(result.jobs,1);assert.equal(ctx.podkiState().jobs.length,1);assert.equal(ctx.podkiState().jobs[0].type,'episodes');
+});
+test('attachments and free-text subjects are independently queued',()=>{
+  const {ctx}=setup();ctx.processGetEpisodeEmail(incoming('חיות כיס',[attachment(selection())]),[],[],null,new Date());
+  assert.equal(ctx.podkiState().jobs.length,2);assert.equal(ctx.podkiState().jobs[1].type,'search');assert.equal(ctx.podkiState().jobs[1].payload.query,'חיות כיס');
+});
+test('RSS catalog subject still works alongside a JSON selection',()=>{
+  const {ctx}=setup();ctx.processGetEpisodeEmail(incoming(feed,[attachment(selection())]),[],[],null,new Date());
+  assert.equal(ctx.podkiState().jobs[1].type,'catalog');
+});
+test('invalid JSON does not suppress a valid independent subject',()=>{
+  const {ctx}=setup();const r=ctx.processGetEpisodeEmail(incoming(feed,[attachment('{broken')]),[],[],null,new Date());
+  assert.equal(r.jobs,1);assert.equal(ctx.podkiState().jobs[0].type,'catalog');assert.equal(ctx.podkiState().jobs[1].type,'notice');
+});
+test('unrelated attachments are reported and never executed',()=>{
+  const {ctx}=setup();ctx.processGetEpisodeEmail(incoming('',[attachment('throw Error("execute")','catalog.html','text/html')]),[],[],null,new Date());
+  assert.equal(ctx.podkiState().jobs.length,1);assert.equal(ctx.podkiState().jobs[0].type,'notice');
+});
+test('BOM JSON and filename-only MIME attachments are accepted',()=>{
+  const {ctx}=setup();ctx.processGetEpisodeEmail(incoming('',[attachment('\uFEFF'+JSON.stringify(selection()),'selection.JSON','application/octet-stream')]),[],[],null,new Date());
+  assert.equal(ctx.podkiState().jobs[0].type,'episodes');
+});
+test('request IDs and duplicate episodes do not queue repeated work',()=>{
+  const {ctx}=setup();const a=attachment(selection('same',[{channelUrl:feed,episodeGuid:'guid-1'},{channelUrl:feed,episodeGuid:'guid-1'}]));
+  ctx.processGetEpisodeEmail(incoming('',[a],'one'),[],[],null,new Date());ctx.processGetEpisodeEmail(incoming('',[a],'two'),[],[],null,new Date());
+  assert.equal(ctx.podkiState().jobs.filter(j=>j.type==='episodes').length,1);assert.equal(ctx.podkiState().jobs[0].payload.length,1);
+});
+test('malformed entries and unsupported versions get actionable feedback',()=>{
+  const {ctx}=setup();assert.throws(()=>ctx.podkiSelection({version:99,episodes:[{}]}),/גרסת/);
+  const parsed=ctx.podkiSelection(selection('mix',[{channelUrl:feed,episodeGuid:'guid-1'},{channelUrl:'javascript:bad',episodeGuid:'x'}]));
+  assert.equal(parsed.episodes.length,1);assert.equal(parsed.errors.length,1);
+});
+test('old single-episode JSON subjects retain support',()=>{
+  const {ctx}=setup();ctx.processGetEpisodeEmail(incoming(JSON.stringify({channelUrl:feed,episodeGuid:'guid-1'})),[],[],null,new Date());
+  assert.equal(ctx.podkiState().jobs[0].type,'episodes');
+});
+test('large selections resume from saved item cursor and fetch a feed once per run',()=>{
+  const items=Array.from({length:45},(_,i)=>xmlItem({guid:'guid-'+i,audio:'https://audio.test/'+i+'.mp3'}));
+  const {ctx}=setup(items),sys=folder(),q=[];ctx._sysFolder=sys;let fetches=0;
+  ctx.UrlFetchApp.fetch=()=>{fetches++;return {getResponseCode:()=>200,getContentText:()=>'<rss/>'};};
+  ctx.podkiEnqueueJob('episodes',items.map((_,i)=>({channelUrl:feed,episodeGuid:'guid-'+i})),'many');
+  ctx.podkiPumpJobs(sys,q,null,new Date());assert.equal(q.length,30);assert.equal(ctx.podkiState().jobs[0].index,30);
+  ctx.podkiPumpJobs(sys,q,null,new Date());assert.equal(q.length,45);assert.equal(ctx.podkiState().jobs.length,0);assert.equal(fetches,1);
+  assert.equal(q.every(x=>x.source==='manual'),true);
+});
+test('a failed confirmation send retains resolved episodes without downloading duplicates',()=>{
+  const {ctx}=setup(),sys=folder(),q=[];ctx._sysFolder=sys;
+  ctx.podkiEnqueueJob('episodes',[{channelUrl:feed,episodeGuid:'guid-1'}],'one');
+  ctx.MailApp.sendEmail=()=>{throw Error('quota');};ctx.podkiPumpJobs(sys,q,null,new Date());assert.equal(q.length,1);assert.equal(ctx.podkiState().jobs[0].index,1);
+  ctx.MailApp.sendEmail=()=>{};ctx.podkiPumpJobs(sys,q,null,new Date());assert.equal(q.length,1);assert.equal(ctx.podkiState().jobs.length,0);
+});
+test('safe state writes keep the original JSON if creating replacement fails',()=>{
+  const {ctx}=setup(),sys=folder();const original=sys.createFile('emails.json','{"safe":true}');sys.createFile=()=>{throw Error('Drive unavailable');};
+  assert.throws(()=>ctx.saveEmailsData(sys,{changed:true}));assert.equal(original.trashed,false);assert.equal(original.text,'{"safe":true}');
+});
+test('catalog is attached for a small feed while preserving inline episode actions',()=>{
+  const {ctx,mails}=setup();ctx.sendEpisodeCatalogEmail(feed,new Date());const mail=mails[0];
+  assert.equal(mail.attachments.length,1);assert.equal(mail.attachments[0].getName(),'podki-catalog.html');assert.match(mail.htmlBody,/קבל פרק/);
+  const html=mail.attachments[0].getDataAsString();assert.match(html,/application\/json/);assert.match(html,/אין צורך בנושא/);assert.match(html,/type="search"/);
+});
+test('large catalog sends one email containing all feed episodes in one HTML attachment',()=>{
+  const {ctx,mails}=setup(Array.from({length:100},(_,i)=>xmlItem({guid:'g'+i,title:'כותרת '+i,audio:'https://audio.test/'+i+'.mp3'})));
+  ctx.sendEpisodeCatalogEmail(feed,new Date());assert.equal(mails.length,1);assert.match(mails[0].htmlBody,/הרשימה ארוכה/);
+  const data=mails[0].attachments[0].getDataAsString().match(/id="catalog-data">([\s\S]*?)<\/script>/)[1];assert.equal(JSON.parse(data).episodes.length,100);
+});
+test('oversized catalog is saved privately without changing sharing permissions',()=>{
+  const {ctx,mails}=setup();ctx.PODKI_ATTACHMENT_BYTES=1;let created=0;
+  ctx._sysFolder={createFile(){created++;return {getUrl:()=> 'https://drive.google.com/file/d/private/view'};}};
+  ctx.sendEpisodeCatalogEmail(feed,new Date());assert.equal(created,1);assert.equal(mails[0].attachments.length,0);assert.match(mails[0].htmlBody,/ללא פתיחת שיתוף ציבורי/);
+});
+test('catalog data escapes hostile feed markup without losing episode text',()=>{
+  const {ctx}=setup();const title='</script><img src=x onerror=alert(1)>';
+  const html=ctx.podkiCatalogHtml({title:'Safe',url:feed,episodes:[{channelUrl:feed,episodeGuid:'g',episodeTitle:title,description:title}]});
+  const embedded=html.match(/id="catalog-data">([\s\S]*?)<\/script>/)[1];assert.doesNotMatch(embedded,/<img/);assert.equal(JSON.parse(embedded).episodes[0].episodeTitle,title);
+});
+test('weekly report splits by UTF-8 bytes and retries only unsent parts, retaining new events',()=>{
+  const {ctx,mails}=setup(),sys=folder(),d=ctx._emailsData;ctx.PODKI_BODY_BYTES=12000;
+  d.weekly.channels[feed]={title:'ערוץ',rssUrl:feed,items:Array.from({length:14},(_,i)=>({episodeTitle:'עברית '+i,status:'success',pubDate:'today'}))};
+  let attempts=0;ctx.MailApp.sendEmail=m=>{if(++attempts===2)throw Error('temporary');mails.push(m);};
+  assert.equal(ctx.sendWeeklyEmail(sys,d,[{url:feed}],null),false);assert.equal(d.weekly.delivery.next,1);const total=d.weekly.delivery.pages.length;assert.ok(total>1);
+  ctx.addToWeeklyPending(d,{rssUrl:feed,url:'new',channelTitle:'ערוץ',episodeTitle:'אירוע חדש'},'notification',null);
+  ctx.MailApp.sendEmail=m=>mails.push(m);assert.equal(ctx.sendWeeklyEmail(sys,d,[{url:feed}],null),true);
+  assert.equal(mails.length,total);assert.equal(Object.values(d.weekly.channels)[0].items[0].episodeTitle,'אירוע חדש');
+  for(const m of mails)assert.ok(Buffer.byteLength(m.htmlBody,'utf8')<15000);
+});
+test('Apple episode search uses episodeGuid rather than trackId and caches full audio fallback',()=>{
+  const {ctx}=setup();let requested='';
+  ctx.UrlFetchApp.fetch=url=>{requested=url;return {getResponseCode:()=>200,getContentText:()=>JSON.stringify({results:[{kind:'podcast-episode',feedUrl:feed,episodeGuid:'rss-guid',trackId:123,trackName:'מצאתי',collectionName:'ערוץ',episodeUrl:'https://audio.test/old.mp3'}]})};};
+  const rows=ctx.podkiSearchEpisodes('עברית');assert.match(requested,/entity=podcastEpisode/);assert.equal(rows[0].episodeGuid,'rss-guid');assert.equal(rows[0].appleTrackId,123);
+  ctx.UrlFetchApp.fetch=()=>{throw Error('feed offline');};const q=[];assert.equal(ctx.podkiQueueEpisode({channelUrl:feed,episodeGuid:'rss-guid',appleTrackId:123},q).status,'queued');assert.equal(q[0].url,'https://audio.test/old.mp3');
+});
+test('Apple collection lookup fills missing RSS URL',()=>{
+  const {ctx}=setup();ctx.UrlFetchApp.fetch=url=>({getResponseCode:()=>200,getContentText:()=>JSON.stringify({results:url.includes('/lookup')?[{feedUrl:feed}]:[{kind:'podcast-episode',collectionId:77,episodeGuid:'guid',trackId:1,trackName:'פרק'}]})});
+  assert.equal(ctx.podkiSearchEpisodes('query')[0].channelUrl,feed);
+});
+test('untrusted attachment audio URLs cannot bypass feed resolution',()=>{
+  const {ctx}=setup([]),q=[];const r=ctx.podkiQueueEpisode({channelUrl:feed,episodeGuid:'missing',episodeUrl:'https://arbitrary.test/file.mp3'},q);
+  assert.equal(r.status,'failed');assert.equal(q.length,0);
+});
+test('every JS email carries the Podki sender, image and both universal action buttons',()=>{
+  const {ctx,mails}=setup();ctx.sendMissingRssFileEmail();ctx.sendFailureEmail({channelTitle:'ערוץ',rssUrl:feed,episodeTitle:'פרק'},'HTTP 500');ctx.sendNoResultsEmail('nothing');
+  for(const m of mails){assert.equal(m.name,'פודקי — בוט הפודקאסטים שלך');assert.match(m.htmlBody,/assets\/podki\//);assert.ok(buttons(m.htmlBody).some(x=>x.label==='חפש פרק'));assert.ok(buttons(m.htmlBody).some(x=>x.label==='+ הוסף ערוץ'));}
+});
+test('full hourly run processes a no-subject attachment using existing GS entry point',()=>{
+  const {ctx,sys,mainFolder,stats}=mainSetup({noSubscriptions:true});
+  const m={getId:()=> 'real-like-id',getSubject:()=>'',getAttachments:()=>[attachment(selection())],getFrom:()=> 'me@test.invalid',getTo:()=>ctx.CTRL_GET_EPISODE,getDate:()=>new Date(),isInTrash:()=>false,moveToTrash(){this.trashed=true;}};
+  ctx.GmailApp.search=q=>q.includes(ctx.CTRL_GET_EPISODE)?[{getMessages:()=>[m]}]:[];
+  ctx.main(sys,mainFolder);assert.equal(stats().downloads,1);assert.equal(m.trashed,true);assert.equal(ctx.podkiState().jobs.length,0);
+});
+
+
+test('standalone catalog filters, keeps selection across searches, sorts and exports only selected IDs',()=>{
+  const {ctx}=setup();
+  class Element {
+    constructor(tag='div'){this.tag=tag;this.children=[];this.value='';this.textContent='';}
+    append(...els){this.children.push(...els);} replaceChildren(){this.children=[];} setAttribute(n,v){this[n]=v;}
+    click(){if(this.tag==='a')downloaded=this;else this.onclick?.();} remove(){}
+  }
+  const nodes={};['catalog-data','search','sort','list','count','selected','download','notice','clear','select-visible','share'].forEach(id=>nodes[id]=new Element());
+  nodes.sort.value='new';nodes['catalog-data'].textContent=JSON.stringify({episodes:[
+    {channelUrl:feed,episodeGuid:'one',episodeTitle:'ישן',description:'חלל',pubDate:'2020-01-01'},
+    {channelUrl:feed,episodeGuid:'two',episodeTitle:'חדש',description:'מוח',pubDate:'2026-01-01'}]});
+  let exported,downloaded;
+  Object.assign(ctx,{document:{getElementById:id=>nodes[id],createElement:tag=>new Element(tag),body:new Element()},
+    navigator:{},File:class {constructor(parts,name,options){this.text=parts.join('');this.name=name;this.type=options.type;}},
+    URL:{createObjectURL:f=>{exported=f;return 'blob:test';},revokeObjectURL(){}},setTimeout:fn=>fn()});
+  ctx.podkiCatalogClient();assert.equal(nodes.list.children.length,2);
+  assert.equal(nodes.list.children[0].children[0].children[1].children[0].textContent,'חדש');
+  nodes.search.value='חלל';nodes.search.oninput();assert.equal(nodes.list.children.length,1);
+  nodes['select-visible'].onclick();assert.match(nodes.selected.textContent,/1/);
+  nodes.search.value='';nodes.search.oninput();nodes.sort.value='old';nodes.sort.onchange();
+  assert.equal(nodes.list.children[0].children[0].children[0].checked,true);
+  nodes.download.onclick();assert.equal(downloaded.download,'podki-selection.json');assert.equal(exported.type,'application/json');
+  const parsed=ctx.podkiSelection(JSON.parse(exported.text));assert.equal(parsed.episodes.length,1);assert.equal(parsed.episodes[0].episodeGuid,'one');
+  nodes.clear.onclick();assert.equal(nodes.download.disabled,true);
+});
+
+test('welcome explains all new actions, attachment detection and independent subject handling',()=>{
+  const {ctx,mails}=setup();ctx.sendMissingRssFileEmail();const html=mails[0].htmlBody;
+  for(const phrase of ['JSON','HTML','אין צורך בנושא מיוחד','נושא ההודעה נבדק בנפרד','חפש פרק','הודעות ממוספרות','1,000','אינה מצרפת','--notify-only'])assert.ok(html.includes(phrase),phrase);
 });
