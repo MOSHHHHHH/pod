@@ -1914,7 +1914,7 @@ function podkiSendNotice(notice) {
   var body='<p>היי, פודקי כאן. בדקתי את ההודעה שלך.</p>'+
     (notice.accepted?'<p>'+notice.accepted+' פעולות תקינות נקלטו ויטופלו בנפרד. מצב ההרשמה לערוצים לא השתנה.</p>':'<p>לא נוספה פעולה תקינה מהחלקים המפורטים כאן.</p>')+
     '<ul>'+notice.errors.map(function(e){return '<li>'+escapeHtml(e)+'</li>';}).join('')+'</ul>'+
-    '<p>לבקשה מרובה, הורד קובץ בחירה מהקטלוג וצרף אותו למייל לכתובת קבלת הפרקים. אפשר להשאיר את הנושא ריק. נושא עם טקסט חופשי מבצע גם חיפוש; כתובת RSS בנושא מבקשת גם קטלוג.</p>';
+    '<p>לבקשה מרובה, הורד קובץ בחירה מהקטלוג וצרף אותו למייל לכתובת <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. אפשר להשאיר את הנושא ריק. נושא עם טקסט חופשי מבצע גם חיפוש; כתובת RSS בנושא מבקשת גם קטלוג.</p>';
   podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'הבקשה שלך צריכה בדיקה קטנה',htmlBody:_emailWrap('בקשה שדורשת תיקון',body)});
 }
 
@@ -2038,10 +2038,10 @@ function shouldSendWeeklyEmail(emailsData) {
 }
 
 function sendEpisodeCatalogEmail(channelUrl,startTime) {
-  var feed=podkiReadFeed(channelUrl),html=podkiCatalogHtml(feed),blob=Utilities.newBlob(html,'text/html','podki-catalog.html');
+  var feed=podkiReadFeed(channelUrl),html=podkiCatalogHtml(feed),catalogName='קטלוג פודקי '+(sanitizeFileName(feed.title) || 'ערוץ')+'.html',blob=Utilities.newBlob(html,'text/html',catalogName);
   var intro='<p>היי! אספתי עבורך '+feed.episodes.length+' פרקים זמינים בפיד של <strong dir="auto">'+escapeHtml(feed.title)+'</strong>.</p>'+
     '<p>הקטלוג כולל את הפרקים שהמפרסם מספק כרגע בפיד, ולא בהכרח את כל הפרקים שפורסמו בעבר. חלק מהתיאורים מקוצרים.</p>';
-  var instructions='<p><strong>לבחירה מרובה:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, חפש וסמן פרקים, הורד את קובץ הבחירה JSON וצרף אותו למייל לכתובת קבלת הפרקים. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. אם תכתוב טקסט בנושא, אבצע גם חיפוש; כתובת RSS בנושא תבקש גם קטלוג.</p>'+
+  var instructions='<p><strong>לבחירה מרובה:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, חפש וסמן פרקים, הורד את קובץ הבחירה „הקבצים שבחרתי.json” וצרף אותו למייל לכתובת <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. אם תכתוב טקסט בנושא, אבצע גם חיפוש; כתובת RSS בנושא תבקש גם קטלוג.</p>'+
     '<p>הקטלוג אינטראקטיבי לאחר פתיחה בדפדפן, לא בתצוגה המקדימה של Gmail. באנדרואיד יש להוריד ולפתוח בדפדפן שתומך בקובצי HTML מקומיים. הכפתור לפתיחת מייל אינו מצרף את הקובץ אוטומטית.</p>'+
     '<p>ההורדות ייכנסו לתור; בחירת פרקים אינה משנה את המינוי לערוץ.</p>';
   var inline='',inlineFits=true;
@@ -2052,10 +2052,10 @@ function sendEpisodeCatalogEmail(channelUrl,startTime) {
   }
   var body=intro+instructions,attachments=[];
   if(blob.getBytes().length<=PODKI_ATTACHMENT_BYTES){
-    attachments.push(blob);body+='<p>מצורף: <strong dir="ltr">podki-catalog.html</strong>. אפשר לחפש ולבחור בו גם ללא חיבור לרשת.</p>';
+    attachments.push(blob);body+='<p>מצורף: <strong dir="auto">'+escapeHtml(catalogName)+'</strong>. אפשר לחפש ולבחור בו גם ללא חיבור לרשת.</p>';
   }else{
     if(!_sysFolder)throw new Error('תיקיית המערכת אינה זמינה לשמירת קטלוג גדול.');
-    var saved=_sysFolder.createFile('podki-catalog-'+Date.now()+'.html',html,'text/html');
+    var saved=_sysFolder.createFile(catalogName,html,'text/html');
     body+='<p>הקטלוג גדול מדי לצירוף בטוח. שמרתי אותו בדרייב שלך ללא פתיחת שיתוף ציבורי: <a href="'+escapeHtml(saved.getUrl())+'">הורד את הקטלוג מהדרייב</a>.</p>';
   }
   if(inlineFits && podkiBytes(_emailWrap('קטלוג',body+inline))<=PODKI_BODY_BYTES)body+='<h2>הפרקים זמינים גם כאן</h2>'+inline;
@@ -2067,15 +2067,15 @@ function sendEpisodeCatalogEmail(channelUrl,startTime) {
 
 function podkiCatalogHtml(feed) {
   // JSON is data only: escape HTML-significant characters before embedding in a script element.
-  var data=JSON.stringify({title:feed.title,url:feed.url,episodes:feed.episodes.map(function(e){return {
+  var data=JSON.stringify({title:feed.title,url:feed.url,recipient:CTRL_GET_EPISODE,episodes:feed.episodes.map(function(e){return {
     channelUrl:e.channelUrl,episodeGuid:e.episodeGuid,episodeTitle:e.episodeTitle,channelTitle:e.channelTitle,
     pubDate:e.pubDate,duration:e.duration,description:e.description};})}).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
   return '<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHtml(feed.title)+' | פודקי</title>'+
-    '<style>body{margin:0;background:#edf4fb;color:#17324d;font:16px Arial,sans-serif;line-height:1.7}main{max-width:850px;margin:auto;padding:20px}header,.card,.help{background:white;border-radius:16px;padding:18px;margin-bottom:12px}h1{margin:0}input[type=search],select,button,a.action{font:inherit;padding:10px;border:1px solid #b4cce5;border-radius:10px;box-sizing:border-box}input[type=search]{width:100%;margin:10px 0}button,.action{cursor:pointer;background:#1764c0;color:white}button:disabled{opacity:.5;cursor:default}.tools{display:flex;gap:8px;flex-wrap:wrap}.sticky{position:sticky;bottom:0;padding:12px;background:#e1efff;border-radius:12px}.card label{display:flex;gap:12px;cursor:pointer}.card input{width:22px;height:22px;flex-shrink:0}.muted{color:#536b83;font-size:14px}.desc{white-space:pre-wrap;overflow-wrap:anywhere}.action{display:inline-block;text-decoration:none}.sr{position:absolute;left:-10000px}@media(max-width:500px){main{padding:10px}.tools>*{flex:1}}</style></head><body><main>'+
+    '<style>*{box-sizing:border-box}body{margin:0;background:#eef3fa;color:#183047;font:16px Arial,sans-serif;line-height:1.7}main{max-width:960px;margin:auto;padding:24px}header,.card,.help,.search-panel{background:white;border:1px solid #dbe5f0;border-radius:20px;padding:22px;margin-bottom:14px}header{background:linear-gradient(125deg,#102e55,#165ba6);color:white;box-shadow:0 12px 32px #153f651a}header .muted{color:#d6e6fa}h1{margin:0;font-size:clamp(24px,5vw,36px)}header p{margin:8px 0}input[type=search],select,button,a.action{font:inherit;padding:10px 14px;border:1px solid #b4cce5;border-radius:12px}input[type=search]{width:100%;margin:8px 0 14px;background:#f8faff}button,.action{cursor:pointer;background:#1764c0;color:white;transition:background .15s,box-shadow .15s}button:hover,.action:hover{background:#104d97}button:disabled{opacity:.45;cursor:default}button.secondary{background:white;color:#174f87}button.secondary:hover{background:#eaf3ff}:focus-visible{outline:3px solid #e3a100;outline-offset:3px}.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sticky{position:sticky;bottom:8px;padding:16px;background:#fff;border:1px solid #b4cce5;box-shadow:0 -6px 30px #17324d22;border-radius:18px}.sticky strong{display:block;margin-bottom:8px}.card{transition:border-color .15s,background .15s}.card.selected{border-color:#1764c0;background:#f0f7ff}.card label{display:flex;gap:14px;cursor:pointer;align-items:flex-start}.card label>div{min-width:0;flex:1}.card input{width:23px;height:23px;flex-shrink:0;accent-color:#1764c0;margin-top:5px}.card strong{font-size:19px;overflow-wrap:anywhere}.muted{color:#536b83;font-size:14px}.desc{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:0}mark{background:#ffe49a;color:#172b41;border-radius:3px;padding:0 2px}.action{display:inline-block;text-decoration:none}.help summary{cursor:pointer;font-weight:bold}.help a{overflow-wrap:anywhere}.empty{text-align:center;padding:40px 16px;color:#536b83}.search-panel>label{font-weight:bold}.filter{display:inline-flex;gap:8px;align-items:center}#count{margin-bottom:0}#notice:empty{display:none}@media(max-width:600px){main{padding:10px}header,.card,.help,.search-panel{padding:16px;border-radius:16px}.tools>*{flex:1}.tools .filter,.tools>select{flex-basis:100%}.sticky{bottom:0;padding:12px}.sticky .tools>*{flex-basis:40%;text-align:center;font-size:14px}.card strong{font-size:17px}}</style></head><body><main>'+
     '<header><h1>הקטלוג שלך עם פודקי 🎧</h1><p>'+escapeHtml(feed.title)+'</p><p class="muted">כל הפרקים הזמינים בפיד בעת יצירת הקטלוג. התיאורים עשויים להיות מקוצרים. אפשר לחפש ולבחור ללא רשת.</p></header>'+
-    '<section class="help"><strong>איך מבקשים כמה פרקים?</strong><ol><li>סמן פרקים, ואז לחץ על הורדת הבחירה.</li><li>פתח מייל לכתובת <span dir="ltr">'+CTRL_GET_EPISODE+'</span>.</li><li>צרף את קובץ ה-JSON ושלח. אפשר להשאיר את הנושא ריק.</li></ol><p>נושא עם טקסט חופשי יבצע גם חיפוש. כתובת RSS בנושא תבקש גם קטלוג. לחיצה על פתיחת מייל אינה מצרפת קובץ אוטומטית. הבקשה תטופל בריצות האוטומטיות ולא תשנה את המינוי לערוץ.</p><p class="muted">קובץ הבחירה כולל רק את הפרקים שסימנת, ויהיה גלוי למנהל כתובת הבקרה לאחר שליחתו.</p></section>'+
-    '<label for="search">חיפוש בכותרות ובתיאורים</label><input id="search" type="search" placeholder="שם פרק, נושא או מילה מהתיאור"><div class="tools"><select id="sort" aria-label="מיון"><option value="new">מהחדש לישן</option><option value="old">מהישן לחדש</option><option value="title">לפי כותרת</option></select><button id="select-visible">בחר תוצאות מוצגות</button><button id="clear">נקה בחירה</button></div><p id="count" aria-live="polite"></p><div id="list"></div>'+
-    '<div class="sticky"><strong id="selected" aria-live="polite"></strong><div class="tools"><button id="download" disabled>הורד בקשת פרקים JSON</button><button id="share" hidden>שתף את הבחירה</button><a class="action" href="mailto:'+CTRL_GET_EPISODE+'">פתח מייל לשליחת הבקשה</a></div><p id="notice" class="muted" aria-live="polite"></p></div>'+
+    '<details class="help"><summary>איך מבקשים כמה פרקים?</summary><ol><li>סמן פרקים והורד את הקובץ „הקבצים שבחרתי.json”.</li><li>פתח מייל לכתובת <span dir="ltr">'+CTRL_GET_EPISODE+'</span>.</li><li>צרף את קובץ ה-JSON ושלח. אין צורך בנושא מיוחד; אפשר להשאיר אותו ריק.</li></ol><p>נושא עם טקסט חופשי יבצע גם חיפוש. כתובת RSS בנושא תבקש גם קטלוג. לחיצה על פתיחת מייל אינה מצרפת קובץ אוטומטית. הבקשה תטופל בריצות האוטומטיות ולא תשנה את המינוי לערוץ.</p><p class="muted">קובץ הבחירה כולל רק את הפרקים שסימנת, ויהיה גלוי למנהל כתובת הבקרה לאחר שליחתו.</p></details>'+
+    '<section class="search-panel"><label for="search">חיפוש בכותרות ובתיאורים</label><input id="search" type="search" placeholder="שם פרק, נושא או מילה מהתיאור"><div class="tools"><select id="sort" aria-label="מיון"><option value="relevance">התאמה לחיפוש</option><option value="new">מהחדש לישן</option><option value="old">מהישן לחדש</option><option value="title">לפי כותרת</option></select><button class="secondary" id="select-visible">בחר תוצאות מוצגות</button><button class="secondary" id="clear">נקה בחירה</button><label class="filter"><input id="only-selected" type="checkbox"> רק הפרקים שבחרתי</label></div><p class="muted">בחיפוש, התאמות בכותרת מופיעות ראשונות. הבחירה נשמרת כשמשנים חיפוש או מיון.</p><p id="count" role="status" aria-live="polite"></p></section><div id="list"></div>'+
+    '<div class="sticky"><strong id="selected" aria-live="polite"></strong><div class="tools"><button id="download" disabled>הורד את הבחירה</button><button id="share" hidden>שתף את הבחירה</button><a class="action" href="mailto:'+CTRL_GET_EPISODE+'">פתח מייל לשליחת הבקשה</a></div><p class="muted">צרף את „הקבצים שבחרתי.json” למייל אל <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. פתיחת מייל אינה מצרפת את הקובץ.</p><p id="notice" class="muted" aria-live="polite"></p></div>'+
     '<script type="application/json" id="catalog-data">'+data+'</script><script>('+podkiCatalogClient.toString()+')();</script></main></body></html>';
 }
 
@@ -2084,29 +2084,47 @@ function podkiCatalogClient() {
   'use strict';
   var data=JSON.parse(document.getElementById('catalog-data').textContent),selected=new Set(),visible=[],pageSize=100,shown=pageSize;
   var $=function(id){return document.getElementById(id);};
-  function filtered(){var term=$('search').value.toLocaleLowerCase().trim();return data.episodes.map(function(e,i){return {e:e,i:i};})
-    .filter(function(x){return !term || (x.e.episodeTitle+' '+x.e.description).toLocaleLowerCase().includes(term);})
-    .sort(function(a,b){return $('sort').value==='title'?a.e.episodeTitle.localeCompare(b.e.episodeTitle,'he'):($('sort').value==='old'?1:-1)*((Date.parse(a.e.pubDate)||0)-(Date.parse(b.e.pubDate)||0));});}
-  function counts(){ $('selected').textContent='נבחרו '+selected.size+' פרקים';$('download').disabled=!selected.size; }
+  function terms(){return $('search').value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);}
+  function filtered(){var words=terms();return data.episodes.map(function(e,i){
+      var title=String(e.episodeTitle || '').toLocaleLowerCase(),description=String(e.description || '').toLocaleLowerCase();
+      return {e:e,i:i,score:words.reduce(function(n,w){return n+(title.includes(w)?1:0);},0),matches:words.every(function(w){return title.includes(w) || description.includes(w);})};})
+    .filter(function(x){return x.matches && (!$('only-selected').checked || selected.has(x.i));})
+    .sort(function(a,b){
+      if(words.length && a.score!==b.score)return b.score-a.score;
+      return $('sort').value==='title'?a.e.episodeTitle.localeCompare(b.e.episodeTitle,'he'):($('sort').value==='old'?1:-1)*((Date.parse(a.e.pubDate)||0)-(Date.parse(b.e.pubDate)||0));
+    });}
+  // Build highlights as text nodes; feed content and search input never become HTML.
+  function highlight(node,value){
+    var text=String(value || ''),lower=text.toLocaleLowerCase(),words=terms(),ranges=[];
+    words.forEach(function(word){var offset=0,index;while((index=lower.indexOf(word,offset))!==-1){ranges.push([index,index+word.length]);offset=index+word.length;}});
+    if(!ranges.length){node.textContent=text;return;}
+    ranges.sort(function(a,b){return a[0]-b[0];});var merged=[];
+    ranges.forEach(function(r){var last=merged[merged.length-1];if(last && r[0]<=last[1])last[1]=Math.max(last[1],r[1]);else merged.push(r.slice());});
+    var cursor=0;merged.forEach(function(r){var before=document.createElement('span'),mark=document.createElement('mark');before.textContent=text.slice(cursor,r[0]);mark.textContent=text.slice(r[0],r[1]);node.append(before,mark);cursor=r[1];});
+    var tail=document.createElement('span');tail.textContent=text.slice(cursor);node.append(tail);
+  }
+  function counts(){ $('selected').textContent='נבחרו '+selected.size+' פרקים'+(selected.size?' · מוכנים לשליחה':' · סמן פרקים כדי להתחיל');$('download').disabled=!selected.size;$('share').disabled=!selected.size; }
   function render(){
     visible=filtered();$('list').replaceChildren();$('count').textContent='נמצאו '+visible.length+' פרקים מתוך '+data.episodes.length;
-    visible.slice(0,shown).forEach(function(x){var card=document.createElement('article');card.className='card';var label=document.createElement('label'),check=document.createElement('input');
+    $('select-visible').disabled=!visible.length;
+    if(!visible.length){var empty=document.createElement('p');empty.className='empty';empty.textContent=$('only-selected').checked?'אין פרקים נבחרים התואמים לחיפוש. אפשר לבטל את הסינון או לשנות את החיפוש.':'לא נמצאו פרקים. נסה מילה אחרת או חיפוש קצר יותר.';$('list').append(empty);}
+    visible.slice(0,shown).forEach(function(x){var card=document.createElement('article');card.className='card'+(selected.has(x.i)?' selected':'');var label=document.createElement('label'),check=document.createElement('input');
       check.type='checkbox';check.checked=selected.has(x.i);check.setAttribute('aria-label','בחר '+x.e.episodeTitle);
-      check.onchange=function(){if(check.checked){if(selected.size>=1000){check.checked=false;$('notice').textContent='אפשר לבחור עד 1000 פרקים בקובץ אחד.';return;}selected.add(x.i);}else selected.delete(x.i);counts();};
+      check.onchange=function(){if(check.checked){if(selected.size>=1000){check.checked=false;$('notice').textContent='אפשר לבחור עד 1000 פרקים בקובץ אחד.';return;}selected.add(x.i);}else selected.delete(x.i);card.className='card'+(check.checked?' selected':'');if($('only-selected').checked)render();else counts();};
       var text=document.createElement('div'),title=document.createElement('strong'),meta=document.createElement('p'),desc=document.createElement('p');
-      title.dir='auto';title.textContent=x.e.episodeTitle;meta.className='muted';meta.textContent=(x.e.pubDate?new Date(x.e.pubDate).toLocaleDateString('he-IL'):'ללא תאריך')+' · '+(x.e.duration || '');desc.className='desc';desc.dir='auto';desc.textContent=x.e.description;
+      title.dir='auto';highlight(title,x.e.episodeTitle);meta.className='muted';meta.textContent=(x.e.pubDate?new Date(x.e.pubDate).toLocaleDateString('he-IL'):'ללא תאריך')+' · '+(x.e.duration || '');desc.className='desc';desc.dir='auto';highlight(desc,x.e.description);
       text.append(title,meta,desc);label.append(check,text);card.append(label);$('list').append(card);});
-    if(visible.length>shown){var more=document.createElement('button');more.textContent='הצג עוד פרקים';more.onclick=function(){shown+=pageSize;render();};$('list').append(more);}counts();
+    if(visible.length>shown){var more=document.createElement('button');more.textContent='הצג עוד '+Math.min(pageSize,visible.length-shown)+' פרקים';more.onclick=function(){shown+=pageSize;render();};$('list').append(more);}counts();
   }
   function payload(){return {format:'podki-request',version:1,requestId:'podki-'+Date.now()+'-'+Math.random().toString(36).slice(2),episodes:Array.from(selected).map(function(i){var e=data.episodes[i];return {channelUrl:e.channelUrl,episodeGuid:e.episodeGuid,episodeTitle:e.episodeTitle,channelTitle:e.channelTitle};})};}
-  function file(){return new File([JSON.stringify(payload(),null,2)],'podki-selection.json',{type:'application/json'});}
-  $('search').oninput=function(){shown=pageSize;render();};$('sort').onchange=render;
+  function file(){return new File([JSON.stringify(payload(),null,2)],'הקבצים שבחרתי.json',{type:'application/json'});}
+  $('search').oninput=function(){shown=pageSize;render();};$('sort').onchange=render;$('only-selected').onchange=function(){shown=pageSize;render();};
   $('clear').onclick=function(){selected.clear();render();};
-  $('select-visible').onclick=function(){visible.slice(0,shown).forEach(function(x){if(selected.size<1000)selected.add(x.i);});render();};
-  $('download').onclick=function(){if(!selected.size)return;var f=file(),url=URL.createObjectURL(f),a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},10000);$('notice').textContent='קובץ הבחירה הורד. צרף אותו למייל ושלח; אין צורך בנושא מיוחד.';};
+  $('select-visible').onclick=function(){visible.slice(0,shown).forEach(function(x){if(selected.size<1000)selected.add(x.i);});if(selected.size>=1000)$('notice').textContent='אפשר לבחור עד 1000 פרקים בקובץ אחד.';render();};
+  $('download').onclick=function(){if(!selected.size)return;var f=file(),url=URL.createObjectURL(f),a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},10000);$('notice').textContent='הקובץ „הקבצים שבחרתי.json” הורד. צרף אותו למייל אל '+data.recipient+' ושלח; אפשר להשאיר את הנושא ריק.';};
   if(navigator.share && navigator.canShare && typeof File!=='undefined'){
-    try{if(navigator.canShare({files:[new File(['{}'],'podki-selection.json',{type:'application/json'})]}))$('share').hidden=false;}catch(ignore){}
-    $('share').onclick=async function(){if(!selected.size){$('notice').textContent='בחר לפחות פרק אחד.';return;}try{await navigator.share({files:[file()]});$('notice').textContent='בחר ביישום המייל והזן את כתובת קבלת הפרקים. אפשר להשאיר את הנושא ריק.';}catch(e){$('notice').textContent='השיתוף לא הושלם. אפשר להשתמש בהורדת JSON ולצרף אותו ידנית.';}};
+    try{if(navigator.canShare({files:[new File(['{}'],'הקבצים שבחרתי.json',{type:'application/json'})]}))$('share').hidden=false;}catch(ignore){}
+    $('share').onclick=async function(){if(!selected.size){$('notice').textContent='בחר לפחות פרק אחד.';return;}try{await navigator.share({files:[file()]});$('notice').textContent='בחר ביישום המייל ושלח אל '+data.recipient+'. אפשר להשאיר את הנושא ריק.';}catch(e){$('notice').textContent='השיתוף לא הושלם. אפשר להשתמש בהורדת JSON ולצרף אותו ידנית.';}};
   }
   render();
 }

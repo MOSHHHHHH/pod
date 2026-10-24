@@ -122,7 +122,7 @@ test('welcome contains parseable TXT example for both modes and 30-day scanning'
 });
 test('catalog keeps channel actions and per-episode requests including no-GUID case',()=>{
   const {ctx,mails}=setup([xmlItem({guid:''})]);ctx._rssList=[{url:feed,notifyOnly:true}];ctx.sendEpisodeCatalogEmail(feed,new Date());
-  const b=buttons(mails[0].htmlBody);assert.equal(b.length,6);assert.ok(b.some(x=>x.label==='קבל פרקים'));assert.ok(b.some(x=>x.label==='קבל פרק'));
+  const b=buttons(mails[0].htmlBody);assert.equal(b.length,7);assert.ok(b.some(x=>x.label===ctx.CTRL_GET_EPISODE && x.uri===ctx.CTRL_GET_EPISODE));assert.ok(b.some(x=>x.label==='קבל פרקים'));assert.ok(b.some(x=>x.label==='קבל פרק'));
   const payload=JSON.parse(new URL('mailto:'+b.find(x=>x.label==='קבל פרק').uri).searchParams.get('subject'));assert.equal(payload.episodeGuid,'https://audio.test/1.mp3');
 });
 test('same Gmail conversation can change mode more than once and messages apply chronologically',()=>{
@@ -252,7 +252,7 @@ test('safe state writes keep the original JSON if creating replacement fails',()
 });
 test('catalog is attached for a small feed while preserving inline episode actions',()=>{
   const {ctx,mails}=setup();ctx.sendEpisodeCatalogEmail(feed,new Date());const mail=mails[0];
-  assert.equal(mail.attachments.length,1);assert.equal(mail.attachments[0].getName(),'podki-catalog.html');assert.match(mail.htmlBody,/קבל פרק/);
+  assert.equal(mail.attachments.length,1);assert.equal(mail.attachments[0].getName(),'קטלוג פודקי ערוץ Test.html');assert.match(mail.htmlBody,/קבל פרק/);
   const html=mail.attachments[0].getDataAsString();assert.match(html,/application\/json/);assert.match(html,/אין צורך בנושא/);assert.match(html,/type="search"/);
 });
 test('large catalog sends one email containing all feed episodes in one HTML attachment',()=>{
@@ -313,7 +313,7 @@ test('standalone catalog filters, keeps selection across searches, sorts and exp
     append(...els){this.children.push(...els);} replaceChildren(){this.children=[];} setAttribute(n,v){this[n]=v;}
     click(){if(this.tag==='a')downloaded=this;else this.onclick?.();} remove(){}
   }
-  const nodes={};['catalog-data','search','sort','list','count','selected','download','notice','clear','select-visible','share'].forEach(id=>nodes[id]=new Element());
+  const nodes={};['catalog-data','search','sort','list','count','selected','download','notice','clear','select-visible','share','only-selected'].forEach(id=>nodes[id]=new Element());
   nodes.sort.value='new';nodes['catalog-data'].textContent=JSON.stringify({episodes:[
     {channelUrl:feed,episodeGuid:'one',episodeTitle:'ישן',description:'חלל',pubDate:'2020-01-01'},
     {channelUrl:feed,episodeGuid:'two',episodeTitle:'חדש',description:'מוח',pubDate:'2026-01-01'}]});
@@ -327,7 +327,7 @@ test('standalone catalog filters, keeps selection across searches, sorts and exp
   nodes['select-visible'].onclick();assert.match(nodes.selected.textContent,/1/);
   nodes.search.value='';nodes.search.oninput();nodes.sort.value='old';nodes.sort.onchange();
   assert.equal(nodes.list.children[0].children[0].children[0].checked,true);
-  nodes.download.onclick();assert.equal(downloaded.download,'podki-selection.json');assert.equal(exported.type,'application/json');
+  nodes.download.onclick();assert.equal(downloaded.download,'הקבצים שבחרתי.json');assert.equal(exported.type,'application/json');
   const parsed=ctx.podkiSelection(JSON.parse(exported.text));assert.equal(parsed.episodes.length,1);assert.equal(parsed.episodes[0].episodeGuid,'one');
   nodes.clear.onclick();assert.equal(nodes.download.disabled,true);
 });
@@ -371,4 +371,32 @@ test('partly delivered summaries stay frozen while other episode jobs combine',(
   ctx.podkiState().jobs[0].summaryIndex=1;ctx.podkiMergeEpisodeJobs(sys);
   const jobs=ctx.podkiState().jobs;assert.equal(jobs.length,2);assert.equal(jobs[0].summaryIndex,1);
   assert.equal(jobs[0].payload.length,1);assert.equal(jobs[1].payload.length,2);
+});
+
+test('catalog search ranks title matches, highlights literal text safely and filters selected episodes',()=>{
+  const {ctx}=setup();
+  class Element {
+    constructor(tag='div'){this.tag=tag;this.children=[];this.value='';this.textContent='';}
+    append(...els){this.children.push(...els);} replaceChildren(){this.children=[];} setAttribute(n,v){this[n]=v;}
+  }
+  const nodes={};['catalog-data','search','sort','list','count','selected','download','notice','clear','select-visible','share','only-selected'].forEach(id=>nodes[id]=new Element());
+  nodes.sort.value='relevance';nodes['catalog-data'].textContent=JSON.stringify({episodes:[
+    {episodeTitle:'תיאור בלבד',description:'חלל ומדע',pubDate:'2026-01-01'},
+    {episodeTitle:'חלל ומדע',description:'<img src=x> חלל [',pubDate:'2020-01-01'},
+    {episodeTitle:'אחר',description:'מוזיקה',pubDate:'2025-01-01'}]});
+  Object.assign(ctx,{document:{getElementById:id=>nodes[id],createElement:tag=>new Element(tag)},navigator:{}});
+  ctx.podkiCatalogClient();nodes.search.value='חלל מדע';nodes.search.oninput();
+  assert.equal(nodes.list.children.length,2);
+  const first=nodes.list.children[0],title=first.children[0].children[1].children[0];
+  assert.deepEqual(title.children.filter(n=>n.tag==='mark').map(n=>n.textContent),['חלל','מדע']);
+  const description=first.children[0].children[1].children[2];
+  assert.equal(description.children[0].textContent,'<img src=x> ');
+  assert.ok(description.children.every(n=>['span','mark'].includes(n.tag)));
+  const check=first.children[0].children[0];check.checked=true;check.onchange();
+  nodes.search.value='';nodes.search.oninput();nodes['only-selected'].checked=true;nodes['only-selected'].onchange();
+  assert.equal(nodes.list.children.length,1);assert.equal(nodes.list.children[0].className,'card selected');
+  nodes.search.value='[';nodes.search.oninput();assert.equal(nodes.list.children.length,1);
+  assert.equal(nodes.list.children[0].children[0].children[1].children[2].children.find(n=>n.tag==='mark').textContent,'[');
+  nodes.search.value='לא קיים';nodes.search.oninput();assert.equal(nodes.list.children[0].className,'empty');
+  nodes.clear.onclick();assert.equal(nodes.download.disabled,true);
 });
