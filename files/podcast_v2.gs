@@ -46,7 +46,7 @@ function setUp() {
   if (!hourFound) {
     var ht = ScriptApp.newTrigger("setUp").timeBased().everyHours(1).create();
     props.setProperty(HOURLY_UID_KEY, ht.getUniqueId());
-    Logger.log("✅ טריגר שעתי נוצר.");
+    Logger.log("✅ נוצר טריגר להפעלה אוטומטית מדי שעה.");
   }
 
   // 2. מבנה תיקיות
@@ -63,13 +63,23 @@ function setUp() {
     var code = UrlFetchApp.fetch(GITHUB_JS_URL, { muteHttpExceptions: true }).getContentText();
     eval(code);
     var hasRemaining = main(sysFolder, mainFolder);
-    if (hasRemaining) Logger.log("🕐 נותרו משימות — יטופלו בריצה הבאה.");
+    if (hasRemaining) Logger.log("🕐 נותרו משימות לטיפול. הן יטופלו בהרצה הבאה.");
   } catch(e) {
     Logger.log("❌ שגיאה: " + e.message);
     try {
-      MailApp.sendEmail(Session.getEffectiveUser().getEmail(),
-        "❌ פודקאסטים 2.0 — שגיאה קריטית",
-        "שגיאה בריצה: " + e.message + "\n\n" + e.stack);
+      var helpUrl = "https://moshhhhhh.github.io/pod/help.htm";
+      var folderUrl = mainFolder.getUrl();
+      var details = "שגיאה במהלך ההפעלה: " + e.message + "\n\n" + e.stack;
+      var esc = function(text) { return String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+      var linkStyle = "display:inline-block;margin:6px;padding:12px 16px;background:#1764c0;color:white;border-radius:10px;text-decoration:none;font-weight:bold;";
+      MailApp.sendEmail({to:Session.getEffectiveUser().getEmail(),name:"פודקי — בוט הפודקאסטים שלך",
+        subject:"❌ פודקי — אירעה שגיאה קריטית",
+        body:details + "\n\nעזרה ומדריך פודקי: " + helpUrl +
+          "\nפודקאסטים 2.0 — התיקייה שלי בדרייב: " + folderUrl,
+        htmlBody:'<html lang="he" dir="rtl"><body style="font-family:Arial,sans-serif;">'+
+          "<h1>פודקי — אירעה שגיאה קריטית</h1><pre style=\"white-space:pre-wrap;\">"+esc(details)+'</pre><p>'+
+          '<a style="'+linkStyle+'" href="'+esc(helpUrl)+'">עזרה ומדריך פודקי</a>'+
+          '<a style="'+linkStyle+'" href="'+esc(folderUrl)+'">פודקאסטים 2.0 — התיקייה שלי בדרייב</a></p></body></html>'});
     } catch(m) {}
   }
 }

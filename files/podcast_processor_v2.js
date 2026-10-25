@@ -40,6 +40,7 @@ var _podkiRunStart = null;
 var _downloadHistory = [];
 var _emailsData      = null;
 var _rssList         = [];
+var _podkiMainFolderUrl = ''; // Refreshed from the current run's folder, never persisted.
 var _sysFolder       = null;  // reference לשימוש בפונקציות עזר
 
 
@@ -49,16 +50,17 @@ var _sysFolder       = null;  // reference לשימוש בפונקציות עז�
 // =====================================================================
 function main(sysFolder, mainFolder) {
   var lock = LockService.getScriptLock();
-  if (!lock.tryLock(1000)) { Logger.log('⏸️ ריצה אחרת פעילה; ממשיכים בשעה הבאה.'); return true; }
+  if (!lock.tryLock(1000)) { Logger.log("⏸️ ריצה אחרת עדיין פעילה; ננסה שוב בהרצה הבאה."); return true; }
   try { return runPodcastMain(sysFolder, mainFolder); }
   finally { lock.releaseLock(); }
 }
 
 function runPodcastMain(sysFolder, mainFolder) {
+  podkiInitMainFolder(mainFolder);
   var startTime = new Date();
   _podkiRunStart = startTime;
   _podkiFeedCache = {};
-  Logger.log("🚀 פודקאסטים v2 — " + formatDate(startTime));
+  Logger.log("🚀 פודקי — תחילת הרצה: " + formatDate(startTime));
 
   // ── 1. מיזוג קבצי RSS (אם יש כפולים) + אתחול ──
   mergePodcastsFiles(sysFolder);
@@ -70,7 +72,7 @@ function runPodcastMain(sysFolder, mainFolder) {
 
   // ── 2. טעינת תור ועיבוד מיילי בקרה ──
   var queue = loadStatusQueue(sysFolder);
-  Logger.log("📦 " + queue.length + " פריטים בתור.");
+  Logger.log("📦 " + queue.length + " פריטים ממתינים בתור.");
   var seenUrls = {};
   for (var q = 0; q < queue.length; q++) seenUrls[queue[q].url] = true;
 
@@ -97,7 +99,7 @@ function runPodcastMain(sysFolder, mainFolder) {
     else deleteStatusQueue(sysFolder);
     saveEmailsData(sysFolder, _emailsData);
     saveDownloadHistory(sysFolder, _downloadHistory);
-    Logger.log("⚠️  רשימת ערוצים ריקה.");
+    Logger.log("⚠️ רשימת הערוצים ריקה.");
 
   }
   if (rssList.length) _emailsData.emptySubsEmailSent = false;
@@ -107,15 +109,15 @@ function runPodcastMain(sysFolder, mainFolder) {
   Logger.log("📋 נטענו " + rssList.length + " כתובות RSS.");
   for (var f = 0; f < rssList.length; f++) {
     if (new Date() - startTime > TIME_LIMIT_MS - DOWNLOAD_BUFFER_MS) {
-      Logger.log("⏰ מגבלת זמן בסריקה."); break;
+      Logger.log("⏰ מגבלת הזמן לסריקה הושגה."); break;
     }
     try {
       scanFeed(rssList[f].url, rssList[f].days, mainFolder, queue, seenUrls, folderCache, rssList[f].notifyOnly);
     } catch(e) {
-      Logger.log("❌ סריקה " + rssList[f].url + ": " + e.message);
+      Logger.log("❌ שגיאה בסריקת " + rssList[f].url + ": " + e.message);
     }
   }
-  Logger.log("📊 " + queue.length + " פרקים בתור.");
+  Logger.log("📊 " + queue.length + " פרקים ממתינים בתור.");
 
   reconcileAutomaticQueue(queue, rssList, _emailsData);
 
@@ -123,19 +125,19 @@ function runPodcastMain(sysFolder, mainFolder) {
   var downloaded = 0, idx = 0;
   while (idx < queue.length) {
     if (new Date() - startTime > TIME_LIMIT_MS - DOWNLOAD_BUFFER_MS) {
-      Logger.log("⏰ מגבלת זמן — עוצר הורדות."); break;
+      Logger.log("⏰ מגבלת הזמן מתקרבת — השמירה נעצרת עד להרצה הבאה."); break;
     }
     var item         = queue[idx];
     if (item.source !== 'manual' && !item.rssUrl && hasNotifyOnlySubscriptions(rssList)) {
-      Logger.log('⏸️ פריט ישן ללא זיהוי ערוץ ודאי ממתין לסריקה: '+item.episodeTitle); idx++; continue;
+      Logger.log("⏸️ הפרק "+item.episodeTitle+" ממתין לזיהוי ודאי של הערוץ בסריקה הבאה."); idx++; continue;
     }
     var targetFolder = getOrCreateFolder(mainFolder, item.folderName);
     if (fileExistsInFolder(targetFolder, item.fileName)) {
-      Logger.log("🔁 קיים: " + item.fileName); queue.splice(idx, 1); continue;
+      Logger.log("🔁 הקובץ כבר קיים: " + item.fileName); queue.splice(idx, 1); continue;
     }
     var freeBytes = getFreeStorageBytes();
     if (freeBytes < STORAGE_MIN_BYTES) {
-      Logger.log("💾 נפח נמוך — דוחה: " + item.episodeTitle);
+      Logger.log("💾 אין מספיק מקום פנוי — שמירת הפרק " + item.episodeTitle + " נדחתה.");
       addToStoragePending(_emailsData, item); idx++; continue;
     }
     Logger.log("⬇️  " + item.episodeTitle + (item.chunkState ? " (ממשיך)" : ""));
@@ -157,12 +159,12 @@ function runPodcastMain(sysFolder, mainFolder) {
       addToWeeklyPending(_emailsData, item, "success", null);
       queue.splice(idx, 1);
     } else if (result.paused) {
-      Logger.log("⏸️  הושהה: " + item.episodeTitle);
+      Logger.log("⏸️ שמירת הפרק הושהתה: " + item.episodeTitle);
       item.chunkState = result.chunkState; idx++;
     } else {
       item.chunkState = null;
       item.retryCount = (item.retryCount || 0) + 1;
-      Logger.log("❌ ניסיון " + item.retryCount + "/" + MAX_RETRIES + ": " + result.error);
+      Logger.log("❌ ניסיון " + item.retryCount + " מתוך " + MAX_RETRIES + " נכשל: " + result.error);
       if (item.retryCount >= MAX_RETRIES) {
         addToWeeklyPending(_emailsData, item, "failed", result.error);
         sendFailureEmail(item, result.error);
@@ -170,14 +172,14 @@ function runPodcastMain(sysFolder, mainFolder) {
       } else { idx++; }
     }
   }
-  Logger.log("📥 הורדו בריצה זו: " + downloaded);
+  Logger.log("📥 פרקים שנשמרו בריצה זו: " + downloaded);
 
   // ── 6. שמירת מצב ──
   submitUserDataToForm();
   saveDownloadHistory(sysFolder, _downloadHistory);
   saveEmailsData(sysFolder, _emailsData);
   if (queue.length === 0) deleteStatusQueue(sysFolder);
-  else { saveStatusQueue(sysFolder, queue); Logger.log("💾 " + queue.length + " פרקים בתור."); }
+  else { saveStatusQueue(sysFolder, queue); Logger.log("💾 " + queue.length + " פרקים ממתינים בתור."); }
 
   // ── 7. שליחת מיילים ──
   var needStorage = shouldSendStorageEmail(_emailsData);
@@ -189,7 +191,7 @@ function runPodcastMain(sysFolder, mainFolder) {
     if (needSubs)    { needSubs = !sendSubscriptionEmail(rssList, sysFolder, _emailsData, startTime, mainFolder); }
     saveEmailsData(sysFolder, _emailsData);
   } else if (needStorage || needWeekly || needSubs) {
-    Logger.log("⏰ אין מספיק זמן לשליחת מיילים — יטופלו בריצה הבאה.");
+    Logger.log("⏰ לא נותר מספיק זמן לשליחת מיילים. השליחה תימשך בהרצה הבאה.");
   }
 
   // ── 8. סיכום פרקים שהתקבלו בבקשה ספציפית ──
@@ -198,7 +200,7 @@ function runPodcastMain(sysFolder, mainFolder) {
     if (sendProcessedEmailsSummary(_emailsData.pendingEpisodeSummary)) _emailsData.pendingEpisodeSummary = [];
     saveEmailsData(sysFolder, _emailsData);
   } else if (_emailsData.pendingEpisodeSummary.length > 0) {
-    Logger.log("⏰ סיכום פרקים ידחה לריצה הבאה (" + _emailsData.pendingEpisodeSummary.length + " פרקים).");
+    Logger.log("⏰ סיכום " + _emailsData.pendingEpisodeSummary.length + " פרקים יישלח בהרצה הבאה.");
     saveEmailsData(sysFolder, _emailsData);
   }
 
@@ -211,17 +213,17 @@ function runPodcastMain(sysFolder, mainFolder) {
 // =====================================================================
 function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache, notifyOnly) {
   Logger.log("\n──────────────────────────────────────");
-  Logger.log("🔍 סורק: " + rssUrl);
+  Logger.log("🔍 סורק את הפיד: " + rssUrl);
 
   var response = UrlFetchApp.fetch(rssUrl, { muteHttpExceptions: true, followRedirects: true });
   if (response.getResponseCode() !== 200) {
-    throw new Error("קוד תגובה " + response.getResponseCode());
+    throw new Error("התקבל קוד תגובה " + response.getResponseCode());
   }
 
   var xmlText = response.getContentText("UTF-8");
   var doc     = XmlService.parse(xmlText);
   var channel = doc.getRootElement().getChild("channel");
-  if (!channel) throw new Error("לא נמצא אלמנט <channel>");
+  if (!channel) throw new Error("לא נמצא הרכיב הנדרש.");
 
   var itunesNs      = XmlService.getNamespace(ITUNES_NS_URL);
   var channelTitle  = channel.getChildText("title") || "פודקאסט_ללא_שם";
@@ -230,7 +232,7 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache, notify
   var cutoffDate    = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   var channelImageUrl = getChannelCoverArtUrl(channel, itunesNs);
 
-  Logger.log("🎙️  ערוץ: " + channelTitle + " (מ-" + days + " הימים האחרונים)");
+  Logger.log("🎙️ ערוץ: " + channelTitle + " (סריקת " + days + " הימים האחרונים)");
   // עדכון details לשימוש במיילים (שמות ערוצים לא פעילים)
   if (_emailsData && _emailsData.subscriptions) {
     if (!_emailsData.subscriptions.details) _emailsData.subscriptions.details = {};
@@ -323,7 +325,7 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache, notify
     });
   }
 
-  Logger.log("📋 " + newOnes + " פרקים חדשים נוספו לתור מערוץ זה.");
+  Logger.log("📋 נוספו לתור " + newOnes + " פרקים חדשים מהערוץ.");
 }
 
 
@@ -339,7 +341,7 @@ function loadStatusQueue(sysFolder) {
     var parsed  = JSON.parse(content);
     return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
-    Logger.log("⚠️  קובץ תור פגום, מתעלם: " + e.message);
+    Logger.log("⚠️ קובץ התור פגום ולא נטען: " + e.message);
     return [];
   }
 }
@@ -358,10 +360,10 @@ function deleteStatusQueue(sysFolder) {
  */
 function sendFailureEmail(item, lastError) {
   try {
-    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'⚠️ פרק לא הורד אחרי '+MAX_RETRIES+' נסיונות — '+item.channelTitle,
-      htmlBody:_emailWrap('הורדת פרק נכשלה',channelCard(item.channelTitle,item.rssUrl,item.channelImageUrl,
-      '<p dir="auto">'+escapeHtml(item.episodeTitle)+'</p><p>שגיאה אחרונה: '+escapeHtml(lastError)+'</p>',null))});
-  } catch(e) { Logger.log('⚠️ שליחת מייל כשלון נכשלה: '+e.message); }
+    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"⚠️ לא ניתן לשמור פרק לאחר "+MAX_RETRIES+" ניסיונות — "+item.channelTitle,
+      htmlBody:_emailWrap("לא הצלחנו לשמור את הפרק",channelCard(item.channelTitle,item.rssUrl,item.channelImageUrl,
+      "<p dir=\"auto\">שם הפרק: "+escapeHtml(item.episodeTitle)+"</p><p>פרטי השגיאה האחרונה: "+escapeHtml(lastError)+'</p>',null))});
+  } catch(e) { Logger.log("⚠️ שליחת הודעת הכישלון במייל נכשלה: "+e.message); }
 }
 
 
@@ -386,7 +388,7 @@ function parsePodcastsFiles(sysFolder) {
       raw = file.getMimeType() === MimeType.GOOGLE_DOCS
         ? file.getAs('text/plain').getDataAsString('UTF-8')
         : file.getBlob().getDataAsString('UTF-8');
-    } catch(e) { throw new Error('לא ניתן לקרוא קובץ מינויים: ' + e.message); }
+    } catch(e) { throw new Error("לא הצלחתי לקרוא את קובץ ההרשמות: " + e.message); }
     var lines = raw.split(/\r?\n/), comment = null;
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
@@ -444,10 +446,10 @@ function mergePodcastsFiles(sysFolder) {
 
   if (files.length <= 1) return;  // אין מה למזג
 
-  Logger.log("🔀 נמצאו " + files.length + " קבצי " + RSS_FILE_NAME + " — ממזג...");
+  Logger.log("🔀 נמצאו " + files.length + " קבצי " + RSS_FILE_NAME + " — מתחיל מיזוג.");
   var merged = parsePodcastsFiles(sysFolder);
   writeMergedPodcastsFile(sysFolder, merged);
-  Logger.log("✅ מיזוג הושלם: " + merged.order.length + " ערוצים ייחודיים בקובץ אחד.");
+  Logger.log("✅ המיזוג הושלם: " + merged.order.length + " ערוצים ייחודיים בקובץ אחד.");
 }
 
 function loadRssList(sysFolder) {
@@ -461,7 +463,7 @@ function loadRssList(sysFolder) {
 /**
  * בודק אם קובץ podcasts.txt קיים בתיקיית קבצי המערכת.
  * אם הקובץ חסר לחלוטין (לא רק ריק) — יוצר קובץ ריק חדש, ושולח מייל
- * חד-פעמי למשתמש עם כפתור "הוסף ערוץ". קובע emptySubsEmailSent=true כדי
+ * חד-פעמי למשתמש עם כפתור "חפש ערוץ". קובע emptySubsEmailSent=true כדי
  * שהבדיקה הנפרדת על "רשימת ערוצים ריקה" (main, סעיף 3) לא תשלח מייל כפול
  * באותה ריצה עצמה.
  */
@@ -469,7 +471,7 @@ function ensureRssFileExists(sysFolder, emailsData) {
   var it = sysFolder.getFilesByName(RSS_FILE_NAME);
   if (it.hasNext()) return false; // הקובץ קיים — אין מה לעשות
 
-  Logger.log("⏳ קובץ " + RSS_FILE_NAME + " חסר בתיקייה 'קבצי מערכת'.");
+  Logger.log("⏳ הקובץ " + RSS_FILE_NAME + " חסר בתיקיית ״קבצי מערכת״.");
   sysFolder.createFile(RSS_FILE_NAME, '# רשימת פודקאסטים\n', MimeType.PLAIN_TEXT);
   Logger.log("📄 נוצר קובץ " + RSS_FILE_NAME + " ריק.");
   sendMissingRssFileEmail();
@@ -484,41 +486,41 @@ function ensureRssFileExists(sysFolder, emailsData) {
  * של ערוצים, טיפ על הרצה ידנית, ופתרון בעיות נפוצות.
  */
 function sendMissingRssFileEmail() {
-  var example = '# הרשמה רגילה — הורדה אוטומטית\nhttps://example.com/regular/feed.xml\n\n' +
-    '# התראות בלבד — ללא הורדה אוטומטית\nhttps://example.com/alerts/feed.xml --notify-only\n\n' +
-    '# התראות בלבד, עם סריקה של 30 ימים לאחור\nhttps://example.com/month/feed.xml --notify-only\n30';
-  var body = '<p><strong>היי, נעים להכיר — אני פודקי 🎧</strong></p>' +
-    '<p>אני בוט הפודקאסטים שלך, ופועל בחשבון Google שלך בריצות אוטומטיות פעם בשעה. אפשר להתחיל בהוספת ערוץ באמצעות הכפתור הבא. בנושא המייל שייפתח יש להזין כתובת RSS או שם פודקאסט לחיפוש, ולשלוח.</p>' +
+  var example = "# שמירה אוטומטית בדרייב\nhttps://example.com/regular/feed.xml\n\n" +
+    "# התראות בלבד — ללא שמירה אוטומטית\nhttps://example.com/alerts/feed.xml --notify-only\n\n" +
+    "# התראות בלבד — סריקת פרקים מ-30 הימים האחרונים\nhttps://example.com/month/feed.xml --notify-only\n30";
+  var body = "<p><strong>היי, נעים להכיר — אני פודקי! 🎧</strong></p>" +
+    "<p>אני בוט הפודקאסטים האישי שלך. אני פועל אוטומטית בחשבון Google שלך, בדרך כלל פעם בשעה, ועוזר לך לשמור פרקים בדרייב ולהתעדכן בפרקים חדשים.</p><p><strong>בואו נתחיל!</strong></p><p>כדי להוסיף את הערוץ הראשון שלך, לוחצים על הכפתור ״חפש ערוץ״ שבהמשך. בהודעת המייל שנפתחת כותבים בשורת הנושא את כתובת ה-RSS של הערוץ, או את שמו כדי לחפש אותו, ושולחים.</p>" +
     buildAddChannelBtn() +
-    '<h2 style="font-size:18px;">איך רוצים לעקוב אחר הערוצים?</h2>' +
-    '<p><strong>הירשם</strong> — פרקים חדשים יורדו אוטומטית לתיקיית הערוץ בדרייב.</p>' +
-    '<p><strong>הירשם להתראות בלבד</strong> — פרקים חדשים יופיעו במייל השבועי, ללא הורדה אוטומטית. ליד כל פרק יופיע <strong>קבל פרק</strong>, כדי לבקש רק את הפרקים הרצויים לך.</p>' +
-    '<p>אפשר לשנות את סוג ההרשמה או להסיר ערוץ באמצעות הכפתורים שלידו במיילים. הכפתור קבל פרק אינו משנה את סוג ההרשמה.</p>' +
-    '<h2 style="font-size:18px;">רוצים לבחור מתוך פרקים קודמים?</h2>' +
-    '<p>הכפתור <strong>קבל פרקים</strong> שליד כל ערוץ שולח קטלוג של הפרקים הזמינים כרגע בפיד. בקטלוג קצר אפשר לבקש פרק בודד ישירות מהמייל. בכל קטלוג מצורף גם קובץ HTML לחיפוש בכותרות ובתיאורים, מיון ובחירת כמה פרקים יחד. קטלוג גדול במיוחד נשמר בדרייב שלך ונשלח קישור פרטי להורדתו.</p>' +
-    '<p><strong>בקשה של כמה פרקים:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, סמן פרקים והורד את קובץ הבחירה JSON. פתח מייל לכתובת קבלת הפרקים באמצעות הכפתור בקטלוג, צרף אליו את ה-JSON ושלח. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. פתיחת מייל אינה מצרפת את הקובץ אוטומטית. ניתן לבחור עד 1,000 פרקים בקובץ אחד; בקשות גדולות יטופלו בהדרגה בין ריצות.</p>' +
-    '<p>יש לפתוח את ה-HTML בדפדפן ולא בתצוגה המקדימה של Gmail. באנדרואיד יש להשתמש בדפדפן שתומך בקובצי HTML מקומיים. התיאורים עשויים להיות מקוצרים, והקטלוג אינו מבטיח לכלול פרקים ישנים שהמפרסם הסיר מהפיד.</p>' +
-    '<h2 style="font-size:18px;">חיפוש פרק מסוים</h2>' +
-    '<p>לחץ על <strong>חפש פרק</strong> בתחתית כל הודעה, כתוב בנושא שם פרק, שם מגיש או מילות חיפוש ושלח. אחפש פרקים באפל פודקאסטים ואשלח תוצאות עם כפתור קבל פרק. הזמינות תלויה בקטלוג של אפל ובמפרסם. לחיפוש ערוץ שלם השתמש בהוסף ערוץ.</p>' +
-    '<p>קובצי JSON מזוהים אוטומטית. נושא ההודעה נבדק בנפרד גם כשמצורף קובץ: טקסט חופשי יבצע בנוסף חיפוש, כתובת RSS תבקש בנוסף קטלוג, ובקשת JSON בנושא תמשיך לפעול כבעבר. בחירת פרקים אינה משנה את המינוי לערוץ.</p>' +
-    '<h2 style="font-size:18px;">ניהול ידני בדרייב</h2>' +
-    '<p>אפשר לערוך את הקובץ <span dir="ltr">podcasts.txt</span> בתיקיית פודקאסטים 2.0, בתוך תיקיית קבצי מערכת.</p>' +
-    '<p>להרשמה רגילה מוסיפים כתובת RSS בשורה נפרדת. להתראות בלבד מוסיפים בסוף אותה שורה רווח ואת הדגל <span dir="ltr">--notify-only</span>. אפשר להשתמש באותו דגל גם בסוף נושא מייל ההרשמה.</p>' +
-    '<p>בשורה שאחרי כתובת הערוץ אפשר להוסיף מספר ימים לסריקה לאחור. ברירת המחדל היא שבעה ימים. שורות שמתחילות בסימן # הן הערות.</p>' +
+    "<h2 style=\"font-size:18px;\">איך אתם רוצים לעקוב אחרי הערוצים?</h2><p>לכל ערוץ אפשר לבחור אחת משתי אפשרויות:</p>" +
+    "<p><strong>״הירשם״ — שמירה אוטומטית בדרייב:</strong> פרקים חדשים יישמרו אוטומטית בתיקיית הערוץ ב-Google Drive שלך.</p>" +
+    "<p><strong>״הירשם להתראות בלבד״ — עדכונים ללא שמירה אוטומטית:</strong> פרקים חדשים יופיעו בדוח השבועי. ליד כל פרק יהיה כפתור ״קבל פרק״, שיאפשר לך לבחור אילו פרקים לשמור בדרייב.</p>" +
+    "<p>אפשר לשנות את סוג ההרשמה או להסיר ערוץ בכל עת באמצעות הכפתורים המופיעים לצד הערוץ בהודעות של פודקי.</p><p><strong>חשוב לדעת:</strong> שמירת פרק בודד באמצעות ״קבל פרק״ אינה משנה את סוג ההרשמה לערוץ.</p>" +
+    "<h2 style=\"font-size:18px;\">רוצים לבחור פרקים מתוך הקטלוג?</h2>" +
+    "<p>לוחצים על ״קבל פרקים״ ליד הערוץ הרצוי, ופודקי שולח קטלוג של הפרקים הזמינים בפיד שלו.</p><p><strong>בחירת פרק בודד:</strong> בקטלוג קצר אפשר לשמור פרק ישירות באמצעות הכפתור ״קבל פרק״.</p><p><strong>בחירת כמה פרקים יחד:</strong> הקטלוג כולל קובץ HTML אינטראקטיבי, שבו אפשר לחפש פרקים לפי כותרת או תיאור, למיין את התוצאות ולבחור כמה פרקים לשמירה בדרייב.</p><p><strong>קטלוג גדול במיוחד:</strong> פודקי שומר את הקטלוג בדרייב ושולח במייל קישור פרטי להורדתו.</p>" +
+    "<h2 style=\"font-size:18px;\">איך שומרים כמה פרקים יחד?</h2><ol><li>מורידים את קובץ ה-HTML המצורף לקטלוג ופותחים אותו בדפדפן.</li><li>מחפשים ומסמנים את הפרקים הרצויים.</li><li>לוחצים על הכפתור להורדת קובץ JSON המכיל את רשימת הפרקים שנבחרו.</li><li>לוחצים בקטלוג על הכפתור לפתיחת הודעת מייל.</li><li><strong>מצרפים ידנית את קובץ ה-JSON</strong> להודעה שנפתחה ושולחים אותה.</li></ol><p>אין צורך לכתוב דבר בשורת הנושא — אפשר להשאיר אותה ריקה. אפשר לבחור עד 1,000 פרקים בבקשה אחת. בקשות גדולות יטופלו בהדרגה, לאורך כמה הרצות אוטומטיות. פתיחת המייל אינה מצרפת את הקובץ באופן אוטומטי.</p>" +
+    "<p><strong>חשוב לדעת על הקטלוג:</strong> יש להוריד את קובץ ה-HTML ולפתוח אותו בדפדפן, לא בתצוגה המקדימה של Gmail; באנדרואיד דרוש דפדפן שתומך בקובצי HTML מקומיים; תיאורים עשויים להיות מקוצרים; פרקים שהוסרו מהפיד לא יופיעו בו.</p>" +
+    "<h2 style=\"font-size:18px;\">מחפשים פרק מסוים?</h2>" +
+    "<ol><li>לוחצים על ״חפש פרק״ בתחתית אחת ההודעות של פודקי.</li><li>כותבים בשורת הנושא את שם הפרק, שם המגיש או מילות חיפוש.</li><li>שולחים את ההודעה.</li></ol><p>פודקי יחפש פרקים ב-Apple Podcasts וישלח תוצאות עם כפתור ״קבל פרק״, שבאמצעותו אפשר לבקש לשמור את הפרק בדרייב. התוצאות תלויות במידע הזמין ב-Apple Podcasts ובפרקים שהמפרסמים מעמידים לרשות המאזינים. כדי לחפש ערוץ שלם, משתמשים בכפתור ״חפש ערוץ״.</p>" +
+    "<h2 style=\"font-size:18px;\">אפשר לשלוח כמה בקשות במייל אחד</h2><p>פודקי מזהה אוטומטית קובצי JSON המצורפים להודעה, ובודק גם את שורת הנושא בנפרד. קובץ JSON מבקש לשמור פרקים שנבחרו, טקסט חופשי בנושא מבצע חיפוש נוסף, וכתובת RSS בנושא מבקשת קטלוג. אפשר גם להשתמש בפורמט בקשות JSON הישן בשורת הנושא. בחירת פרקים אינה משנה את מצב ההרשמה לערוץ.</p>" +
+    "<h2 style=\"font-size:18px;\">ניהול ידני של הערוצים ב-Google Drive</h2>" +
+    "<p>אפשר להוסיף ערוצים, להסיר אותם ולשנות את הגדרותיהם גם ללא שליחת מייל, באמצעות עריכת הקובץ <span dir=\"ltr\">podcasts.txt</span> בתיקייה <strong>״פודקאסטים 2.0״ ← ״קבצי מערכת״</strong>.</p>" +
+    "<p>כתובת RSS בשורה נפרדת מפעילה שמירה אוטומטית; <span dir=\"ltr\">--notify-only</span> אחרי הכתובת מפעיל התראות בלבד. אפשר להוסיף <span dir=\"ltr\">--notify-only</span> גם לנושא מייל ההרשמה.</p>" +
+    "<p>מספר בשורה שמתחת לכתובת מגדיר את מספר ימי הסריקה (ברירת מחדל 7); שורות שמתחילות ב-# הן הערות.</p>" +
     '<p><strong>דוגמת קובץ TXT תקינה מבחינת התחביר:</strong></p>' +
     '<pre dir="ltr" style="direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f9;padding:12px;font-family:monospace;">'+escapeHtml(example)+'</pre>' +
     '<p>הכתובות בדוגמה הן להמחשה בלבד. יש להחליף אותן בכתובות RSS אמיתיות של הערוצים שלך.</p>' +
-    '<h2 style="font-size:18px;">הדיווח השבועי</h2>' +
-    '<p>המייל השבועי יכלול דוח הורדות ופרקים חדשים מערוצי התראות בלבד, עם הבחנה ברורה ביניהם. דוח ארוך יפוצל להודעות ממוספרות; אם השליחה נעצרת, היא תימשך מהחלק הבא בריצה הבאה. לאחר הרשמה, הסריקה הראשונה כוללת את טווח הימים המוגדר לערוץ.</p>' +
-    '<h2 style="font-size:18px;">כדאי לדעת</h2>' +
-    '<p>הטיפול בבקשות מתבצע בריצות האוטומטיות, ולכן עשוי להימשך מספר שעות. אפשר לשלוח כמה בקשות בלי להמתין לטיפול בקודמת. ניתן להריץ ידנית את הפונקציה <span dir="ltr">setUp</span> בפרויקט Apps Script.</p>' +
-    '<p>אפשר למחוק קובצי פרקים שכבר הורדת. חשוב לשמור את תיקיית <strong>קבצי מערכת</strong>, שבה נמצאים המינויים, ההיסטוריה וההתקדמות.</p>' +
-    '<p>לא קיבלת מייל? בדוק ספאם וקידומים ואת הרשאות הפרויקט. ביומן הרצות בפרויקט אפשר לבדוק אם התרחשה שגיאה.</p>' +
-    '<h2 style="font-size:18px;">פרטיות</h2>' +
-    '<p>פקודות המייל מעובדות מתוך תיבת נשלח. מיילים לכתובות הבקרה הייעודיות גלויים למנהל השירות ונאספים בהתאם למדיניות הפרטיות. עריכה ידנית של קובץ המינויים אינה שולחת פקודת מייל; איסוף כתובת המייל בכל ריצה, כפי שמתואר במדיניות הקיימת, ממשיך לחול.</p>';
+    "<h2 style=\"font-size:18px;\">הדיווח השבועי 📬</h2>" +
+    "<p>פודקי שולח מדי שבוע דוח מסודר הכולל פרקים שנשמרו בדרייב ופרקים חדשים מערוצי התראות בלבד, עם אפשרות לבחור פרקים לשמירה. דוח ארוך במיוחד יישלח בכמה הודעות ממוספרות. אם השליחה נעצרת, היא תימשך מהחלק הבא בהרצה הבאה. לאחר הוספת ערוץ, הסריקה הראשונה כוללת גם פרקים שפורסמו בטווח הימים שהוגדר לערוץ.</p>" +
+    "<h2 style=\"font-size:18px;\">עוד כמה דברים שכדאי לדעת 💡</h2>" +
+    "<p><strong>זמן הטיפול בבקשות:</strong> פודקי מטפל בבקשות בהרצות אוטומטיות, ולכן הטיפול עשוי להימשך כמה שעות. אפשר לשלוח כמה בקשות ברצף.</p><p><strong>הפעלה ידנית:</strong> אפשר להפעיל את פודקי גם באמצעות הרצת <span dir=\"ltr\">setUp</span> בפרויקט Google Apps Script.</p>" +
+    "<p><strong>ניהול שטח האחסון:</strong> אפשר למחוק פרקים שכבר האזנתם להם, אך יש לשמור על תיקיית ״קבצי מערכת״ שבה נמצאים נתוני ההרשמות וההתקדמות.</p>" +
+    "" +
+    "<h2 style=\"font-size:18px;\">פרטיות 🔒</h2>" +
+    "<p>פודקי מעבד את הבקשות שלך מתוך תיקיית ״נשלח״ ב-Gmail. הודעות הנשלחות לכתובות הבקרה של השירות, לרבות תוכנן וקבצים מצורפים, גלויות למנהל השירות בהתאם למדיניות הפרטיות. עריכה ידנית של רשימת הערוצים בדרייב אינה שולחת הודעות לכתובות הבקרה. כתובת המייל שלך מועברת למנהל השירות בכל הרצה של פודקי, גם כאשר רשימת הערוצים מנוהלת ידנית.</p>";
   try {
-    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'🎉 פודקאסטים 2.0 — המערכת מוכנה לשימוש',htmlBody:_emailWrap('ברוכים הבאים למערכת',body)});
-  } catch(e) { Logger.log('⚠️ מייל ברוך הבא נכשל: '+e.message); }
+    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"🎉 פודקי מוכן לשימוש!",htmlBody:_emailWrap("ברוכים הבאים לפודקי! 🎧",body)});
+  } catch(e) { Logger.log("⚠️ שליחת מייל ההיכרות נכשלה: "+e.message); }
 }
 
 
@@ -544,16 +546,16 @@ function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime) {
     contentLength = crMatch ? parseInt(crMatch[1], 10) : 0;
     supportsRange = (headResp.getResponseCode() === 206);
   } catch (e) {
-    Logger.log("⚠️  בדיקת גודל נכשלה, מנסה הורדה רגילה: " + e.message);
+    Logger.log("⚠️ בדיקת גודל הקובץ נכשלה. מנסה הורדה רגילה: " + e.message);
   }
 
   if (contentLength === 0 || contentLength <= MAX_DIRECT_BYTES) {
     return downloadDirect(url, fileName, folder);
   }
 
-  Logger.log("📦 קובץ גדול: " + Math.round(contentLength / 1024 / 1024) + "MB");
+  Logger.log("📦 קובץ גדול: " + Math.round(contentLength / 1024 / 1024) + " MB");
   if (!supportsRange) {
-    Logger.log("⚠️  השרת לא תומך ב-Range. מנסה הורדה רגילה בכל זאת...");
+    Logger.log("⚠️ השרת אינו תומך בבקשות Range. מנסה הורדה רגילה.");
     return downloadDirect(url, fileName, folder);
   }
 
@@ -602,19 +604,19 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
       }
     );
     if (initResp.getResponseCode() !== 200) {
-      return { success: false, error: "פתיחת Resumable Upload נכשלה: HTTP " + initResp.getResponseCode() };
+      return { success: false, error: "לא ניתן להתחיל העלאה הניתנת לחידוש: HTTP " + initResp.getResponseCode() };
     }
     uploadUrl = initResp.getHeaders()["Location"] || initResp.getHeaders()["location"];
-    if (!uploadUrl) return { success: false, error: "חסר Location header" };
+    if (!uploadUrl) return { success: false, error: "חסרה כותרת HTTP מסוג Location" };
   }
 
   var totalChunks = Math.ceil(contentLength / CHUNK_SIZE_BYTES);
-  Logger.log("📡 chunks: " + totalChunks + " | התחלה מ-" + Math.round(offset/1048576) + "MB");
+  Logger.log("📡 מספר מקטעים: " + totalChunks + " · ממשיך מנקודת " + Math.round(offset/1048576) + " MB");
 
   while (offset < contentLength) {
     // ── Time guard: אם הזמן אוזל — שומר מצב ומחזיר PAUSED, לא כישלון ──
     if (new Date() - startTime > TIME_LIMIT_MS - DOWNLOAD_BUFFER_MS) {
-      Logger.log("⏰ מגבלת זמן — משהה chunked download ב-" + Math.round(offset/1048576) + "MB.");
+      Logger.log("⏰ מגבלת הזמן מתקרבת — הורדת הקובץ מושהית בנקודת " + Math.round(offset/1048576) + " MB.");
       return {
         success  : false,
         paused   : true,
@@ -634,7 +636,7 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
     if (chunkCode !== 206 && chunkCode !== 200) {
       // שגיאת הורדה — מבטל session
       try { UrlFetchApp.fetch(uploadUrl, { method: "delete", muteHttpExceptions: true }); } catch(e) {}
-      return { success: false, error: "הורדת chunk נכשלה: HTTP " + chunkCode };
+      return { success: false, error: "הורדת מקטע נכשלה: HTTP " + chunkCode };
     }
 
     var uploadResp = UrlFetchApp.fetch(uploadUrl, {
@@ -650,13 +652,13 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
 
     if (uploadCode === 308) {
       offset = end + 1;
-      Logger.log("  ✔ " + Math.round(offset/1048576) + "/" + Math.round(contentLength/1048576) + "MB");
+      Logger.log("  ✔ " + Math.round(offset/1048576) + "/" + Math.round(contentLength/1048576) + " MB");
     } else if (uploadCode === 200 || uploadCode === 201) {
       var fid = null;
       try { fid = JSON.parse(uploadResp.getContentText()).id || null; } catch(pe) {}
       return { success: true, error: null, fileId: fid };
     } else {
-      return { success: false, error: "העלאת chunk נכשלה: HTTP " + uploadCode, fileId: null };
+      return { success: false, error: "העלאת מקטע נכשלה: HTTP " + uploadCode, fileId: null };
     }
   }
 
@@ -765,7 +767,7 @@ function createLrcFile(folder, baseName, meta) {
     "פרק: " + meta.episodeTitle,
     "תאריך פרסום: " + pd,
     "מגיש: " + (meta.author || ""),
-    "משך: " + (meta.duration || "")
+    "משך הפרק: " + (meta.duration || "")
   ];
   if (meta.season)        lines.push("עונה: " + meta.season);
   if (meta.episodeNumber) lines.push("מספר פרק: " + meta.episodeNumber);
@@ -813,7 +815,7 @@ function savePodcastCoverArt(channel, podcastFolder, itunesNs) {
   try {
     var resp = UrlFetchApp.fetch(imageUrl, { muteHttpExceptions: true, followRedirects: true });
     if (resp.getResponseCode() !== 200) {
-      Logger.log("⚠️  שגיאת HTTP " + resp.getResponseCode() + " בהורדת תמונת כריכה.");
+      Logger.log("⚠️ הורדת תמונת הכריכה נכשלה. קוד שגיאה: HTTP " + resp.getResponseCode() + "");
       return;
     }
 
@@ -825,9 +827,9 @@ function savePodcastCoverArt(channel, podcastFolder, itunesNs) {
                   : (ctMap[ct] || "jpg");
 
     podcastFolder.createFile(resp.getBlob().setName("folder." + ext));
-    Logger.log("🖼️  תמונת כריכה נשמרה: folder." + ext);
+    Logger.log("🖼️ תמונת הכריכה נשמרה: folder." + ext);
   } catch (e) {
-    Logger.log("⚠️  שגיאה בשמירת תמונת כריכה: " + e.message);
+    Logger.log("⚠️ שמירת תמונת הכריכה נכשלה: " + e.message);
   }
 }
 
@@ -1020,7 +1022,7 @@ function getFreeStorageBytes() {
     if (!limit) return Number.MAX_VALUE;  // unlimited (Workspace)
     return limit - used;
   } catch(e) {
-    Logger.log("⚠️  בדיקת נפח נכשלה: " + e.message);
+    Logger.log("⚠️ בדיקת שטח האחסון הפנוי נכשלה: " + e.message);
     return Number.MAX_VALUE;
   }
 }
@@ -1155,17 +1157,17 @@ function buildChannelControlButtons(channelTitle, rssUrl) {
   var buttons = '';
   if (!sub || sub.notifyOnly) buttons += buildSubscriptionButton(channelTitle, rssUrl, false);
   if (sub) buttons += buildMailtoBtn('הסר', CTRL_UNSUBSCRIBE, rssUrl,
-    'שלח מייל זה להסרת הערוץ ' + channelTitle + '.\n\n' + PRIVACY_NOTE, '#ef4444');
+    "כדי להסיר את הערוץ " + channelTitle + " מרשימת הערוצים שלך, יש לשלוח את הודעת המייל הזו.\n\n" + PRIVACY_NOTE, '#ef4444');
   if (!sub || !sub.notifyOnly) buttons += buildSubscriptionButton(channelTitle, rssUrl, true);
   return buttons + buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, rssUrl,
-    'שלח מייל זה לקבלת קטלוג הפרקים של ' + channelTitle + '.\n\n' + PRIVACY_NOTE);
+    "כדי לקבל את קטלוג הפרקים של " + channelTitle + ", יש לשלוח את הודעת המייל הזו.\n\n" + PRIVACY_NOTE);
 }
 
-/** כפתור הוסף ערוץ */
+/** כפתור חפש ערוץ */
 function buildAddChannelBtn() {
-  return buildMailtoBtn('+ הוסף ערוץ', CTRL_SUBSCRIBE,
-    '[כתובת RSS או מחרוזת חיפוש]',
-    'אם אתה יודע את כתובת הפיד RSS של הפודקאסט, מלא אותה בכותרת. אחרת מלא את שם הפודקאסט/נושא/מגיש לחיפוש. לאחר מכן שלח מייל זה. הבקשה תטופל תוך מספר שעות.\n\n'+PRIVACY_NOTE,
+  return buildMailtoBtn('חפש ערוץ', CTRL_SUBSCRIBE,
+    '',
+    "בשורת הנושא יש לכתוב כתובת RSS של ערוץ, או שם פודקאסט, שם מגיש או מילות חיפוש. לאחר מכן יש לשלוח את ההודעה. הבקשה תטופל אוטומטית בתוך כמה שעות.\n\n"+PRIVACY_NOTE,
     '#10b981');
 }
 
@@ -1217,18 +1219,18 @@ function sendStorageEmail(sysFolder, emailsData, mainFolder) {
     if (!groups[key]) groups[key] = {title:p.channelTitle, rssUrl:p.rssUrl, image:p.channelImageUrl, items:[]};
     groups[key].items.push(p);
   });
-  var body = '<p>היי, פודקי כאן. אני ממתין למקום פנוי בדרייב: נותרו פחות מ־2GiB. ההורדות הבאות נשמרו בתור ולא בוטלו.</p>';
+  var body = "<p>היי, פודקי כאן. נותרו פחות מ־2GiB פנויים בדרייב, ולכן השמירה מושהית. הבקשות הבאות לא בוטלו והן ממתינות בתור.</p>";
   Object.keys(groups).forEach(function(key) {
     var d = groups[key], content = '';
     d.items.forEach(function(it) { content += '<p dir="auto">'+escapeHtml(it.episodeTitle)+'</p>'; });
     body += channelCard(d.title,d.rssUrl,d.image,content,mainFolder);
   });
-  body += '<p>פנה מקום בדרייב. אנסה להמשיך את ההורדות בריצות הבאות. אין צורך לבקש שוב את אותם פרקים.</p>'+buildAddChannelBtn();
+  body += "<p>יש לפנות מקום בדרייב. אנסה להמשיך את השמירה באופן אוטומטי בהרצות הבאות. אין צורך לשלוח את הבקשות מחדש.</p>"+buildAddChannelBtn();
   try {
-    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'💾 פודקאסטים 2.0 — נפח אחסון נמוך',htmlBody:_emailWrap('פרקים ממתינים לאחסון',body)});
+    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"💾 פודקי — שטח האחסון בדרייב עומד להיגמר",htmlBody:_emailWrap("אין מספיק מקום לשמירת פרקים חדשים",body)});
     emailsData.storage.nextSendAt = _daysFromNow(STORAGE_EMAIL_DAYS);
     return true;
-  } catch(e) { Logger.log('⚠️ מייל אחסון נכשל: '+e.message); return false; }
+  } catch(e) { Logger.log("⚠️ שליחת התראת האחסון נכשלה: "+e.message); return false; }
 }
 
 
@@ -1237,7 +1239,7 @@ function sendStorageEmail(sysFolder, emailsData, mainFolder) {
 // =====================================================================
 function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime, mainFolder) {
   _rssList = rssList;
-  var body = '<p>היי! עדכנתי את רשימת הערוצים שלך. ליד כל ערוץ מופיעים סוג ההרשמה וטווח הסריקה. אפשר לשנות מצב בלי ליצור הרשמה כפולה.</p>', details = emailsData.subscriptions.details;
+  var body = "<p>היי! עדכנתי את רשימת הערוצים שלך. ליד כל ערוץ מוצגים סוג ההרשמה וטווח הימים לסריקה. אפשר לשנות את סוג ההרשמה בכל עת, בלי ליצור הרשמה כפולה.</p>", details = emailsData.subscriptions.details;
   rssList.forEach(function(rss) {
     var info = details[rss.url] || {}, reason = '';
     if (new Date() - startTime < TIME_LIMIT_MS - EMAIL_TIME_BUFFER_MS) {
@@ -1245,23 +1247,23 @@ function sendSubscriptionEmail(rssList, sysFolder, emailsData, startTime, mainFo
         var resp = UrlFetchApp.fetch(rss.url,{muteHttpExceptions:true,followRedirects:true});
         if (resp.getResponseCode() !== 200) throw new Error('HTTP '+resp.getResponseCode());
         var ch = XmlService.parse(resp.getContentText('UTF-8')).getRootElement().getChild('channel');
-        if (!ch) throw new Error('RSS לא תקין');
+        if (!ch) throw new Error("כתובת RSS לא תקינה.");
         info = {title:ch.getChildText('title') || rss.url,image:getChannelCoverArtUrl(ch,XmlService.getNamespace(ITUNES_NS_URL))};
         details[rss.url] = info;
       } catch(e) { reason = e.message; }
     }
-    var content = '<p>'+ (rss.notifyOnly ? '🔔 התראות בלבד — פרקים חדשים יופיעו במייל השבועי, ללא הורדה אוטומטית.' : '⬇️ הרשמה רגילה — פרקים חדשים יורדו אוטומטית לדרייב.') +
+    var content = '<p>'+ (rss.notifyOnly ? "🔔 התראות בלבד — פרקים חדשים יופיעו בדוח השבועי, ללא שמירה אוטומטית בדרייב." : "⬇️ שמירה אוטומטית — פרקים חדשים יישמרו אוטומטית בדרייב.") +
       '</p><p>טווח סריקה: '+rss.days+' ימים</p>' +
-      (reason ? '<p>לא ניתן היה לעדכן פרטי ערוץ: '+escapeHtml(reason)+'</p>' : '');
+      (reason ? "<p>לא הצלחתי לעדכן את פרטי הערוץ: "+escapeHtml(reason)+'</p>' : '');
     body += channelCard(info.title || rss.url,rss.url,info.image,content,mainFolder);
   });
-  if (!rssList.length) body += '<p>אין כרגע ערוצים ברשימת ההרשמה.</p>';
+  if (!rssList.length) body += "<p>אין כרגע ערוצים ברשימת ההרשמות שלך.</p>";
   body += buildAddChannelBtn();
   try {
-    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'📋 פודקאסטים 2.0 — רשימת מינויים עודכנה',htmlBody:_emailWrap('עדכון רשימת מינויים',body)});
+    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"📋 פודקי — רשימת הערוצים עודכנה",htmlBody:_emailWrap("רשימת הערוצים עודכנה",body)});
     emailsData.subscriptions.list = rssList.map(function(r) { return {url:r.url,days:r.days,notifyOnly:!!r.notifyOnly}; });
     return true;
-  } catch(e) { Logger.log('⚠️ מייל מינויים נכשל: '+e.message); return false; }
+  } catch(e) { Logger.log("⚠️ שליחת מייל עדכון ההרשמות נכשלה: "+e.message); return false; }
 }
 
 // update initEmailsStructure to include subscriptions.details and emptySubsEmailSent
@@ -1317,7 +1319,7 @@ function checkSentMailbox(sysFolder, mainFolder, queue, rssList, startTime) {
       saveEmailsData(sysFolder,_emailsData);
       entry.message.moveToTrash();
       processed.push(result);
-    } catch(e) { Logger.log('⚠️ עיבוד מייל בקרה נכשל: '+e.message); }
+    } catch(e) { Logger.log("⚠️ עיבוד הודעת המייל לכתובת הבקרה נכשל: "+e.message); }
   });
   return processed;
 }
@@ -1343,7 +1345,7 @@ function removeFromPodcastsFile(sysFolder, urlToRemove) {
     if (merged.order[i] === urlToRemove) { merged.order.splice(i, 1); break; }
   }
   writeMergedPodcastsFile(sysFolder, merged);
-  Logger.log("🗑️  ערוץ הוסר מהרשימה: " + urlToRemove);
+  Logger.log("🗑️ הערוץ הוסר מרשימת ההרשמות: " + urlToRemove);
   return true;
 }
 
@@ -1361,6 +1363,12 @@ function processSubscribeEmail(thread, sysFolder, rssList, mainFolder, startTime
     return {type:current?'subscribe_changed':'subscribe_added',url:parsed.url,notifyOnly:parsed.notifyOnly};
   }
   if (!parsed.query) return null;
+  var pending=_emailsData.pendingSearches && _emailsData.pendingSearches[parsed.query];
+  if(pending && pending.delivery){
+    var count=pending.delivery.count;
+    sendPodcastSearchResultsEmail(parsed.query,[],mainFolder);
+    return {type:'subscribe_search',query:parsed.query,count:count};
+  }
   var results = handleITunesRetry(parsed.query,sysFolder,startTime);
   if (results === null) return {type:'subscribe_search_pending',query:parsed.query};
   if (!results.length) { sendNoResultsEmail(parsed.query); return {type:'subscribe_no_results',query:parsed.query}; }
@@ -1385,7 +1393,7 @@ function addToPodcastsFile(sysFolder, url, comment, days, notifyOnly) {
  * מחזיר מערך תוצאות, null אם שגיאת שרת (יש לנסות שוב), [] אם אין תוצאות (שלח מייל)
  */
 function searchITunesPodcasts(query) {
-  var url  = 'https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=podcast&limit=15&country=IL';
+  var url  = 'https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=podcast&limit=20&country=IL';
   var resp;
   try { resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true }); }
   catch(e) { Logger.log('⚠️  iTunes fetch error: '+e.message); return null; }
@@ -1396,7 +1404,7 @@ function searchITunesPodcasts(query) {
   var data;
   try { data = JSON.parse(resp.getContentText()).results || []; }
   catch(e) { Logger.log('⚠️  iTunes parse error: '+e.message); return null; }
-  return data.filter(function(p){ return !!p.feedUrl; }).map(function(p){
+  return data.filter(function(p){ return !!p.feedUrl; }).slice(0,20).map(function(p){
     return {
       title:        p.trackName || p.collectionName || '',
       author:       p.artistName || '',
@@ -1429,38 +1437,45 @@ function handleITunesRetry(query, sysFolder, startTime) {
 }
 
 function sendITunesErrorEmail(query, attempts) {
-  var body = '<p>לא ניתן היה לחפש פודקאסטים עבור: <strong>'+query+'</strong></p>'
-    +'<p>שגיאת תקשורת עם Apple Podcasts API לאחר '+attempts+' נסיונות.</p>'
-    +'<p>נסה לחפש שוב מאוחר יותר או הכנס כתובת RSS ישירות.</p>'
+  var body = "<p>לא הצלחתי לחפש פודקאסטים עבור: <strong>"+query+'</strong></p>'
+    +"<p>החיפוש ב-Apple Podcasts נכשל לאחר "+attempts+" ניסיונות.</p>"
+    +"<p>אפשר לחפש שוב מאוחר יותר או להזין כתובת RSS ישירות.</p>"
     +'<div style="margin-top:16px;">'+buildAddChannelBtn()+'</div>';
   try {
     podkiSendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '⚠️ פודקאסטים 2.0 — חיפוש נכשל: '+query,
-      htmlBody: _emailWrap('שגיאת חיפוש', body) });
+      subject: "⚠️ פודקי — החיפוש נכשל: "+query,
+      htmlBody: _emailWrap("לא הצלחתי לבצע את החיפוש", body) });
   } catch(e) { Logger.log('⚠️  iTunes error email: '+e.message); }
 }
 
 function sendPodcastSearchResultsEmail(query, results, mainFolder) {
-  var body = '<p>היי! חיפשתי עבורך ערוצים באפל פודקאסטים עבור: <span dir="auto">'+escapeHtml(query)+'</span></p>';
-  results.forEach(function(r) {
-    body += channelCard(r.title,r.rssUrl,r.image,'<p dir="auto">'+escapeHtml(r.author)+
-      (r.episodeCount?' · '+r.episodeCount+' פרקים':'')+'</p>',mainFolder);
-  });
-  body += buildAddChannelBtn();
-  try { podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'🔍 תוצאות חיפוש: '+query,htmlBody:_emailWrap('תוצאות חיפוש פודקאסטים',body)}); }
-  catch(e) { Logger.log('⚠️ מייל חיפוש: '+e.message); }
+  if(!_emailsData.pendingSearches)_emailsData.pendingSearches={};
+  var pending=_emailsData.pendingSearches[query] || {};
+  if(!pending.delivery){
+    results=results.slice(0,20);
+    var intro="<p>היי! חיפשתי ב-Apple Podcasts ערוצים שמתאימים לחיפוש שלך: <span dir=\"auto\">"+escapeHtml(query)+'</span></p>';
+    var blocks=results.map(function(r){return channelCard(r.title,r.rssUrl,r.image,'<p dir="auto">'+escapeHtml(r.author)+
+      (r.episodeCount?' · '+r.episodeCount+' פרקים':'')+'</p>',mainFolder);});
+    pending.delivery={title:"ערוצים שנמצאו בחיפוש",subject:"🔍 פודקי — תוצאות חיפוש: "+query,
+      pages:podkiPackBlocks(blocks,intro,"ערוצים שנמצאו בחיפוש"),next:0,count:results.length};
+    _emailsData.pendingSearches[query]=pending;
+    if(_sysFolder)saveEmailsData(_sysFolder,_emailsData);
+  }
+  podkiSendSearchDelivery(pending.delivery);
+  delete _emailsData.pendingSearches[query];
+  if(_sysFolder)saveEmailsData(_sysFolder,_emailsData);
 }
 
 
 // ── get episode ──
 function sendNoResultsEmail(query) {
-  var body = '<p style="color:#64748b;margin-bottom:16px;">לא נמצאו תוצאות עבור: <strong>'+query+'</strong></p>'
-    +'<p>נסה לחפש עם מילות מפתח שונות (שם מגיש, נושא, שם תוכנית), או הכנס כתובת RSS ישירות.</p>'
+  var body = "<p style=\"color:#64748b;margin-bottom:16px;\">לא מצאתי פודקאסטים שמתאימים לחיפוש: <strong>"+query+'</strong></p>'
+    +"<p>אפשר לנסות שוב עם שם מגיש, נושא, שם תוכנית או מילות חיפוש אחרות, או להזין כתובת RSS ישירות.</p>"
     +'<div style="margin-top:20px;text-align:center;">'+buildAddChannelBtn()+'</div>';
   try {
     podkiSendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '🔍 פודקאסטים 2.0 — לא נמצאו תוצאות: '+query,
-      htmlBody: _emailWrap('אין תוצאות חיפוש', body) });
+      subject: "🔍 פודקי — לא נמצאו תוצאות: "+query,
+      htmlBody: _emailWrap("לא נמצאו ערוצים מתאימים", body) });
   } catch(e) { Logger.log('⚠️  sendNoResultsEmail: '+e.message); }
 }
 
@@ -1523,7 +1538,7 @@ function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder)
         fromSubscription: false  // ערוץ לא ברשימת המינויים
       });
       RET.ok = true; RET.channelTitle = chanTitle; RET.episodeTitle = title;
-      Logger.log('📌 פרק ספציפי נוסף: '+title);
+      Logger.log("📌 פרק נוסף לתור השמירה: "+title);
       return RET;
     }
   } catch(e) { Logger.log('⚠️  addSpecificEpisode: '+e.message); }
@@ -1541,7 +1556,7 @@ function sendProcessedEmailsSummary(items) {
   // שולח מייל רק עבור פרקים ספציפיים שנוספו לתור — שאר הפעולות כבר מקבלות מייל ייעודי
   var episodeItems = (items || []).filter(function(it){ return it.type === 'episode_queued' && it.ok; });
   if (!episodeItems.length) return true;
-  var body = '<p style="color:#64748b;margin-bottom:14px;">הפרקים הבאים נוספו לתור ההורדות לפי בקשתך:</p>';
+  var body = "<p style=\"color:#64748b;margin-bottom:14px;\">קיבלתי את הבקשה שלך לשמירת הפרקים הבאים בדרייב:</p>";
   episodeItems.forEach(function(it){
     body += '<div style="padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.9rem;">'
       +'<span style="font-weight:600;">'+escapeHtml(it.episodeTitle||'פרק')+'</span>'
@@ -1549,13 +1564,13 @@ function sendProcessedEmailsSummary(items) {
       +buildChannelControlButtons(it.channelTitle,it.channelUrl)
       +'</div>';
   });
-  body += '<p style="color:#94a3b8;font-size:.82rem;margin-top:12px;">הפרקים יורדו בריצה הקרובה.</p>';
+  body += "<p style=\"color:#94a3b8;font-size:.82rem;margin-top:12px;\">אנסה לשמור את הפרקים בדרייב בהרצה הקרובה.</p>";
   try {
     podkiSendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: '📥 פודקאסטים 2.0 — '+episodeItems.length+' פרקים נוספו לתור',
-      htmlBody: _emailWrap('פרקים בתור הורדה', body) });
+      subject: "📥 פודקי — התקבלה בקשה לשמירת "+episodeItems.length+" פרקים",
+      htmlBody: _emailWrap("הבקשה לשמירת הפרקים התקבלה", body) });
     return true;
-  } catch(e) { Logger.log('⚠️  סיכום פרקים: '+e.message); return false; }
+  } catch(e) { Logger.log("⚠️ שליחת סיכום הפרקים נכשלה: "+e.message); return false; }
 }
 
 // Subscription parsing is shared by TXT imports and control email subjects.
@@ -1565,7 +1580,7 @@ function parseSubscriptionInput(input) {
     notifyOnly = true;
     text = text.replace(/(?:^|\s)--notify-only$/, '').trim();
   }
-  if (/(?:^|\s)--\S+/.test(text)) return {error:'דגל הרשמה לא מוכר; השתמש ב־--notify-only'};
+  if (/(?:^|\s)--\S+/.test(text)) return {error:"סוג הרשמה לא מוכר. יש להשתמש בסימון --notify-only להתראות בלבד."};
   if (/^https?:\/\//i.test(text)) {
     if (/\s/.test(text)) return {error:'כתובת RSS אינה יכולה להכיל רווחים'};
     return {url:text,notifyOnly:notifyOnly};
@@ -1581,16 +1596,16 @@ function escapeHtml(value) {
 function buildSubscriptionButton(title, rssUrl, notifyOnly) {
   return buildMailtoBtn(notifyOnly ? 'הירשם להתראות בלבד' : 'הירשם', CTRL_SUBSCRIBE,
     rssUrl + (notifyOnly ? ' --notify-only' : ''),
-    'שלח מייל זה '+(notifyOnly?'לקבלת התראות שבועיות בלבד, ללא הורדה אוטומטית':'להפעלת הורדה אוטומטית')+
-    ' עבור הערוץ '+title+'.\n\n'+PRIVACY_NOTE,notifyOnly?'#b45309':'#059669');
+    "כדי "+(notifyOnly?"לקבל התראות שבועיות בלבד, ללא שמירה אוטומטית":"להפעיל שמירה אוטומטית בדרייב")+
+    ' עבור הערוץ '+title+", יש לשלוח את הודעת המייל הזו.\n\n"+PRIVACY_NOTE,notifyOnly?'#b45309':'#059669');
 }
 
 function buildGetEpisodeButton(channelTitle, episodeTitle, rssUrl, guid) {
   if (!rssUrl || !guid) return '';
   return buildMailtoBtn('קבל פרק', CTRL_GET_EPISODE,
     JSON.stringify({channelUrl:rssUrl,episodeGuid:guid}),
-    'שלח מייל זה לבקשת הפרק '+episodeTitle+' מהערוץ '+channelTitle+
-    '. סוג ההרשמה לערוץ לא ישתנה.\n\n'+PRIVACY_NOTE);
+    "כדי לשמור בדרייב את הפרק "+episodeTitle+' מהערוץ '+channelTitle+
+    ", יש לשלוח את הודעת המייל הזו. הבקשה לא תשנה את מצב ההרשמה לערוץ.\n\n"+PRIVACY_NOTE);
 }
 
 function channelCard(title, rssUrl, image, content, mainFolder) {
@@ -1650,18 +1665,20 @@ function reconcileAutomaticQueue(queue, rssList, emailsData) {
 }
 
 function sendInvalidSubscriptionEmail(error) {
-  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'⚠️ פודקאסטים 2.0 — בקשת הרשמה לא תקינה',
-    htmlBody:_emailWrap('לא שינינו את ההרשמה','<p>'+escapeHtml(error)+'</p><p>דוגמה לנושא תקין:</p><pre dir="ltr" style="direction:ltr;text-align:left;">https://example.com/feed.xml --notify-only</pre>')});
+  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"⚠️ פודקי — לא ניתן לעדכן את ההרשמה",
+    htmlBody:_emailWrap("ההרשמה לא עודכנה",'<p>'+escapeHtml(error)+"</p><p>דוגמה לשורת נושא תקינה:</p><pre dir=\"ltr\" style=\"direction:ltr;text-align:left;\">https://example.com/feed.xml --notify-only</pre><p>אפשר לתקן את הבקשה ולשלוח אותה מחדש.</p>")});
 }
 
 
 
-/** Podki feature source; bundled into podcast_processor_v2.js. No GS changes needed. */
+/** Shared Podki mail and request helpers. */
 var PODKI_VERSION = '4.0.1';
 var PODKI_BODY_BYTES = 70 * 1024;
+var PODKI_PAGE_RESERVE_BYTES = 1024; // Leave room for current-run footer links on resumed pages.
 var PODKI_ATTACHMENT_BYTES = 18 * 1024 * 1024;
 var PODKI_REQUEST_BYTES = 2 * 1024 * 1024;
 var PODKI_MAX_SELECTION = 1000;
+var PODKI_HELP_URL = 'https://moshhhhhh.github.io/pod/help.htm';
 var PODKI_ASSETS = 'https://cdn.jsdelivr.net/gh/MOSHHHHHH/pod@main/assets/podki/';
 var _podkiFeedCache = {};
 
@@ -1680,7 +1697,7 @@ function podkiBytes(text) {
 }
 
 function podkiWriteStateFile(folder, name, value) {
-  if (!folder) throw new Error('תיקיית המערכת אינה זמינה לשמירת מצב.');
+  if (!folder) throw new Error("תיקיית המערכת אינה זמינה כרגע לשמירת נתוני ההתקדמות.");
   var it=folder.getFilesByName(name),old=[];
   while(it.hasNext())old.push(it.next());
   // Do not retire the current state until a replacement exists.
@@ -1692,9 +1709,23 @@ function podkiUrl(url) {
   return typeof url === 'string' && /^https?:\/\/[^\s<>"\\]+$/i.test(url) && url.length <= 8192;
 }
 
+function podkiInitMainFolder(mainFolder) {
+  _podkiMainFolderUrl='';
+  try {
+    if(mainFolder && typeof mainFolder.getUrl==='function')_podkiMainFolderUrl=mainFolder.getUrl();
+  }catch(e){Logger.log('⚠️ לא ניתן לאחזר קישור לתיקיית הפודקאסטים: '+e.message);}
+}
+
+function podkiHelpLinks() {
+  var style='display:inline-block;margin:4px;padding:10px 16px;border-radius:10px;background:#1764c0;color:#fff;text-decoration:none;font-weight:bold;';
+  return '<div style="margin-top:22px;padding-top:16px;border-top:2px solid #dbe5f0;">'+
+    '<a href="'+escapeHtml(PODKI_HELP_URL)+'" style="'+style+'">עזרה ומדריך פודקי</a>'+
+    (_podkiMainFolderUrl?'<a href="'+escapeHtml(_podkiMainFolderUrl)+'" style="'+style+'background:#0f766e;">פודקאסטים 2.0 — התיקייה שלי בדרייב</a>':'')+'</div>';
+}
+
 function podkiFooter() {
-  return '<p style="margin:20px 0 8px;">'+buildAddChannelBtn()+buildMailtoBtn('חפש פרק',CTRL_GET_EPISODE,'',
-    'כתוב בנושא המייל את שם הפרק, שם מגיש או מילות החיפוש ושלח. לחיפוש ערוץ השתמש בכפתור הוסף ערוץ.\n\n'+PRIVACY_NOTE,'#1d4ed8')+'</p>'+
+  return podkiHelpLinks()+'<p style="margin:20px 0 8px;">'+buildAddChannelBtn()+buildMailtoBtn('חפש פרק',CTRL_GET_EPISODE,'',
+    "כדי לחפש פרק, כותבים בשורת הנושא את שם הפרק, שם המגיש או מילות חיפוש ושולחים את ההודעה. לחיפוש ערוץ שלם, משתמשים בכפתור ״חפש ערוץ״.\n\n"+PRIVACY_NOTE,'#1d4ed8')+'</p>'+
     '<p style="font-size:12px;color:#64748b;">אני פועל בריצות האוטומטיות של הסקריפט, בדרך כלל פעם בשעה. הטיפול עשוי להימשך כמה שעות. לחיצה על כפתור פותחת מייל מוכן; יש לשלוח אותו כדי לבצע את הפעולה.</p>'+
     '<p style="font-size:11px;color:#64748b;">פקודות וקובצי בחירה שנשלחים לכתובות הבקרה גלויים למנהל השירות ומעובדים אוטומטית בהתאם למדיניות השירות. עריכה ידנית של podcasts.txt אינה שולחת פקודת מייל; דיווח כתובת המשתמש לטופס בכל ריצה נשאר כפי שמוגדר במערכת.</p>';
 }
@@ -1726,9 +1757,11 @@ function podkiSendEmail(message) {
   message.name = 'פודקי — בוט הפודקאסטים שלך';
   message.subject = String(message.subject || 'עדכון מפודקי').replace(/פודקאסטים 2\.0/g,'פודקי');
   if (message.subject.indexOf('פודקי') < 0) message.subject = 'פודקי | '+message.subject;
-  if (!message.body) message.body = 'היי, כאן פודקי. הודעה זו כוללת עדכון על בקשת הפודקאסטים שלך. לצפייה בפרטים ובכפתורי הפעולה פתח אותה בתצוגת HTML. קובץ מצורף, אם קיים, יש להוריד ולפתוח בדפדפן.';
-  if (MailApp.getRemainingDailyQuota && MailApp.getRemainingDailyQuota() < 1) throw new Error('מכסת שליחת המיילים להיום הסתיימה; אנסה שוב בריצה הבאה.');
-  if (message.htmlBody && podkiBytes(message.htmlBody) > 190 * 1024) throw new Error('גוף ההודעה גדול מדי לשליחה בטוחה.');
+  if (!message.body) message.body = "היי, פודקי כאן! 🎧 יש לי עדכון בשבילך בנוגע לפודקאסטים שלך. כדי לצפות בפרטים ובכפתורי הפעולה, יש לפתוח את המייל בתצוגת HTML. אם צורף קובץ HTML, יש להוריד אותו ולפתוח בדפדפן.";
+  if(message.body.indexOf(PODKI_HELP_URL)<0)message.body+='\n\nעזרה ומדריך פודקי: '+PODKI_HELP_URL;
+  if(_podkiMainFolderUrl && message.body.indexOf(_podkiMainFolderUrl)<0)message.body+='\nפודקאסטים 2.0 — התיקייה שלי בדרייב: '+_podkiMainFolderUrl;
+  if (MailApp.getRemainingDailyQuota && MailApp.getRemainingDailyQuota() < 1) throw new Error("מכסת שליחת המיילים היומית הסתיימה. אנסה לשלוח שוב בהרצה הבאה.");
+  if (message.htmlBody && podkiBytes(message.htmlBody) > 190 * 1024) throw new Error("הודעת המייל גדולה מדי לשליחה.");
   MailApp.sendEmail(message);
 }
 
@@ -1744,15 +1777,15 @@ function podkiSelection(data) {
   if (Array.isArray(data)) entries=data;
   else if (data && data.channelUrl && data.episodeGuid) entries=[data];
   else if (data && Array.isArray(data.episodes)) {
-    if (data.version !== undefined && data.version !== 1) throw new Error('גרסת קובץ הבקשה אינה נתמכת. יש לייצא בחירה חדשה מהקטלוג.');
+    if (data.version !== undefined && data.version !== 1) throw new Error("גרסת קובץ הבחירה אינה נתמכת. יש ליצור קובץ בחירה חדש מתוך הקטלוג.");
     entries=data.episodes;
-  } else throw new Error('לא נמצאה בקובץ רשימת פרקים מוכרת. יש לצרף את קובץ ה-JSON שהקטלוג ייצר.');
-  if (!entries.length) throw new Error('קובץ הבחירה ריק. יש לסמן לפחות פרק אחד בקטלוג.');
-  if (entries.length>PODKI_MAX_SELECTION) throw new Error('אפשר לבקש עד '+PODKI_MAX_SELECTION+' פרקים בקובץ אחד. פצל את הבחירה.');
+  } else throw new Error("לא נמצאה בקובץ רשימת פרקים תקינה. יש לצרף את קובץ ה-JSON שנוצר בקטלוג.");
+  if (!entries.length) throw new Error("קובץ הבחירה ריק. יש לבחור לפחות פרק אחד בקטלוג.");
+  if (entries.length>PODKI_MAX_SELECTION) throw new Error('אפשר לבקש עד '+PODKI_MAX_SELECTION+" פרקים בקובץ אחד. יש לפצל את הבחירה לכמה בקשות.");
   var seen={}, episodes=[], errors=[];
   entries.forEach(function(e,i){
     if (!e || !podkiUrl(e.channelUrl) || typeof e.episodeGuid!=='string' || !e.episodeGuid || e.episodeGuid.length>8192) {
-      errors.push('פריט '+(i+1)+': חסרה כתובת RSS תקינה או מזהה פרק.'); return;
+      errors.push('פריט '+(i+1)+': לא נמצאה כתובת RSS תקינה או מזהה פרק.'); return;
     }
     var key=JSON.stringify([e.channelUrl,e.episodeGuid]);
     if (seen[key]) return;
@@ -1772,18 +1805,18 @@ function processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime) {
     var name=a.getName ? a.getName() : 'קובץ';
     var mime=a.getContentType ? a.getContentType() : '';
     if (!/\.json$/i.test(name) && !/application\/(?:[a-z.+-]*\+)?json/i.test(mime)) {
-      errors.push('הקובץ '+name+' אינו קובץ בחירה JSON ולכן לא טופל.'); return;
+      errors.push('הקובץ '+name+" אינו קובץ JSON תקין לבחירת פרקים, ולכן לא טופל."); return;
     }
     try {
-      if (a.getSize && a.getSize()>PODKI_REQUEST_BYTES) throw new Error('הקובץ גדול מ-2MiB. פצל את הבחירה.');
+      if (a.getSize && a.getSize()>PODKI_REQUEST_BYTES) throw new Error("קובץ הבחירה גדול מ־2MiB. יש לפצל את הבחירה לכמה בקשות.");
       var text=a.getDataAsString('UTF-8');
-      if(podkiBytes(text)>PODKI_REQUEST_BYTES) throw new Error('הקובץ גדול מ-2MiB. פצל את הבחירה.');
+      if(podkiBytes(text)>PODKI_REQUEST_BYTES) throw new Error("קובץ הבחירה גדול מ־2MiB. יש לפצל את הבחירה לכמה בקשות.");
       var data=JSON.parse(text.replace(/^\uFEFF/,'')), parsed=podkiSelection(data);
       errors=errors.concat(parsed.errors);
       if(parsed.episodes.length){
         var requestId=data && typeof data.requestId==='string' && data.requestId.length<=200 ? data.requestId : messageId+':'+i;
         if(podkiEnqueueJob('episodes',parsed.episodes,'selection:'+requestId)) jobs++;
-        else errors.push('הבחירה שבקובץ '+name+' כבר נקלטה. לא נוספו הורדות כפולות.');
+        else errors.push('הבחירה שבקובץ '+name+" כבר התקבלה בעבר. לא נוספו בקשות כפולות לשמירת פרקים.");
         attached++;
       }
     }catch(e){errors.push(name+': '+e.message);}
@@ -1795,14 +1828,14 @@ function processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime) {
         var subjectSelection=podkiSelection(JSON.parse(subject));
         errors=errors.concat(subjectSelection.errors);
         if(subjectSelection.episodes.length && podkiEnqueueJob('episodes',subjectSelection.episodes,'subject:'+messageId)) jobs++;
-      } catch(e){errors.push('נושא ההודעה אינו בקשת JSON תקינה: '+e.message);}
+      } catch(e){errors.push("בקשת ה-JSON בשורת הנושא אינה תקינה: "+e.message);}
     }else if(podkiUrl(subject)){
       if(podkiEnqueueJob('catalog',{url:subject},'catalog:'+messageId)) jobs++;
     }else{
       if(podkiEnqueueJob('search',{query:subject.slice(0,500)},'search:'+messageId)) jobs++;
     }
   }
-  if(!subject && !attachments.length) errors.push('לא נמצא קובץ בחירה או נושא לחיפוש. צרף JSON, כתוב מילות חיפוש בנושא, או כתובת RSS לקבלת קטלוג.');
+  if(!subject && !attachments.length) errors.push("לא מצאתי בקשה שניתן לבצע. אפשר לצרף קובץ JSON לבחירת פרקים, לכתוב מילות חיפוש בשורת הנושא, או להזין כתובת RSS לקבלת קטלוג.");
   if(errors.length) podkiEnqueueJob('notice',{errors:errors,accepted:jobs},'notice:'+messageId);
   return {type:'podki_requests',jobs:jobs,attachedSelections:attached,errors:errors.length};
 }
@@ -1810,9 +1843,9 @@ function processGetEpisodeEmail(thread, queue, rssList, mainFolder, startTime) {
 function podkiReadFeed(url) {
   if(_podkiFeedCache[url]) return _podkiFeedCache[url];
   var resp=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
-  if(resp.getResponseCode()!==200) throw new Error('לא ניתן לקרוא את פיד הערוץ (HTTP '+resp.getResponseCode()+').');
+  if(resp.getResponseCode()!==200) throw new Error("לא ניתן לקרוא את פיד הערוץ. קוד שגיאה: HTTP "+resp.getResponseCode()+".");
   var channel=XmlService.parse(resp.getContentText('UTF-8')).getRootElement().getChild('channel');
-  if(!channel) throw new Error('הכתובת אינה פיד RSS נתמך.');
+  if(!channel) throw new Error("הכתובת שסופקה אינה כתובת של פיד RSS נתמך.");
   var ns=XmlService.getNamespace(ITUNES_NS_URL),title=channel.getChildText('title') || url;
   var result={url:url,title:title,image:getChannelCoverArtUrl(channel,ns),channel:channel,episodes:[]};
   var author=channel.getChildText('author',ns) || channel.getChildText('author') || '';
@@ -1842,7 +1875,7 @@ function podkiQueueEpisode(request,queue) {
   }
   if(!episode) return {status:'failed',episodeTitle:request.episodeTitle || request.episodeGuid,
     channelTitle:request.channelTitle || request.channelUrl,channelUrl:request.channelUrl,
-    error:lastError || 'הפרק אינו זמין עוד בפיד, ולא נמצאה כתובת אודיו מאומתת מתוצאות אפל.'};
+    error:lastError || "הפרק כבר אינו זמין בפיד של הערוץ, ולא נמצאה כתובת אודיו מאומתת באמצעות Apple Podcasts."};
   var existing=queue.filter(function(q){return q.url===episode.episodeUrl;})[0];
   var status='queued';
   if(existing){existing.source='manual';existing.rssUrl=request.channelUrl;status='already';}
@@ -1901,39 +1934,40 @@ function podkiPumpJobs(sysFolder,queue,mainFolder,startTime) {
       if(receipts.length>500) receipts.sort(function(a,b){return p.receipts[a]<p.receipts[b]?-1:1;}).slice(0,receipts.length-500).forEach(function(k){delete p.receipts[k];});
       saveEmailsData(sysFolder,_emailsData);
     }catch(e){
-      Logger.log('⚠️ פודקי — משימה ממתינה: '+e.message);
+      Logger.log("⚠️ משימה ממתינה לטיפול בפודקי: "+e.message);
       // Delivery failures must retain completed work; no duplicate downloads on retry.
       job.lastError=e.message;job.attempts=(job.attempts || 0)+1;
-      if(job.type!=='episodes' && job.attempts>=4){job.type='notice';job.payload={accepted:0,errors:['לא הצלחתי להשלים את הבקשה לאחר כמה ניסיונות: '+e.message+'. אפשר לשלוח בקשה חדשה.']};}
+      if(job.type!=='episodes' && !job.searchDelivery && job.attempts>=4){job.type='notice';job.payload={accepted:0,errors:["לא הצלחתי להשלים את הבקשה לאחר כמה ניסיונות. פרטי השגיאה: "+e.message+". אפשר לשלוח את הבקשה מחדש."]};}
       saveEmailsData(sysFolder,_emailsData);break;
     }
   }
 }
 
 function podkiSendNotice(notice) {
-  var body='<p>היי, פודקי כאן. בדקתי את ההודעה שלך.</p>'+
-    (notice.accepted?'<p>'+notice.accepted+' פעולות תקינות נקלטו ויטופלו בנפרד. מצב ההרשמה לערוצים לא השתנה.</p>':'<p>לא נוספה פעולה תקינה מהחלקים המפורטים כאן.</p>')+
+  var body="<p>היי, פודקי כאן! 🎧 בדקתי את הבקשה שלך, ויש כמה פרטים שכדאי לשים לב אליהם.</p>"+
+    (notice.accepted?'<p>'+notice.accepted+' פעולות תקינות נקלטו ויטופלו בנפרד. מצב ההרשמה לערוצים לא השתנה.</p>':"<p>לא זוהתה פעולה תקינה בחלקים המפורטים כאן, ולכן לא נוספו מהם בקשות חדשות.</p>")+
     '<ul>'+notice.errors.map(function(e){return '<li>'+escapeHtml(e)+'</li>';}).join('')+'</ul>'+
-    '<p>לבקשה מרובה, הורד קובץ בחירה מהקטלוג וצרף אותו למייל לכתובת <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. אפשר להשאיר את הנושא ריק. נושא עם טקסט חופשי מבצע גם חיפוש; כתובת RSS בנושא מבקשת גם קטלוג.</p>';
-  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'הבקשה שלך צריכה בדיקה קטנה',htmlBody:_emailWrap('בקשה שדורשת תיקון',body)});
+    "<p>כדי לבקש כמה פרקים יחד, יש להוריד קובץ JSON לבחירת פרקים מהקטלוג ולצרף אותו ידנית למייל לכתובת <a dir=\"ltr\" href=\"mailto:"+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. אפשר להשאיר את הנושא ריק. נושא עם טקסט חופשי מבצע גם חיפוש; כתובת RSS בנושא מבקשת גם קטלוג.</p>';
+  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"⚠️ פודקי — חלק מהבקשה שלך דורש תיקון",htmlBody:_emailWrap("נמצאה בעיה בבקשה שלך",body)});
 }
 
 function podkiSendRequestSummary(results,mainFolder) {
   var queued=results.filter(function(r){return r.status==='queued';}).length,
       existing=results.filter(function(r){return r.status==='already';}).length,
       failed=results.filter(function(r){return r.status==='failed';}).length;
-  var intro='<p>היי! קיבלתי את הבחירה שלך: '+queued+' פרקים נוספו לתור, '+existing+' כבר ממתינים, ו-'+failed+' לא נוספו.</p>'+
-    '<p>זהו אישור קליטה לתור, לא אישור שההורדות הושלמו. ההורדות יתקדמו בריצות האוטומטיות לפי הזמן והמקום הפנוי. קובץ שכבר קיים בדרייב לא יידרס. סוג ההרשמה לכל ערוץ נשאר כפי שהיה.</p>';
-  var blocks=results.map(function(r){return channelCard(r.channelTitle,r.channelUrl,null,
-    '<p dir="auto">'+escapeHtml(r.episodeTitle)+'</p><p>'+({queued:'נוסף לתור',already:'כבר ממתין בתור',failed:'לא נוסף לתור'})[r.status]+
-    (r.error?' — '+escapeHtml(r.error):'')+'</p>',mainFolder);});
-  var pages=podkiPackBlocks(blocks,intro);
+  var intro='<p>היי! קיבלתי את הבחירה שלך: '+queued+" פרקים נוספו לתור, "+existing+' כבר ממתינים, ו-'+failed+' לא נוספו.</p>'+
+    "<p>זהו אישור על קליטת הבקשה לתור, ולא אישור שהפרקים כבר נשמרו בדרייב. השמירה תתקדם בהרצות האוטומטיות, בהתאם לזמן ולמקום הפנוי. קבצים שכבר קיימים בדרייב לא יידרסו, ומצב ההרשמה לערוצים לא ישתנה.</p>";
+  var blocks=podkiGroupedEpisodeCards(results,function(r){
+    return '<p dir="auto">'+escapeHtml(r.episodeTitle)+'</p><p>'+({queued:'נוסף לתור',already:'כבר ממתין בתור',failed:'לא נוסף לתור'})[r.status]+
+    (r.error?' — '+escapeHtml(r.error):'')+'</p>';
+  },mainFolder,intro,"סיכום הבקשה לשמירת פרקים");
+  var pages=podkiPackBlocks(blocks,intro,"סיכום הבקשה לשמירת פרקים");
   // A summary can itself be large. Persist the cursor on the active request job.
   var job=podkiState().jobs[0],cursor=job && job.summaryIndex || 0;
   for(var i=cursor;i<pages.length;i++){
-    if(_podkiRunStart && !hasEnoughTimeForEmails(_podkiRunStart))throw new Error('אישור הבקשה יימשך בריצה הבאה.');
-    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'קיבלתי את הבחירה שלך — '+queued+' פרקים נוספו לתור'+(pages.length>1?' | חלק '+(i+1)+' מתוך '+pages.length:''),
-      htmlBody:_emailWrap('פרקים בתור ההורדה',pages[i])});
+    if(_podkiRunStart && !hasEnoughTimeForEmails(_podkiRunStart))throw new Error("שליחת אישור הבקשה תימשך בהרצה הבאה.");
+    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"📥 פודקי — בקשתך לשמירת "+queued+" פרקים התקבלה"+(pages.length>1?' | חלק '+(i+1)+' מתוך '+pages.length:''),
+      htmlBody:_emailWrap("סיכום הבקשה לשמירת פרקים",pages[i])});
     if(job){job.summaryIndex=i+1;if(_sysFolder) saveEmailsData(_sysFolder,_emailsData);}
   }
 }
@@ -1941,9 +1975,10 @@ function podkiSendRequestSummary(results,mainFolder) {
 function podkiSearchEpisodes(query) {
   var url='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&media=podcast&entity=podcastEpisode&limit=20&country=IL';
   var resp=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
-  if(resp.getResponseCode()!==200) throw new Error('חיפוש הפרקים באפל לא זמין כרגע (HTTP '+resp.getResponseCode()+').');
+  if(resp.getResponseCode()!==200) throw new Error("החיפוש ב-Apple Podcasts אינו זמין כרגע. קוד שגיאה: HTTP "+resp.getResponseCode()+".");
   var data=JSON.parse(resp.getContentText('UTF-8')),rows=data.results || [],results=[],seen={};
   rows.forEach(function(r){
+    if(results.length>=20)return;
     if(_podkiRunStart && !hasEnoughTimeForEmails(_podkiRunStart)) return;
     if(r.kind && r.kind!=='podcast-episode') return;
     var feed=r.feedUrl;
@@ -1968,24 +2003,68 @@ function podkiSearchEpisodes(query) {
 }
 
 function podkiSendEpisodeSearch(query,mainFolder) {
-  var results=podkiSearchEpisodes(query);
-  var body='<p>היי! חיפשתי באפל פודקאסטים את <strong dir="auto">'+escapeHtml(query)+'</strong>.</p>'+
-    (results.length?'<p>מצאתי '+results.length+' תוצאות שניתן לבקש. בחירת פרק אינה רושמת אותך לערוץ.</p>':'<p>לא מצאתי תוצאות עם פרטים מספיקים לבקשת פרק. נסה שם פרק, שם מגיש או מילות חיפוש אחרות.</p>');
-  results.forEach(function(e){
-    var payload={channelUrl:e.channelUrl,episodeGuid:e.episodeGuid,appleTrackId:e.appleTrackId};
-    var content='<h3 dir="auto">'+escapeHtml(e.episodeTitle)+'</h3><p>'+escapeHtml(e.pubDate?formatDate(new Date(e.pubDate)):'')+' · '+escapeHtml(e.duration)+'</p>'+
-      '<p dir="auto">'+escapeHtml(e.description)+'</p>'+buildMailtoBtn('קבל פרק',CTRL_GET_EPISODE,JSON.stringify(payload),
-      'שלח את ההודעה כדי לבקש את הפרק '+e.episodeTitle+'. ההרשמה לערוץ לא תשתנה.\n\n'+PRIVACY_NOTE);
-    body+=channelCard(e.channelTitle,e.channelUrl,e.image,content,mainFolder);
-  });
-  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'מצאתי פרקים עבור ״'+query+'״',htmlBody:_emailWrap('תוצאות חיפוש פרקים',body)});
+  var job=podkiState().jobs[0];
+  if(!job || job.type!=='search' || job.payload.query!==query)job=null;
+  var delivery=job && job.searchDelivery;
+  if(!delivery){
+    var results=podkiSearchEpisodes(query).slice(0,20);
+    var intro="<p>היי! חיפשתי ב-Apple Podcasts פרקים שמתאימים לחיפוש שלך: <strong dir=\"auto\">"+escapeHtml(query)+'</strong>.</p>'+
+      (results.length?'<p>מצאתי '+results.length+" פרקים שאפשר לבקש לשמור בדרייב. בחירת פרק אינה מוסיפה אותך לרשימת המנויים של הערוץ.</p>":"<p>לא מצאתי פרקים עם מספיק מידע כדי לבצע בקשת שמירה. אפשר לנסות שוב עם שם הפרק, שם המגיש או מילות חיפוש אחרות.</p>");
+    var blocks=podkiGroupedEpisodeCards(results,function(e){
+      var payload={channelUrl:e.channelUrl,episodeGuid:e.episodeGuid,appleTrackId:e.appleTrackId};
+      return '<h3 dir="auto">'+escapeHtml(e.episodeTitle)+'</h3><p>'+escapeHtml(e.pubDate?formatDate(new Date(e.pubDate)):'')+' · '+escapeHtml(e.duration)+'</p>'+
+        '<p dir="auto">'+escapeHtml(e.description)+'</p>'+buildMailtoBtn('קבל פרק',CTRL_GET_EPISODE,JSON.stringify(payload),
+        "כדי לשמור בדרייב את הפרק "+e.episodeTitle+", יש לשלוח את הודעת המייל הזו. מצב ההרשמה לערוץ לא ישתנה בעקבות הבקשה.\n\n"+PRIVACY_NOTE);
+    },mainFolder,intro,'תוצאות חיפוש פרקים');
+    delivery={title:'תוצאות חיפוש פרקים',subject:"🔍 פודקי — נמצאו פרקים עבור ״"+query+'״',
+      pages:podkiPackBlocks(blocks,intro,'תוצאות חיפוש פרקים'),next:0};
+    if(job){job.searchDelivery=delivery;if(_sysFolder)saveEmailsData(_sysFolder,_emailsData);}
+  }
+  podkiSendSearchDelivery(delivery);
 }
 
-function podkiPackBlocks(blocks,intro) {
+// Freeze result pages and persist each sent part before moving to the next one.
+function podkiSendSearchDelivery(delivery) {
+  for(var i=delivery.next;i<delivery.pages.length;i++){
+    if(_podkiRunStart && !hasEnoughTimeForEmails(_podkiRunStart))throw new Error('תוצאות החיפוש יישלחו בהמשך בריצה הבאה.');
+    var part=delivery.pages.length>1?' — חלק '+(i+1)+' מתוך '+delivery.pages.length:'';
+    podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:delivery.subject+part,
+      htmlBody:_emailWrap(delivery.title,delivery.pages[i])});
+    delivery.next=i+1;
+    if(_sysFolder)saveEmailsData(_sysFolder,_emailsData);
+  }
+}
+
+// Keep first-seen channel order and episode order within each channel. A feed URL,
+// rather than a display name, identifies a channel; names may be shared by feeds.
+function podkiGroupedEpisodeCards(episodes,renderEpisode,mainFolder,intro,title) {
+  var groups=[],byChannel=Object.create(null),blocks=[];
+  episodes.forEach(function(e){
+    var key=JSON.stringify(e.channelUrl?['feed',e.channelUrl]:['title',e.channelTitle || '']);
+    if(!byChannel[key]){byChannel[key]={title:e.channelTitle,url:e.channelUrl,image:e.image,episodes:[]};groups.push(byChannel[key]);}
+    if(!byChannel[key].image && e.image)byChannel[key].image=e.image;
+    byChannel[key].episodes.push(e);
+  });
+  groups.forEach(function(group){
+    var content='';
+    function card(body){return channelCard(group.title,group.url,group.image,body,mainFolder);}
+    group.episodes.forEach(function(e){
+      var fragment='<div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">'+renderEpisode(e)+'</div>';
+      // Split a very large channel only between episodes, keeping its cards adjacent.
+      if(content && podkiBytes(_emailWrap(title || 'דוח מפודקי',(intro || '')+card(content+fragment)))>PODKI_BODY_BYTES-PODKI_PAGE_RESERVE_BYTES){blocks.push(card(content));content='';}
+      content+=fragment;
+    });
+    if(content)blocks.push(card(content));
+  });
+  return blocks;
+}
+
+function podkiPackBlocks(blocks,intro,title) {
+  title=title || 'דוח מפודקי';
   var pages=[],current=intro || '';
   blocks.forEach(function(block){
-    if(podkiBytes(_emailWrap('דוח מפודקי',current+block))>PODKI_BODY_BYTES && current!==(intro || '')) {pages.push(current);current=intro || '';}
-    if(podkiBytes(_emailWrap('דוח מפודקי',current+block))>PODKI_BODY_BYTES) throw new Error('פריט בודד גדול מדי לדוח; יש לקצר את תיאורו.');
+    if(podkiBytes(_emailWrap(title,current+block))>PODKI_BODY_BYTES-PODKI_PAGE_RESERVE_BYTES && current!==(intro || '')) {pages.push(current);current=intro || '';}
+    if(podkiBytes(_emailWrap(title,current+block))>PODKI_BODY_BYTES-PODKI_PAGE_RESERVE_BYTES) throw new Error("אחד הפריטים גדול מדי להכללה בדוח. יש לקצר את התיאור שלו.");
     current+=block;
   });
   if(current || !pages.length)pages.push(current);
@@ -2004,7 +2083,7 @@ function sendWeeklyEmail(sysFolder,emailsData,rssList,mainFolder) {
           var d=channels[key],title=d.title || key;
           d.items.filter(function(it){return section==='notifications'?it.status==='notification':it.status!=='notification';}).forEach(function(it){
             if(d.rssUrl)active[d.rssUrl]=true;
-            var content='<p><strong>'+(it.status==='notification'?'🔔 פרק חדש — התראות בלבד':it.status==='success'?'✅ הורד לדרייב':'❌ ההורדה נכשלה')+'</strong></p>'+
+            var content='<p><strong>'+(it.status==='notification'?'🔔 פרק חדש — התראות בלבד':it.status==='success'?"✅ נשמר בדרייב":"❌ שמירת הפרק נכשלה")+'</strong></p>'+
               '<p dir="auto">'+escapeHtml(it.episodeTitle)+'</p><p>'+escapeHtml(it.pubDate || '')+' · '+escapeHtml(it.duration || '')+'</p>'+
               (it.fileUrl?'<p><a href="'+escapeHtml(it.fileUrl)+'">פתח את הפרק בדרייב</a></p>':'')+
               (it.error?'<p dir="auto">'+escapeHtml(String(it.error).slice(0,1000))+'</p>':'')+
@@ -2014,8 +2093,8 @@ function sendWeeklyEmail(sysFolder,emailsData,rssList,mainFolder) {
         });
       });
       rssList.filter(function(r){return !active[r.url];}).forEach(function(r){var info=emailsData.subscriptions.details[r.url] || {};
-        blocks.push(channelCard(info.title || r.url,r.url,info.image,'<p>אין פעילות בדוח השבוע. מצב המינוי: '+(r.notifyOnly?'התראות בלבד':'הורדה אוטומטית')+'.</p>',mainFolder));});
-      var intro='<p>היי! הנה השבוע שלך עם פודקי: '+counts.success+' פרקים הורדו, '+counts.notification+' פרקים חדשים להתראות בלבד'+(counts.failed?', ו-'+counts.failed+' הורדות נכשלו':'')+'.</p>';
+        blocks.push(channelCard(info.title || r.url,r.url,info.image,"<p>לא נרשמה פעילות בערוץ השבוע. מצב ההרשמה: "+(r.notifyOnly?'התראות בלבד':"שמירה אוטומטית בדרייב")+'.</p>',mainFolder));});
+      var intro="<p>השבוע שלך עם פודקי 🎧: "+counts.success+" פרקים נשמרו בדרייב, "+counts.notification+' פרקים חדשים להתראות בלבד'+(counts.failed?', ו-'+counts.failed+" פרקים לא נשמרו":'')+'.</p>';
       weekly.delivery={id:String(Date.now()),pages:podkiPackBlocks(blocks,intro),next:0,createdAt:new Date().toISOString()};
       // Freeze only this snapshot. New scans accumulate in a fresh weekly.channels map.
       weekly.channels={};
@@ -2025,12 +2104,12 @@ function sendWeeklyEmail(sysFolder,emailsData,rssList,mainFolder) {
     for(var i=delivery.next;i<delivery.pages.length;i++){
       if(_podkiRunStart && !hasEnoughTimeForEmails(_podkiRunStart))return false;
       var part='חלק '+(i+1)+' מתוך '+delivery.pages.length;
-      podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'השבוע שלך עם פודקי 🎧 — '+part,
-        htmlBody:_emailWrap('סיכום שבועי — '+part,delivery.pages[i]+'<p>'+part+' של הדוח. פרקים שנסרקו לאחר הכנת הדוח יישמרו לדוח הבא.</p>')});
+      podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"🎧 פודקי — הסיכום השבועי שלך — "+part,
+        htmlBody:_emailWrap("הסיכום השבועי שלך — "+part,delivery.pages[i]+"<p>פרקים שזוהו לאחר הכנת הדוח ייכללו בדוח הבא.</p>")});
       delivery.next=i+1;saveEmailsData(sysFolder,emailsData);
     }
     weekly.nextSendAt=_nextThursday();delete weekly.delivery;saveEmailsData(sysFolder,emailsData);return true;
-  }catch(e){Logger.log('⚠️ פודקי — משלוח הדוח יימשך בריצה הבאה: '+e.message);return false;}
+  }catch(e){Logger.log("⚠️ שליחת הדוח השבועי תימשך בהרצה הבאה: "+e.message);return false;}
 }
 
 function shouldSendWeeklyEmail(emailsData) {
@@ -2039,11 +2118,11 @@ function shouldSendWeeklyEmail(emailsData) {
 
 function sendEpisodeCatalogEmail(channelUrl,startTime) {
   var feed=podkiReadFeed(channelUrl),html=podkiCatalogHtml(feed),catalogName='קטלוג פודקי '+(sanitizeFileName(feed.title) || 'ערוץ')+'.html',blob=Utilities.newBlob(html,'text/html',catalogName);
-  var intro='<p>היי! אספתי עבורך '+feed.episodes.length+' פרקים זמינים בפיד של <strong dir="auto">'+escapeHtml(feed.title)+'</strong>.</p>'+
-    '<p>הקטלוג כולל את הפרקים שהמפרסם מספק כרגע בפיד, ולא בהכרח את כל הפרקים שפורסמו בעבר. חלק מהתיאורים מקוצרים.</p>';
-  var instructions='<p><strong>לבחירה מרובה:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, חפש וסמן פרקים, הורד את קובץ הבחירה „הקבצים שבחרתי.json” וצרף אותו למייל לכתובת <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. אם תכתוב טקסט בנושא, אבצע גם חיפוש; כתובת RSS בנושא תבקש גם קטלוג.</p>'+
+  var intro="<p>היי! הכנתי עבורך קטלוג של "+feed.episodes.length+" פרקים הזמינים כרגע בערוץ <strong dir=\"auto\">"+escapeHtml(feed.title)+"</strong>. 🎧</p>"+
+    "<p>הקטלוג כולל את הפרקים שהמפרסם מספק כרגע בפיד, ולא בהכרח את כל פרקי העבר. תיאורי הפרקים עשויים להיות מקוצרים.</p>";
+  var instructions='<p><strong>לבחירה מרובה:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, חפש וסמן פרקים, הורד את קובץ הבחירה „הקבצים שבחרתי.json”, פתח מייל וצרף אליו ידנית את הקובץ. יש לשלוח אותו לכתובת <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. אם תכתוב טקסט בנושא, אבצע גם חיפוש; כתובת RSS בנושא תבקש גם קטלוג.</p>'+
     '<p>הקטלוג אינטראקטיבי לאחר פתיחה בדפדפן, לא בתצוגה המקדימה של Gmail. באנדרואיד יש להוריד ולפתוח בדפדפן שתומך בקובצי HTML מקומיים. הכפתור לפתיחת מייל אינו מצרף את הקובץ אוטומטית.</p>'+
-    '<p>ההורדות ייכנסו לתור; בחירת פרקים אינה משנה את המינוי לערוץ.</p>';
+    '<p>הבקשות לשמירת הפרקים ייכנסו לתור; בחירת פרקים אינה משנה את מצב ההרשמה לערוץ.</p>';
   var inline='',inlineFits=true;
   for(var ei=0;ei<feed.episodes.length;ei++){
     var e=feed.episodes[ei];
@@ -2052,16 +2131,16 @@ function sendEpisodeCatalogEmail(channelUrl,startTime) {
   }
   var body=intro+instructions,attachments=[];
   if(blob.getBytes().length<=PODKI_ATTACHMENT_BYTES){
-    attachments.push(blob);body+='<p>מצורף: <strong dir="auto">'+escapeHtml(catalogName)+'</strong>. אפשר לחפש ולבחור בו גם ללא חיבור לרשת.</p>';
+    attachments.push(blob);body+="<p>מצורף הקטלוג <strong dir=\"auto\">"+escapeHtml(catalogName)+"</strong>. אפשר לחפש ולבחור בו פרקים גם ללא חיבור לאינטרנט.</p>";
   }else{
     if(!_sysFolder)throw new Error('תיקיית המערכת אינה זמינה לשמירת קטלוג גדול.');
     var saved=_sysFolder.createFile(catalogName,html,'text/html');
     body+='<p>הקטלוג גדול מדי לצירוף בטוח. שמרתי אותו בדרייב שלך ללא פתיחת שיתוף ציבורי: <a href="'+escapeHtml(saved.getUrl())+'">הורד את הקטלוג מהדרייב</a>.</p>';
   }
-  if(inlineFits && podkiBytes(_emailWrap('קטלוג',body+inline))<=PODKI_BODY_BYTES)body+='<h2>הפרקים זמינים גם כאן</h2>'+inline;
-  else body+='<p>הרשימה ארוכה ולכן מופיעה בקטלוג בלבד; נשלחת הודעה אחת במקום כמה הודעות קטלוג.</p>';
+  if(inlineFits && podkiBytes(_emailWrap('קטלוג',body+inline))<=PODKI_BODY_BYTES)body+="<h2>אפשר לצפות בפרקים גם כאן:</h2>"+inline;
+  else body+="<p>הרשימה ארוכה מדי להצגה במייל. כל הפרקים מופיעים בקטלוג המצורף, שנשלח בהודעה אחת.</p>";
   body=channelCard(feed.title,feed.url,feed.image,body,null);
-  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:'הקטלוג של ״'+feed.title+'״ מוכן 📚',htmlBody:_emailWrap('הקטלוג שלך',body),attachments:attachments});
+  podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"📚 פודקי — הקטלוג של ״"+feed.title+"״ מוכן",htmlBody:_emailWrap("קטלוג הפרקים שלך",body),attachments:attachments});
   return true;
 }
 
@@ -2075,7 +2154,7 @@ function podkiCatalogHtml(feed) {
     '<header><h1>הקטלוג שלך עם פודקי 🎧</h1><p>'+escapeHtml(feed.title)+'</p><p class="muted">כל הפרקים הזמינים בפיד בעת יצירת הקטלוג. התיאורים עשויים להיות מקוצרים. אפשר לחפש ולבחור ללא רשת.</p></header>'+
     '<details class="help"><summary>איך מבקשים כמה פרקים?</summary><ol><li>סמן פרקים והורד את הקובץ „הקבצים שבחרתי.json”.</li><li>פתח מייל לכתובת <span dir="ltr">'+CTRL_GET_EPISODE+'</span>.</li><li>צרף את קובץ ה-JSON ושלח. אין צורך בנושא מיוחד; אפשר להשאיר אותו ריק.</li></ol><p>נושא עם טקסט חופשי יבצע גם חיפוש. כתובת RSS בנושא תבקש גם קטלוג. לחיצה על פתיחת מייל אינה מצרפת קובץ אוטומטית. הבקשה תטופל בריצות האוטומטיות ולא תשנה את המינוי לערוץ.</p><p class="muted">קובץ הבחירה כולל רק את הפרקים שסימנת, ויהיה גלוי למנהל כתובת הבקרה לאחר שליחתו.</p></details>'+
     '<section class="search-panel"><label for="search">חיפוש בכותרות ובתיאורים</label><input id="search" type="search" placeholder="שם פרק, נושא או מילה מהתיאור"><div class="tools"><select id="sort" aria-label="מיון"><option value="relevance">התאמה לחיפוש</option><option value="new">מהחדש לישן</option><option value="old">מהישן לחדש</option><option value="title">לפי כותרת</option></select><button class="secondary" id="select-visible">בחר תוצאות מוצגות</button><button class="secondary" id="clear">נקה בחירה</button><label class="filter"><input id="only-selected" type="checkbox"> רק הפרקים שבחרתי</label></div><p class="muted">בחיפוש, התאמות בכותרת מופיעות ראשונות. הבחירה נשמרת כשמשנים חיפוש או מיון.</p><p id="count" role="status" aria-live="polite"></p></section><div id="list"></div>'+
-    '<div class="sticky"><strong id="selected" aria-live="polite"></strong><div class="tools"><button id="download" disabled>הורד את הבחירה</button><button id="share" hidden>שתף את הבחירה</button><a class="action" href="mailto:'+CTRL_GET_EPISODE+'">פתח מייל לשליחת הבקשה</a></div><p class="muted">צרף את „הקבצים שבחרתי.json” למייל אל <a dir="ltr" href="mailto:'+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+'</a>. פתיחת מייל אינה מצרפת את הקובץ.</p><p id="notice" class="muted" aria-live="polite"></p></div>'+
+    '<div class="sticky"><strong id="selected" aria-live="polite"></strong><div class="tools"><button id="download" disabled>הורד את הבחירה</button><button id="share" hidden>שתף את הבחירה</button><a class="action" href="mailto:'+CTRL_GET_EPISODE+"\">פתח מייל לשליחת הבקשה</a></div><p class=\"muted\">יש לצרף ידנית את „הקבצים שבחרתי.json” למייל אל <a dir=\"ltr\" href=\"mailto:"+CTRL_GET_EPISODE+'">'+escapeHtml(CTRL_GET_EPISODE)+"</a>. פתיחת המייל אינה מצרפת את הקובץ באופן אוטומטי.</p><p id=\"notice\" class=\"muted\" aria-live=\"polite\"></p></div>"+
     '<script type="application/json" id="catalog-data">'+data+'</script><script>('+podkiCatalogClient.toString()+')();</script></main></body></html>';
 }
 
@@ -2103,14 +2182,14 @@ function podkiCatalogClient() {
     var cursor=0;merged.forEach(function(r){var before=document.createElement('span'),mark=document.createElement('mark');before.textContent=text.slice(cursor,r[0]);mark.textContent=text.slice(r[0],r[1]);node.append(before,mark);cursor=r[1];});
     var tail=document.createElement('span');tail.textContent=text.slice(cursor);node.append(tail);
   }
-  function counts(){ $('selected').textContent='נבחרו '+selected.size+' פרקים'+(selected.size?' · מוכנים לשליחה':' · סמן פרקים כדי להתחיל');$('download').disabled=!selected.size;$('share').disabled=!selected.size; }
+  function counts(){ $('selected').textContent='נבחרו '+selected.size+' פרקים'+(selected.size?' · מוכנים לשליחה':" · סמנו פרקים כדי להתחיל");$('download').disabled=!selected.size;$('share').disabled=!selected.size; }
   function render(){
-    visible=filtered();$('list').replaceChildren();$('count').textContent='נמצאו '+visible.length+' פרקים מתוך '+data.episodes.length;
+    visible=filtered();$('list').replaceChildren();$('count').textContent="מוצגים "+visible.length+' פרקים מתוך '+data.episodes.length;
     $('select-visible').disabled=!visible.length;
-    if(!visible.length){var empty=document.createElement('p');empty.className='empty';empty.textContent=$('only-selected').checked?'אין פרקים נבחרים התואמים לחיפוש. אפשר לבטל את הסינון או לשנות את החיפוש.':'לא נמצאו פרקים. נסה מילה אחרת או חיפוש קצר יותר.';$('list').append(empty);}
+    if(!visible.length){var empty=document.createElement('p');empty.className='empty';empty.textContent=$('only-selected').checked?"לא נמצאו פרקים נבחרים שמתאימים לחיפוש. אפשר לשנות את החיפוש או לבטל את הסינון.":"לא נמצאו פרקים שמתאימים לחיפוש. נסו מילות חיפוש אחרות או חיפוש קצר יותר.";$('list').append(empty);}
     visible.slice(0,shown).forEach(function(x){var card=document.createElement('article');card.className='card'+(selected.has(x.i)?' selected':'');var label=document.createElement('label'),check=document.createElement('input');
-      check.type='checkbox';check.checked=selected.has(x.i);check.setAttribute('aria-label','בחר '+x.e.episodeTitle);
-      check.onchange=function(){if(check.checked){if(selected.size>=1000){check.checked=false;$('notice').textContent='אפשר לבחור עד 1000 פרקים בקובץ אחד.';return;}selected.add(x.i);}else selected.delete(x.i);card.className='card'+(check.checked?' selected':'');if($('only-selected').checked)render();else counts();};
+      check.type='checkbox';check.checked=selected.has(x.i);check.setAttribute('aria-label',"בחר את הפרק "+x.e.episodeTitle);
+      check.onchange=function(){if(check.checked){if(selected.size>=1000){check.checked=false;$('notice').textContent="אפשר לבחור עד 1,000 פרקים בבקשה אחת.";return;}selected.add(x.i);}else selected.delete(x.i);card.className='card'+(check.checked?' selected':'');if($('only-selected').checked)render();else counts();};
       var text=document.createElement('div'),title=document.createElement('strong'),meta=document.createElement('p'),desc=document.createElement('p');
       title.dir='auto';highlight(title,x.e.episodeTitle);meta.className='muted';meta.textContent=(x.e.pubDate?new Date(x.e.pubDate).toLocaleDateString('he-IL'):'ללא תאריך')+' · '+(x.e.duration || '');desc.className='desc';desc.dir='auto';highlight(desc,x.e.description);
       text.append(title,meta,desc);label.append(check,text);card.append(label);$('list').append(card);});
@@ -2120,11 +2199,11 @@ function podkiCatalogClient() {
   function file(){return new File([JSON.stringify(payload(),null,2)],'הקבצים שבחרתי.json',{type:'application/json'});}
   $('search').oninput=function(){shown=pageSize;render();};$('sort').onchange=render;$('only-selected').onchange=function(){shown=pageSize;render();};
   $('clear').onclick=function(){selected.clear();render();};
-  $('select-visible').onclick=function(){visible.slice(0,shown).forEach(function(x){if(selected.size<1000)selected.add(x.i);});if(selected.size>=1000)$('notice').textContent='אפשר לבחור עד 1000 פרקים בקובץ אחד.';render();};
-  $('download').onclick=function(){if(!selected.size)return;var f=file(),url=URL.createObjectURL(f),a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},10000);$('notice').textContent='הקובץ „הקבצים שבחרתי.json” הורד. צרף אותו למייל אל '+data.recipient+' ושלח; אפשר להשאיר את הנושא ריק.';};
+  $('select-visible').onclick=function(){visible.slice(0,shown).forEach(function(x){if(selected.size<1000)selected.add(x.i);});if(selected.size>=1000)$('notice').textContent="אפשר לבחור עד 1,000 פרקים בבקשה אחת.";render();};
+  $('download').onclick=function(){if(!selected.size)return;var f=file(),url=URL.createObjectURL(f),a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},10000);$('notice').textContent="הקובץ „הקבצים שבחרתי.json” הורד בהצלחה. יש לצרף אותו למייל שיישלח לכתובת "+data.recipient+". אפשר להשאיר את שורת הנושא ריקה.";};
   if(navigator.share && navigator.canShare && typeof File!=='undefined'){
     try{if(navigator.canShare({files:[new File(['{}'],'הקבצים שבחרתי.json',{type:'application/json'})]}))$('share').hidden=false;}catch(ignore){}
-    $('share').onclick=async function(){if(!selected.size){$('notice').textContent='בחר לפחות פרק אחד.';return;}try{await navigator.share({files:[file()]});$('notice').textContent='בחר ביישום המייל ושלח אל '+data.recipient+'. אפשר להשאיר את הנושא ריק.';}catch(e){$('notice').textContent='השיתוף לא הושלם. אפשר להשתמש בהורדת JSON ולצרף אותו ידנית.';}};
+    $('share').onclick=async function(){if(!selected.size){$('notice').textContent="יש לבחור לפחות פרק אחד.";return;}try{await navigator.share({files:[file()]});$('notice').textContent="בחרו את יישום המייל ושלחו את ההודעה לכתובת "+data.recipient+". אפשר להשאיר את שורת הנושא ריקה.";}catch(e){$('notice').textContent="השיתוף לא הושלם. אפשר להוריד את קובץ ה-JSON ולצרף אותו למייל באופן ידני.";}};
   }
   render();
 }

@@ -1,0 +1,2490 @@
+{
+  "description": "Hebrew source string literals, including HTML, technical log strings and error messages. Static HTML page content is documented in system-texts.md.",
+  "strings": [
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 31,
+      "context": "קבועים ואתחול",
+      "category": "copy",
+      "text": "שים לב: מיילים הנשלחים לכתובות אלו נאספים ומעובדים אוטומטית בהתאם למדיניות השירות."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 52,
+      "context": "main",
+      "category": "log",
+      "text": "⏸️ ריצה אחרת פעילה; ממשיכים בשעה הבאה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 61,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "🚀 פודקאסטים v2 — "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 73,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": " פריטים בתור."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 100,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⚠️  רשימת ערוצים ריקה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 107,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "📋 נטענו "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 107,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": " כתובות RSS."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 110,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⏰ מגבלת זמן בסריקה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 115,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "❌ סריקה "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 118,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": " פרקים בתור."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 126,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⏰ מגבלת זמן — עוצר הורדות."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 130,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⏸️ פריט ישן ללא זיהוי ערוץ ודאי ממתין לסריקה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 134,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "🔁 קיים: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 138,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "💾 נפח נמוך — דוחה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 141,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": " (ממשיך)"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 160,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⏸️  הושהה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 165,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "❌ ניסיון "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 173,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "📥 הורדו בריצה זו: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 180,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": " פרקים בתור."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 192,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⏰ אין מספיק זמן לשליחת מיילים — יטופלו בריצה הבאה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 201,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": "⏰ סיכום פרקים ידחה לריצה הבאה ("
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 201,
+      "context": "runPodcastMain",
+      "category": "log",
+      "text": " פרקים)."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 214,
+      "context": "scanFeed",
+      "category": "log",
+      "text": "🔍 סורק: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 218,
+      "context": "scanFeed",
+      "category": "error",
+      "text": "קוד תגובה "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 224,
+      "context": "scanFeed",
+      "category": "error",
+      "text": "לא נמצא אלמנט <channel>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 227,
+      "context": "scanFeed",
+      "category": "copy",
+      "text": "פודקאסט_ללא_שם"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 233,
+      "context": "scanFeed",
+      "category": "log",
+      "text": "🎙️  ערוץ: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 233,
+      "context": "scanFeed",
+      "category": "log",
+      "text": " (מ-"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 233,
+      "context": "scanFeed",
+      "category": "log",
+      "text": " הימים האחרונים)"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 252,
+      "context": "scanFeed",
+      "category": "copy",
+      "text": "פרק_"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 326,
+      "context": "scanFeed",
+      "category": "log",
+      "text": " פרקים חדשים נוספו לתור מערוץ זה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 342,
+      "context": "loadStatusQueue",
+      "category": "log",
+      "text": "⚠️  קובץ תור פגום, מתעלם: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 361,
+      "context": "sendFailureEmail",
+      "category": "copy",
+      "text": "⚠️ פרק לא הורד אחרי "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 361,
+      "context": "sendFailureEmail",
+      "category": "copy",
+      "text": " נסיונות — "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 362,
+      "context": "sendFailureEmail",
+      "category": "copy",
+      "text": "הורדת פרק נכשלה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 363,
+      "context": "sendFailureEmail",
+      "category": "copy",
+      "text": "</p><p>שגיאה אחרונה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 364,
+      "context": "sendFailureEmail",
+      "category": "log",
+      "text": "⚠️ שליחת מייל כשלון נכשלה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 389,
+      "context": "parsePodcastsFiles",
+      "category": "error",
+      "text": "לא ניתן לקרוא קובץ מינויים: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 420,
+      "context": "writeMergedPodcastsFile",
+      "category": "copy",
+      "text": "# רשימת פודקאסטים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 447,
+      "context": "mergePodcastsFiles",
+      "category": "log",
+      "text": "🔀 נמצאו "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 447,
+      "context": "mergePodcastsFiles",
+      "category": "log",
+      "text": " קבצי "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 447,
+      "context": "mergePodcastsFiles",
+      "category": "log",
+      "text": " — ממזג..."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 450,
+      "context": "mergePodcastsFiles",
+      "category": "log",
+      "text": "✅ מיזוג הושלם: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 450,
+      "context": "mergePodcastsFiles",
+      "category": "log",
+      "text": " ערוצים ייחודיים בקובץ אחד."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 472,
+      "context": "ensureRssFileExists",
+      "category": "log",
+      "text": "⏳ קובץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 472,
+      "context": "ensureRssFileExists",
+      "category": "log",
+      "text": " חסר בתיקייה 'קבצי מערכת'."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 473,
+      "context": "ensureRssFileExists",
+      "category": "copy",
+      "text": "# רשימת פודקאסטים\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 474,
+      "context": "ensureRssFileExists",
+      "category": "log",
+      "text": "📄 נוצר קובץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 474,
+      "context": "ensureRssFileExists",
+      "category": "log",
+      "text": " ריק."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 487,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "# הרשמה רגילה — הורדה אוטומטית\nhttps://example.com/regular/feed.xml\n\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 488,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "# התראות בלבד — ללא הורדה אוטומטית\nhttps://example.com/alerts/feed.xml --notify-only\n\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 489,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "# התראות בלבד, עם סריקה של 30 ימים לאחור\nhttps://example.com/month/feed.xml --notify-only\n30"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 490,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p><strong>היי, נעים להכיר — אני פודקי 🎧</strong></p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 491,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>אני בוט הפודקאסטים שלך, ופועל בחשבון Google שלך בריצות אוטומטיות פעם בשעה. אפשר להתחיל בהוספת ערוץ באמצעות הכפתור הבא. בנושא המייל שייפתח יש להזין כתובת RSS או שם פודקאסט לחיפוש, ולשלוח.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 493,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">איך רוצים לעקוב אחר הערוצים?</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 494,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p><strong>הירשם</strong> — פרקים חדשים יורדו אוטומטית לתיקיית הערוץ בדרייב.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 495,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p><strong>הירשם להתראות בלבד</strong> — פרקים חדשים יופיעו במייל השבועי, ללא הורדה אוטומטית. ליד כל פרק יופיע <strong>קבל פרק</strong>, כדי לבקש רק את הפרקים הרצויים לך.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 496,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>אפשר לשנות את סוג ההרשמה או להסיר ערוץ באמצעות הכפתורים שלידו במיילים. הכפתור קבל פרק אינו משנה את סוג ההרשמה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 497,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">רוצים לבחור מתוך פרקים קודמים?</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 498,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>הכפתור <strong>קבל פרקים</strong> שליד כל ערוץ שולח קטלוג של הפרקים הזמינים כרגע בפיד. בקטלוג קצר אפשר לבקש פרק בודד ישירות מהמייל. בכל קטלוג מצורף גם קובץ HTML לחיפוש בכותרות ובתיאורים, מיון ובחירת כמה פרקים יחד. קטלוג גדול במיוחד נשמר בדרייב שלך ונשלח קישור פרטי להורדתו.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 499,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p><strong>בקשה של כמה פרקים:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, סמן פרקים והורד את קובץ הבחירה JSON. פתח מייל לכתובת קבלת הפרקים באמצעות הכפתור בקטלוג, צרף אליו את ה-JSON ושלח. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. פתיחת מייל אינה מצרפת את הקובץ אוטומטית. ניתן לבחור עד 1,000 פרקים בקובץ אחד; בקשות גדולות יטופלו בהדרגה בין ריצות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 500,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>יש לפתוח את ה-HTML בדפדפן ולא בתצוגה המקדימה של Gmail. באנדרואיד יש להשתמש בדפדפן שתומך בקובצי HTML מקומיים. התיאורים עשויים להיות מקוצרים, והקטלוג אינו מבטיח לכלול פרקים ישנים שהמפרסם הסיר מהפיד.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 501,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">חיפוש פרק מסוים</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 502,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>לחץ על <strong>חפש פרק</strong> בתחתית כל הודעה, כתוב בנושא שם פרק, שם מגיש או מילות חיפוש ושלח. אחפש פרקים באפל פודקאסטים ואשלח תוצאות עם כפתור קבל פרק. הזמינות תלויה בקטלוג של אפל ובמפרסם. לחיפוש ערוץ שלם השתמש בהוסף ערוץ.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 503,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>קובצי JSON מזוהים אוטומטית. נושא ההודעה נבדק בנפרד גם כשמצורף קובץ: טקסט חופשי יבצע בנוסף חיפוש, כתובת RSS תבקש בנוסף קטלוג, ובקשת JSON בנושא תמשיך לפעול כבעבר. בחירת פרקים אינה משנה את המינוי לערוץ.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 504,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">ניהול ידני בדרייב</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 505,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>אפשר לערוך את הקובץ <span dir=\"ltr\">podcasts.txt</span> בתיקיית פודקאסטים 2.0, בתוך תיקיית קבצי מערכת.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 506,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>להרשמה רגילה מוסיפים כתובת RSS בשורה נפרדת. להתראות בלבד מוסיפים בסוף אותה שורה רווח ואת הדגל <span dir=\"ltr\">--notify-only</span>. אפשר להשתמש באותו דגל גם בסוף נושא מייל ההרשמה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 507,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>בשורה שאחרי כתובת הערוץ אפשר להוסיף מספר ימים לסריקה לאחור. ברירת המחדל היא שבעה ימים. שורות שמתחילות בסימן # הן הערות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 508,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p><strong>דוגמת קובץ TXT תקינה מבחינת התחביר:</strong></p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 510,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>הכתובות בדוגמה הן להמחשה בלבד. יש להחליף אותן בכתובות RSS אמיתיות של הערוצים שלך.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 511,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">הדיווח השבועי</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 512,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>המייל השבועי יכלול דוח הורדות ופרקים חדשים מערוצי התראות בלבד, עם הבחנה ברורה ביניהם. דוח ארוך יפוצל להודעות ממוספרות; אם השליחה נעצרת, היא תימשך מהחלק הבא בריצה הבאה. לאחר הרשמה, הסריקה הראשונה כוללת את טווח הימים המוגדר לערוץ.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 513,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">כדאי לדעת</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 514,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>הטיפול בבקשות מתבצע בריצות האוטומטיות, ולכן עשוי להימשך מספר שעות. אפשר לשלוח כמה בקשות בלי להמתין לטיפול בקודמת. ניתן להריץ ידנית את הפונקציה <span dir=\"ltr\">setUp</span> בפרויקט Apps Script.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 515,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>אפשר למחוק קובצי פרקים שכבר הורדת. חשוב לשמור את תיקיית <strong>קבצי מערכת</strong>, שבה נמצאים המינויים, ההיסטוריה וההתקדמות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 516,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>לא קיבלת מייל? בדוק ספאם וקידומים ואת הרשאות הפרויקט. ביומן הרצות בפרויקט אפשר לבדוק אם התרחשה שגיאה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 517,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<h2 style=\"font-size:18px;\">פרטיות</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 518,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "<p>פקודות המייל מעובדות מתוך תיבת נשלח. מיילים לכתובות הבקרה הייעודיות גלויים למנהל השירות ונאספים בהתאם למדיניות הפרטיות. עריכה ידנית של קובץ המינויים אינה שולחת פקודת מייל; איסוף כתובת המייל בכל ריצה, כפי שמתואר במדיניות הקיימת, ממשיך לחול.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 520,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "🎉 פודקאסטים 2.0 — המערכת מוכנה לשימוש"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 520,
+      "context": "sendMissingRssFileEmail",
+      "category": "copy",
+      "text": "ברוכים הבאים למערכת"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 521,
+      "context": "sendMissingRssFileEmail",
+      "category": "log",
+      "text": "⚠️ מייל ברוך הבא נכשל: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 547,
+      "context": "downloadAndSaveAudio",
+      "category": "log",
+      "text": "⚠️  בדיקת גודל נכשלה, מנסה הורדה רגילה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 554,
+      "context": "downloadAndSaveAudio",
+      "category": "log",
+      "text": "📦 קובץ גדול: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 556,
+      "context": "downloadAndSaveAudio",
+      "category": "log",
+      "text": "⚠️  השרת לא תומך ב-Range. מנסה הורדה רגילה בכל זאת..."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 605,
+      "context": "downloadChunked",
+      "category": "copy",
+      "text": "פתיחת Resumable Upload נכשלה: HTTP "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 608,
+      "context": "downloadChunked",
+      "category": "copy",
+      "text": "חסר Location header"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 612,
+      "context": "downloadChunked",
+      "category": "log",
+      "text": " | התחלה מ-"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 617,
+      "context": "downloadChunked",
+      "category": "log",
+      "text": "⏰ מגבלת זמן — משהה chunked download ב-"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 637,
+      "context": "downloadChunked",
+      "category": "copy",
+      "text": "הורדת chunk נכשלה: HTTP "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 659,
+      "context": "downloadChunked",
+      "category": "copy",
+      "text": "העלאת chunk נכשלה: HTTP "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 674,
+      "context": "getOrCreateFolder",
+      "category": "log",
+      "text": "📂 יוצר תיקייה חדשה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 764,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "פודקאסט: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 765,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "פרק: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 766,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "תאריך פרסום: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 767,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "מגיש: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 768,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "משך: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 770,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "עונה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 771,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "מספר פרק: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 772,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "כותרת משנה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 775,
+      "context": "createLrcFile",
+      "category": "copy",
+      "text": "תיאור:"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 809,
+      "context": "savePodcastCoverArt",
+      "category": "log",
+      "text": "⚠️  לא נמצאה תמונת כריכה בפיד."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 816,
+      "context": "savePodcastCoverArt",
+      "category": "log",
+      "text": "⚠️  שגיאת HTTP "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 816,
+      "context": "savePodcastCoverArt",
+      "category": "log",
+      "text": " בהורדת תמונת כריכה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 828,
+      "context": "savePodcastCoverArt",
+      "category": "log",
+      "text": "🖼️  תמונת כריכה נשמרה: folder."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 830,
+      "context": "savePodcastCoverArt",
+      "category": "log",
+      "text": "⚠️  שגיאה בשמירת תמונת כריכה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1023,
+      "context": "getFreeStorageBytes",
+      "category": "log",
+      "text": "⚠️  בדיקת נפח נכשלה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1153,
+      "context": "buildChannelControlButtons",
+      "category": "copy",
+      "text": "<span style=\"color:#64748b;\">פרטי הערוץ יעודכנו בסריקה הבאה</span>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1157,
+      "context": "buildChannelControlButtons",
+      "category": "copy",
+      "text": "הסר"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1158,
+      "context": "buildChannelControlButtons",
+      "category": "copy",
+      "text": "שלח מייל זה להסרת הערוץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1160,
+      "context": "buildChannelControlButtons",
+      "category": "copy",
+      "text": "קבל פרקים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1161,
+      "context": "buildChannelControlButtons",
+      "category": "copy",
+      "text": "שלח מייל זה לקבלת קטלוג הפרקים של "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1166,
+      "context": "buildAddChannelBtn",
+      "category": "copy",
+      "text": "+ הוסף ערוץ"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1167,
+      "context": "buildAddChannelBtn",
+      "category": "copy",
+      "text": "[כתובת RSS או מחרוזת חיפוש]"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1168,
+      "context": "buildAddChannelBtn",
+      "category": "copy",
+      "text": "אם אתה יודע את כתובת הפיד RSS של הפודקאסט, מלא אותה בכותרת. אחרת מלא את שם הפודקאסט/נושא/מגיש לחיפוש. לאחר מכן שלח מייל זה. הבקשה תטופל תוך מספר שעות.\n\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1220,
+      "context": "sendStorageEmail",
+      "category": "copy",
+      "text": "<p>היי, פודקי כאן. אני ממתין למקום פנוי בדרייב: נותרו פחות מ־2GiB. ההורדות הבאות נשמרו בתור ולא בוטלו.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1226,
+      "context": "sendStorageEmail",
+      "category": "copy",
+      "text": "<p>פנה מקום בדרייב. אנסה להמשיך את ההורדות בריצות הבאות. אין צורך לבקש שוב את אותם פרקים.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1228,
+      "context": "sendStorageEmail",
+      "category": "copy",
+      "text": "💾 פודקאסטים 2.0 — נפח אחסון נמוך"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1228,
+      "context": "sendStorageEmail",
+      "category": "copy",
+      "text": "פרקים ממתינים לאחסון"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1231,
+      "context": "sendStorageEmail",
+      "category": "log",
+      "text": "⚠️ מייל אחסון נכשל: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1240,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "<p>היי! עדכנתי את רשימת הערוצים שלך. ליד כל ערוץ מופיעים סוג ההרשמה וטווח הסריקה. אפשר לשנות מצב בלי ליצור הרשמה כפולה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1248,
+      "context": "sendSubscriptionEmail",
+      "category": "error",
+      "text": "RSS לא תקין"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1253,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "🔔 התראות בלבד — פרקים חדשים יופיעו במייל השבועי, ללא הורדה אוטומטית."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1253,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "⬇️ הרשמה רגילה — פרקים חדשים יורדו אוטומטית לדרייב."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1254,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "</p><p>טווח סריקה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1254,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": " ימים</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1255,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "<p>לא ניתן היה לעדכן פרטי ערוץ: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1258,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "<p>אין כרגע ערוצים ברשימת ההרשמה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1261,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "📋 פודקאסטים 2.0 — רשימת מינויים עודכנה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1261,
+      "context": "sendSubscriptionEmail",
+      "category": "copy",
+      "text": "עדכון רשימת מינויים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1264,
+      "context": "sendSubscriptionEmail",
+      "category": "log",
+      "text": "⚠️ מייל מינויים נכשל: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1320,
+      "context": "checkSentMailbox",
+      "category": "log",
+      "text": "⚠️ עיבוד מייל בקרה נכשל: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1346,
+      "context": "removeFromPodcastsFile",
+      "category": "log",
+      "text": "🗑️  ערוץ הוסר מהרשימה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1432,
+      "context": "sendITunesErrorEmail",
+      "category": "copy",
+      "text": "<p>לא ניתן היה לחפש פודקאסטים עבור: <strong>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1433,
+      "context": "sendITunesErrorEmail",
+      "category": "copy",
+      "text": "<p>שגיאת תקשורת עם Apple Podcasts API לאחר "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1433,
+      "context": "sendITunesErrorEmail",
+      "category": "copy",
+      "text": " נסיונות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1434,
+      "context": "sendITunesErrorEmail",
+      "category": "copy",
+      "text": "<p>נסה לחפש שוב מאוחר יותר או הכנס כתובת RSS ישירות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1438,
+      "context": "sendITunesErrorEmail",
+      "category": "copy",
+      "text": "⚠️ פודקאסטים 2.0 — חיפוש נכשל: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1439,
+      "context": "sendITunesErrorEmail",
+      "category": "copy",
+      "text": "שגיאת חיפוש"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1444,
+      "context": "sendPodcastSearchResultsEmail",
+      "category": "copy",
+      "text": "<p>היי! חיפשתי עבורך ערוצים באפל פודקאסטים עבור: <span dir=\"auto\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1447,
+      "context": "sendPodcastSearchResultsEmail",
+      "category": "copy",
+      "text": " פרקים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1450,
+      "context": "sendPodcastSearchResultsEmail",
+      "category": "copy",
+      "text": "🔍 תוצאות חיפוש: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1450,
+      "context": "sendPodcastSearchResultsEmail",
+      "category": "copy",
+      "text": "תוצאות חיפוש פודקאסטים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1451,
+      "context": "sendPodcastSearchResultsEmail",
+      "category": "log",
+      "text": "⚠️ מייל חיפוש: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1457,
+      "context": "sendNoResultsEmail",
+      "category": "copy",
+      "text": "<p style=\"color:#64748b;margin-bottom:16px;\">לא נמצאו תוצאות עבור: <strong>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1458,
+      "context": "sendNoResultsEmail",
+      "category": "copy",
+      "text": "<p>נסה לחפש עם מילות מפתח שונות (שם מגיש, נושא, שם תוכנית), או הכנס כתובת RSS ישירות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1462,
+      "context": "sendNoResultsEmail",
+      "category": "copy",
+      "text": "🔍 פודקאסטים 2.0 — לא נמצאו תוצאות: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1463,
+      "context": "sendNoResultsEmail",
+      "category": "copy",
+      "text": "אין תוצאות חיפוש"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1496,
+      "context": "addSpecificEpisodeToQueueEx",
+      "category": "copy",
+      "text": "פרק"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1526,
+      "context": "addSpecificEpisodeToQueueEx",
+      "category": "log",
+      "text": "📌 פרק ספציפי נוסף: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1544,
+      "context": "sendProcessedEmailsSummary",
+      "category": "copy",
+      "text": "<p style=\"color:#64748b;margin-bottom:14px;\">הפרקים הבאים נוספו לתור ההורדות לפי בקשתך:</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1547,
+      "context": "sendProcessedEmailsSummary",
+      "category": "copy",
+      "text": "פרק"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1552,
+      "context": "sendProcessedEmailsSummary",
+      "category": "copy",
+      "text": "<p style=\"color:#94a3b8;font-size:.82rem;margin-top:12px;\">הפרקים יורדו בריצה הקרובה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1555,
+      "context": "sendProcessedEmailsSummary",
+      "category": "copy",
+      "text": "📥 פודקאסטים 2.0 — "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1555,
+      "context": "sendProcessedEmailsSummary",
+      "category": "copy",
+      "text": " פרקים נוספו לתור"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1556,
+      "context": "sendProcessedEmailsSummary",
+      "category": "copy",
+      "text": "פרקים בתור הורדה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1558,
+      "context": "sendProcessedEmailsSummary",
+      "category": "log",
+      "text": "⚠️  סיכום פרקים: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1568,
+      "context": "parseSubscriptionInput",
+      "category": "copy",
+      "text": "דגל הרשמה לא מוכר; השתמש ב־--notify-only"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1570,
+      "context": "parseSubscriptionInput",
+      "category": "copy",
+      "text": "כתובת RSS אינה יכולה להכיל רווחים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1582,
+      "context": "buildSubscriptionButton",
+      "category": "copy",
+      "text": "הירשם להתראות בלבד"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1582,
+      "context": "buildSubscriptionButton",
+      "category": "copy",
+      "text": "הירשם"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1584,
+      "context": "buildSubscriptionButton",
+      "category": "copy",
+      "text": "שלח מייל זה "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1584,
+      "context": "buildSubscriptionButton",
+      "category": "copy",
+      "text": "לקבלת התראות שבועיות בלבד, ללא הורדה אוטומטית"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1584,
+      "context": "buildSubscriptionButton",
+      "category": "copy",
+      "text": "להפעלת הורדה אוטומטית"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1585,
+      "context": "buildSubscriptionButton",
+      "category": "copy",
+      "text": " עבור הערוץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1590,
+      "context": "buildGetEpisodeButton",
+      "category": "copy",
+      "text": "קבל פרק"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1592,
+      "context": "buildGetEpisodeButton",
+      "category": "copy",
+      "text": "שלח מייל זה לבקשת הפרק "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1592,
+      "context": "buildGetEpisodeButton",
+      "category": "copy",
+      "text": " מהערוץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1593,
+      "context": "buildGetEpisodeButton",
+      "category": "copy",
+      "text": ". סוג ההרשמה לערוץ לא ישתנה.\n\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1653,
+      "context": "sendInvalidSubscriptionEmail",
+      "category": "copy",
+      "text": "⚠️ פודקאסטים 2.0 — בקשת הרשמה לא תקינה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1654,
+      "context": "sendInvalidSubscriptionEmail",
+      "category": "copy",
+      "text": "לא שינינו את ההרשמה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1654,
+      "context": "sendInvalidSubscriptionEmail",
+      "category": "copy",
+      "text": "</p><p>דוגמה לנושא תקין:</p><pre dir=\"ltr\" style=\"direction:ltr;text-align:left;\">https://example.com/feed.xml --notify-only</pre>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1683,
+      "context": "podkiWriteStateFile",
+      "category": "error",
+      "text": "תיקיית המערכת אינה זמינה לשמירת מצב."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1696,
+      "context": "podkiFooter",
+      "category": "copy",
+      "text": "חפש פרק"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1697,
+      "context": "podkiFooter",
+      "category": "copy",
+      "text": "כתוב בנושא המייל את שם הפרק, שם מגיש או מילות החיפוש ושלח. לחיפוש ערוץ השתמש בכפתור הוסף ערוץ.\n\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1698,
+      "context": "podkiFooter",
+      "category": "copy",
+      "text": "<p style=\"font-size:12px;color:#64748b;\">אני פועל בריצות האוטומטיות של הסקריפט, בדרך כלל פעם בשעה. הטיפול עשוי להימשך כמה שעות. לחיצה על כפתור פותחת מייל מוכן; יש לשלוח אותו כדי לבצע את הפעולה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1699,
+      "context": "podkiFooter",
+      "category": "copy",
+      "text": "<p style=\"font-size:11px;color:#64748b;\">פקודות וקובצי בחירה שנשלחים לכתובות הבקרה גלויים למנהל השירות ומעובדים אוטומטית בהתאם למדיניות השירות. עריכה ידנית של podcasts.txt אינה שולחת פקודת מייל; דיווח כתובת המשתמש לטופס בכל ריצה נשאר כפי שמוגדר במערכת.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1717,
+      "context": "_emailWrap",
+      "category": "copy",
+      "text": ".png\" alt=\"פודקי — בוט הפודקאסטים שלך\" width=\"88\" height=\"88\" style=\"vertical-align:middle;object-fit:contain;\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1718,
+      "context": "_emailWrap",
+      "category": "copy",
+      "text": "<h1 style=\"font-size:25px;margin:8px 0;\">פודקי 🎧</h1><p style=\"margin:0;\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1720,
+      "context": "_emailWrap",
+      "category": "copy",
+      "text": "<tr><td dir=\"rtl\" style=\"padding:14px;text-align:center;color:#64748b;font-size:11px;\">פודקי · בוט הפודקאסטים שלך · גרסה "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1726,
+      "context": "podkiSendEmail",
+      "category": "copy",
+      "text": "פודקי — בוט הפודקאסטים שלך"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1727,
+      "context": "podkiSendEmail",
+      "category": "copy",
+      "text": "עדכון מפודקי"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1727,
+      "context": "podkiSendEmail",
+      "category": "copy",
+      "text": "פודקי"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1728,
+      "context": "podkiSendEmail",
+      "category": "copy",
+      "text": "פודקי"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1728,
+      "context": "podkiSendEmail",
+      "category": "copy",
+      "text": "פודקי | "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1729,
+      "context": "podkiSendEmail",
+      "category": "copy",
+      "text": "היי, כאן פודקי. הודעה זו כוללת עדכון על בקשת הפודקאסטים שלך. לצפייה בפרטים ובכפתורי הפעולה פתח אותה בתצוגת HTML. קובץ מצורף, אם קיים, יש להוריד ולפתוח בדפדפן."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1730,
+      "context": "podkiSendEmail",
+      "category": "error",
+      "text": "מכסת שליחת המיילים להיום הסתיימה; אנסה שוב בריצה הבאה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1731,
+      "context": "podkiSendEmail",
+      "category": "error",
+      "text": "גוף ההודעה גדול מדי לשליחה בטוחה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1747,
+      "context": "podkiSelection",
+      "category": "error",
+      "text": "גרסת קובץ הבקשה אינה נתמכת. יש לייצא בחירה חדשה מהקטלוג."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1749,
+      "context": "podkiSelection",
+      "category": "error",
+      "text": "לא נמצאה בקובץ רשימת פרקים מוכרת. יש לצרף את קובץ ה-JSON שהקטלוג ייצר."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1750,
+      "context": "podkiSelection",
+      "category": "error",
+      "text": "קובץ הבחירה ריק. יש לסמן לפחות פרק אחד בקטלוג."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1751,
+      "context": "podkiSelection",
+      "category": "error",
+      "text": "אפשר לבקש עד "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1751,
+      "context": "podkiSelection",
+      "category": "error",
+      "text": " פרקים בקובץ אחד. פצל את הבחירה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1755,
+      "context": "podkiSelection",
+      "category": "copy",
+      "text": "פריט "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1755,
+      "context": "podkiSelection",
+      "category": "copy",
+      "text": ": חסרה כתובת RSS תקינה או מזהה פרק."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1772,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": "קובץ"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1775,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": "הקובץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1775,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": " אינו קובץ בחירה JSON ולכן לא טופל."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1778,
+      "context": "processGetEpisodeEmail",
+      "category": "error",
+      "text": "הקובץ גדול מ-2MiB. פצל את הבחירה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1780,
+      "context": "processGetEpisodeEmail",
+      "category": "error",
+      "text": "הקובץ גדול מ-2MiB. פצל את הבחירה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1786,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": "הבחירה שבקובץ "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1786,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": " כבר נקלטה. לא נוספו הורדות כפולות."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1798,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": "נושא ההודעה אינו בקשת JSON תקינה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1805,
+      "context": "processGetEpisodeEmail",
+      "category": "copy",
+      "text": "לא נמצא קובץ בחירה או נושא לחיפוש. צרף JSON, כתוב מילות חיפוש בנושא, או כתובת RSS לקבלת קטלוג."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1813,
+      "context": "podkiReadFeed",
+      "category": "error",
+      "text": "לא ניתן לקרוא את פיד הערוץ (HTTP "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1815,
+      "context": "podkiReadFeed",
+      "category": "error",
+      "text": "הכתובת אינה פיד RSS נתמך."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1822,
+      "context": "podkiReadFeed",
+      "category": "copy",
+      "text": "פרק ללא כותרת"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1845,
+      "context": "podkiQueueEpisode",
+      "category": "copy",
+      "text": "הפרק אינו זמין עוד בפיד, ולא נמצאה כתובת אודיו מאומתת מתוצאות אפל."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1904,
+      "context": "podkiPumpJobs",
+      "category": "log",
+      "text": "⚠️ פודקי — משימה ממתינה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1907,
+      "context": "podkiPumpJobs",
+      "category": "copy",
+      "text": "לא הצלחתי להשלים את הבקשה לאחר כמה ניסיונות: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1907,
+      "context": "podkiPumpJobs",
+      "category": "copy",
+      "text": ". אפשר לשלוח בקשה חדשה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1914,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": "<p>היי, פודקי כאן. בדקתי את ההודעה שלך.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1915,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": " פעולות תקינות נקלטו ויטופלו בנפרד. מצב ההרשמה לערוצים לא השתנה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1915,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": "<p>לא נוספה פעולה תקינה מהחלקים המפורטים כאן.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1917,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": "<p>לבקשה מרובה, הורד קובץ בחירה מהקטלוג וצרף אותו למייל לכתובת <a dir=\"ltr\" href=\"mailto:"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1917,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": "</a>. אפשר להשאיר את הנושא ריק. נושא עם טקסט חופשי מבצע גם חיפוש; כתובת RSS בנושא מבקשת גם קטלוג.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1918,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": "הבקשה שלך צריכה בדיקה קטנה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1918,
+      "context": "podkiSendNotice",
+      "category": "copy",
+      "text": "בקשה שדורשת תיקון"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1925,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "<p>היי! קיבלתי את הבחירה שלך: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1925,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": " פרקים נוספו לתור, "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1925,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": " כבר ממתינים, ו-"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1925,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": " לא נוספו.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1926,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "<p>זהו אישור קליטה לתור, לא אישור שההורדות הושלמו. ההורדות יתקדמו בריצות האוטומטיות לפי הזמן והמקום הפנוי. קובץ שכבר קיים בדרייב לא יידרס. סוג ההרשמה לכל ערוץ נשאר כפי שהיה.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1928,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "נוסף לתור"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1928,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "כבר ממתין בתור"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1928,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "לא נוסף לתור"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1935,
+      "context": "podkiSendRequestSummary",
+      "category": "error",
+      "text": "אישור הבקשה יימשך בריצה הבאה."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1936,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "קיבלתי את הבחירה שלך — "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1936,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": " פרקים נוספו לתור"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1936,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": " | חלק "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1936,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": " מתוך "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1937,
+      "context": "podkiSendRequestSummary",
+      "category": "copy",
+      "text": "פרקים בתור ההורדה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1945,
+      "context": "podkiSearchEpisodes",
+      "category": "error",
+      "text": "חיפוש הפרקים באפל לא זמין כרגע (HTTP "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1961,
+      "context": "podkiSearchEpisodes",
+      "category": "copy",
+      "text": "פרק ללא כותרת"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1961,
+      "context": "podkiSearchEpisodes",
+      "category": "copy",
+      "text": "ערוץ"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1962,
+      "context": "podkiSearchEpisodes",
+      "category": "copy",
+      "text": " דקות"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1973,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "<p>היי! חיפשתי באפל פודקאסטים את <strong dir=\"auto\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1974,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "<p>מצאתי "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1974,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": " תוצאות שניתן לבקש. בחירת פרק אינה רושמת אותך לערוץ.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1974,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "<p>לא מצאתי תוצאות עם פרטים מספיקים לבקשת פרק. נסה שם פרק, שם מגיש או מילות חיפוש אחרות.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1978,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "קבל פרק"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1979,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "שלח את ההודעה כדי לבקש את הפרק "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1979,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": ". ההרשמה לערוץ לא תשתנה.\n\n"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1981,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "מצאתי פרקים עבור ״"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1981,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "״"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 1981,
+      "context": "podkiSendEpisodeSearch",
+      "category": "copy",
+      "text": "תוצאות חיפוש פרקים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2000,
+      "context": "podkiGroupedEpisodeCards",
+      "category": "copy",
+      "text": "דוח מפודקי"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2011,
+      "context": "podkiPackBlocks",
+      "category": "copy",
+      "text": "דוח מפודקי"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2012,
+      "context": "podkiPackBlocks",
+      "category": "copy",
+      "text": "דוח מפודקי"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2012,
+      "context": "podkiPackBlocks",
+      "category": "error",
+      "text": "פריט בודד גדול מדי לדוח; יש לקצר את תיאורו."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2031,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "🔔 פרק חדש — התראות בלבד"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2031,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "✅ הורד לדרייב"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2031,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "❌ ההורדה נכשלה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2033,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "\">פתח את הפרק בדרייב</a></p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2041,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "<p>אין פעילות בדוח השבוע. מצב המינוי: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2041,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "התראות בלבד"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2041,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "הורדה אוטומטית"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2042,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "<p>היי! הנה השבוע שלך עם פודקי: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2042,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": " פרקים הורדו, "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2042,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": " פרקים חדשים להתראות בלבד"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2042,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": ", ו-"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2042,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": " הורדות נכשלו"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2051,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "חלק "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2051,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": " מתוך "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2052,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "השבוע שלך עם פודקי 🎧 — "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2053,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": "סיכום שבועי — "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2053,
+      "context": "sendWeeklyEmail",
+      "category": "copy",
+      "text": " של הדוח. פרקים שנסרקו לאחר הכנת הדוח יישמרו לדוח הבא.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2057,
+      "context": "sendWeeklyEmail",
+      "category": "log",
+      "text": "⚠️ פודקי — משלוח הדוח יימשך בריצה הבאה: "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2065,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "קטלוג פודקי "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2065,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "ערוץ"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2066,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>היי! אספתי עבורך "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2066,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": " פרקים זמינים בפיד של <strong dir=\"auto\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2067,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>הקטלוג כולל את הפרקים שהמפרסם מספק כרגע בפיד, ולא בהכרח את כל הפרקים שפורסמו בעבר. חלק מהתיאורים מקוצרים.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2068,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p><strong>לבחירה מרובה:</strong> הורד את קובץ ה-HTML ופתח אותו בדפדפן, חפש וסמן פרקים, הורד את קובץ הבחירה „הקבצים שבחרתי.json” וצרף אותו למייל לכתובת <a dir=\"ltr\" href=\"mailto:"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2068,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "</a>. אין צורך בנושא מיוחד, ואפשר להשאירו ריק. אם תכתוב טקסט בנושא, אבצע גם חיפוש; כתובת RSS בנושא תבקש גם קטלוג.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2069,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>הקטלוג אינטראקטיבי לאחר פתיחה בדפדפן, לא בתצוגה המקדימה של Gmail. באנדרואיד יש להוריד ולפתוח בדפדפן שתומך בקובצי HTML מקומיים. הכפתור לפתיחת מייל אינו מצרף את הקובץ אוטומטית.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2070,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>ההורדות ייכנסו לתור; בחירת פרקים אינה משנה את המינוי לערוץ.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2079,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>מצורף: <strong dir=\"auto\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2079,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "</strong>. אפשר לחפש ולבחור בו גם ללא חיבור לרשת.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2081,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "error",
+      "text": "תיקיית המערכת אינה זמינה לשמירת קטלוג גדול."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2083,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>הקטלוג גדול מדי לצירוף בטוח. שמרתי אותו בדרייב שלך ללא פתיחת שיתוף ציבורי: <a href=\""
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2083,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "\">הורד את הקטלוג מהדרייב</a>.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2085,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "קטלוג"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2085,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<h2>הפרקים זמינים גם כאן</h2>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2086,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "<p>הרשימה ארוכה ולכן מופיעה בקטלוג בלבד; נשלחת הודעה אחת במקום כמה הודעות קטלוג.</p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2088,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "הקטלוג של ״"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2088,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "״ מוכן 📚"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2088,
+      "context": "sendEpisodeCatalogEmail",
+      "category": "copy",
+      "text": "הקטלוג שלך"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2097,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": " | פודקי</title>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2099,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "<header><h1>הקטלוג שלך עם פודקי 🎧</h1><p>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2099,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "</p><p class=\"muted\">כל הפרקים הזמינים בפיד בעת יצירת הקטלוג. התיאורים עשויים להיות מקוצרים. אפשר לחפש ולבחור ללא רשת.</p></header>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2100,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "<details class=\"help\"><summary>איך מבקשים כמה פרקים?</summary><ol><li>סמן פרקים והורד את הקובץ „הקבצים שבחרתי.json”.</li><li>פתח מייל לכתובת <span dir=\"ltr\">"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2100,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "</span>.</li><li>צרף את קובץ ה-JSON ושלח. אין צורך בנושא מיוחד; אפשר להשאיר אותו ריק.</li></ol><p>נושא עם טקסט חופשי יבצע גם חיפוש. כתובת RSS בנושא תבקש גם קטלוג. לחיצה על פתיחת מייל אינה מצרפת קובץ אוטומטית. הבקשה תטופל בריצות האוטומטיות ולא תשנה את המינוי לערוץ.</p><p class=\"muted\">קובץ הבחירה כולל רק את הפרקים שסימנת, ויהיה גלוי למנהל כתובת הבקרה לאחר שליחתו.</p></details>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2101,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "<section class=\"search-panel\"><label for=\"search\">חיפוש בכותרות ובתיאורים</label><input id=\"search\" type=\"search\" placeholder=\"שם פרק, נושא או מילה מהתיאור\"><div class=\"tools\"><select id=\"sort\" aria-label=\"מיון\"><option value=\"relevance\">התאמה לחיפוש</option><option value=\"new\">מהחדש לישן</option><option value=\"old\">מהישן לחדש</option><option value=\"title\">לפי כותרת</option></select><button class=\"secondary\" id=\"select-visible\">בחר תוצאות מוצגות</button><button class=\"secondary\" id=\"clear\">נקה בחירה</button><label class=\"filter\"><input id=\"only-selected\" type=\"checkbox\"> רק הפרקים שבחרתי</label></div><p class=\"muted\">בחיפוש, התאמות בכותרת מופיעות ראשונות. הבחירה נשמרת כשמשנים חיפוש או מיון.</p><p id=\"count\" role=\"status\" aria-live=\"polite\"></p></section><div id=\"list\"></div>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2102,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "<div class=\"sticky\"><strong id=\"selected\" aria-live=\"polite\"></strong><div class=\"tools\"><button id=\"download\" disabled>הורד את הבחירה</button><button id=\"share\" hidden>שתף את הבחירה</button><a class=\"action\" href=\"mailto:"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2102,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "\">פתח מייל לשליחת הבקשה</a></div><p class=\"muted\">צרף את „הקבצים שבחרתי.json” למייל אל <a dir=\"ltr\" href=\"mailto:"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2102,
+      "context": "podkiCatalogHtml",
+      "category": "copy",
+      "text": "</a>. פתיחת מייל אינה מצרפת את הקובץ.</p><p id=\"notice\" class=\"muted\" aria-live=\"polite\"></p></div>"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2130,
+      "context": "counts",
+      "category": "copy",
+      "text": "נבחרו "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2130,
+      "context": "counts",
+      "category": "copy",
+      "text": " פרקים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2130,
+      "context": "counts",
+      "category": "copy",
+      "text": " · מוכנים לשליחה"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2130,
+      "context": "counts",
+      "category": "copy",
+      "text": " · סמן פרקים כדי להתחיל"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2132,
+      "context": "render",
+      "category": "copy",
+      "text": "נמצאו "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2132,
+      "context": "render",
+      "category": "copy",
+      "text": " פרקים מתוך "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2134,
+      "context": "render",
+      "category": "copy",
+      "text": "אין פרקים נבחרים התואמים לחיפוש. אפשר לבטל את הסינון או לשנות את החיפוש."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2134,
+      "context": "render",
+      "category": "copy",
+      "text": "לא נמצאו פרקים. נסה מילה אחרת או חיפוש קצר יותר."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2136,
+      "context": "render",
+      "category": "copy",
+      "text": "בחר "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2137,
+      "context": "render",
+      "category": "copy",
+      "text": "אפשר לבחור עד 1000 פרקים בקובץ אחד."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2139,
+      "context": "render",
+      "category": "copy",
+      "text": "ללא תאריך"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2141,
+      "context": "render",
+      "category": "copy",
+      "text": "הצג עוד "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2141,
+      "context": "render",
+      "category": "copy",
+      "text": " פרקים"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2144,
+      "context": "file",
+      "category": "copy",
+      "text": "הקבצים שבחרתי.json"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2147,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": "אפשר לבחור עד 1000 פרקים בקובץ אחד."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2148,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": "הקובץ „הקבצים שבחרתי.json” הורד. צרף אותו למייל אל "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2148,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": " ושלח; אפשר להשאיר את הנושא ריק."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2150,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": "הקבצים שבחרתי.json"
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2151,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": "בחר לפחות פרק אחד."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2151,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": "בחר ביישום המייל ושלח אל "
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2151,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": ". אפשר להשאיר את הנושא ריק."
+    },
+    {
+      "file": "files/podcast_processor_v2.js",
+      "line": 2151,
+      "context": "podkiCatalogClient",
+      "category": "copy",
+      "text": "השיתוף לא הושלם. אפשר להשתמש בהורדת JSON ולצרף אותו ידנית."
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 28,
+      "context": "קבועים ואתחול",
+      "category": "copy",
+      "text": "פודקאסטים 2.0"
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 29,
+      "context": "קבועים ואתחול",
+      "category": "copy",
+      "text": "קבצי מערכת"
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 49,
+      "context": "setUp",
+      "category": "log",
+      "text": "✅ טריגר שעתי נוצר."
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 66,
+      "context": "setUp",
+      "category": "log",
+      "text": "🕐 נותרו משימות — יטופלו בריצה הבאה."
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 68,
+      "context": "setUp",
+      "category": "log",
+      "text": "❌ שגיאה: "
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 71,
+      "context": "setUp",
+      "category": "copy",
+      "text": "❌ פודקאסטים 2.0 — שגיאה קריטית"
+    },
+    {
+      "file": "files/podcast_v2.gs",
+      "line": 72,
+      "context": "setUp",
+      "category": "copy",
+      "text": "שגיאה בריצה: "
+    },
+    {
+      "file": "index.htm",
+      "line": 596,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "טוען קוד…"
+    },
+    {
+      "file": "index.htm",
+      "line": 605,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "הקוד הועתק!"
+    },
+    {
+      "file": "index.htm",
+      "line": 606,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "הקוד הועתק. כעת מדביקים אותו בפרויקט Apps Script."
+    },
+    {
+      "file": "index.htm",
+      "line": 609,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "העתקת קוד המערכת"
+    },
+    {
+      "file": "index.htm",
+      "line": 613,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "ההעתקה נכשלה — נסו שוב"
+    },
+    {
+      "file": "index.htm",
+      "line": 614,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "אפשר לפתוח את קוד ההפעלה בקישור שמתחת לכפתור ולהעתיק ידנית."
+    },
+    {
+      "file": "index.htm",
+      "line": 615,
+      "context": "copyGsCode",
+      "category": "copy",
+      "text": "העתקת קוד המערכת"
+    },
+    {
+      "file": "index.htm",
+      "line": 647,
+      "context": "goTo",
+      "category": "copy",
+      "text": "נעים להכיר"
+    },
+    {
+      "file": "index.htm",
+      "line": 647,
+      "context": "goTo",
+      "category": "copy",
+      "text": "פרטיות"
+    },
+    {
+      "file": "index.htm",
+      "line": 647,
+      "context": "goTo",
+      "category": "copy",
+      "text": "התקנה"
+    },
+    {
+      "file": "index.htm",
+      "line": 648,
+      "context": "goTo",
+      "category": "copy",
+      "text": "שלב "
+    },
+    {
+      "file": "index.htm",
+      "line": 648,
+      "context": "goTo",
+      "category": "copy",
+      "text": " מתוך 3 · "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 66,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "לא נמצאו מילות מפתח לחיפוש."
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 108,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "\nלא נמצאו פודקאסטים חדשים לעדכון."
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 14,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "שגיאה: הקובץ "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 14,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": " לא נמצא."
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 75,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "] מחפש באפל עבור: '"
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 105,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "\nסך הכל נוספו "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 105,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": " פודקאסטים חדשים. שומר את הקובץ..."
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 99,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": " -> נמצא פודקאסט חדש: "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 25,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "קובץ ה-JSON ריק או לא תקין, יוצר רשימה חדשה."
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 58,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "שגיאה כללית בחיפוש עבור '"
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 50,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "שגיאת 429 (בקשות רבות מדי) עבור המילה '"
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 50,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "'. ניסיון "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 50,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": " מתוך "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 51,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "ממתין "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 51,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": " שניות לפני ניסיון נוסף..."
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 55,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": "שגיאת HTTP "
+    },
+    {
+      "file": "update_podcasts.py",
+      "line": 55,
+      "context": "עדכון מאגר הפודקאסטים — כלי שורת פקודה",
+      "category": "log",
+      "text": " עבור המילה '"
+    }
+  ]
+}

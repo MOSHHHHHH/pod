@@ -296,7 +296,7 @@ test('untrusted attachment audio URLs cannot bypass feed resolution',()=>{
 });
 test('every JS email carries the Podki sender, image and both universal action buttons',()=>{
   const {ctx,mails}=setup();ctx.sendMissingRssFileEmail();ctx.sendFailureEmail({channelTitle:'ערוץ',rssUrl:feed,episodeTitle:'פרק'},'HTTP 500');ctx.sendNoResultsEmail('nothing');
-  for(const m of mails){assert.equal(m.name,'פודקי — בוט הפודקאסטים שלך');assert.match(m.htmlBody,/assets\/podki\//);assert.ok(buttons(m.htmlBody).some(x=>x.label==='חפש פרק'));assert.ok(buttons(m.htmlBody).some(x=>x.label==='+ הוסף ערוץ'));}
+  for(const m of mails){assert.equal(m.name,'פודקי — בוט הפודקאסטים שלך');assert.match(m.htmlBody,/assets\/podki\//);assert.ok(buttons(m.htmlBody).some(x=>x.label==='חפש פרק'));assert.ok(buttons(m.htmlBody).some(x=>x.label==='חפש ערוץ'));}
 });
 test('full hourly run processes a no-subject attachment using existing GS entry point',()=>{
   const {ctx,sys,mainFolder,stats}=mainSetup({noSubscriptions:true});
@@ -334,7 +334,7 @@ test('standalone catalog filters, keeps selection across searches, sorts and exp
 
 test('welcome explains all new actions, attachment detection and independent subject handling',()=>{
   const {ctx,mails}=setup();ctx.sendMissingRssFileEmail();const html=mails[0].htmlBody;
-  for(const phrase of ['JSON','HTML','אין צורך בנושא מיוחד','נושא ההודעה נבדק בנפרד','חפש פרק','הודעות ממוספרות','1,000','אינה מצרפת','--notify-only'])assert.ok(html.includes(phrase),phrase);
+  for(const phrase of ['JSON','HTML','אפשר להשאיר אותה ריקה','בודק גם את שורת הנושא בנפרד','חפש פרק','הודעות ממוספרות','1,000','אינה מצרפת','--notify-only'])assert.ok(html.includes(phrase),phrase);
 });
 
 test('separate single-episode emails share one persisted confirmation batch',()=>{
@@ -399,4 +399,149 @@ test('catalog search ranks title matches, highlights literal text safely and fil
   assert.equal(nodes.list.children[0].children[0].children[1].children[2].children.find(n=>n.tag==='mark').textContent,'[');
   nodes.search.value='לא קיים';nodes.search.oninput();assert.equal(nodes.list.children[0].className,'empty');
   nodes.clear.onclick();assert.equal(nodes.download.disabled,true);
+});
+
+test('episode search groups interleaved results by feed and keeps every episode request',()=>{
+  const {ctx,mails}=setup();
+  const results=[
+    {channelUrl:'https://a/feed',channelTitle:'שם משותף',episodeGuid:'a1',episodeTitle:'ראשון',description:'<script>bad</script>'},
+    {channelUrl:'https://b/feed',channelTitle:'שם משותף',episodeGuid:'b1',episodeTitle:'שני'},
+    {channelUrl:'https://a/feed',channelTitle:'שם משותף',episodeGuid:'a2',episodeTitle:'שלישי'}];
+  ctx.podkiSearchEpisodes=()=>results;
+  const originalCard=ctx.channelCard;
+  ctx.channelCard=(title,url,image,content,mainFolder)=>'<section data-channel="'+url+'">'+originalCard(title,url,image,content,mainFolder)+'</section>';
+  ctx.podkiSendEpisodeSearch('בדיקה',null);
+  const html=mails[0].htmlBody;
+  assert.equal((html.match(/data-channel=/g)||[]).length,2);
+  assert.equal(buttons(html).filter(b=>b.label==='קבל פרקים').length,2);
+  assert.ok(html.indexOf('>ראשון</h3>')<html.indexOf('>שלישי</h3>'));assert.ok(html.indexOf('>שלישי</h3>')<html.indexOf('>שני</h3>'));
+  assert.match(html,/&lt;script&gt;bad&lt;\/script&gt;/);
+  const requests=buttons(html).filter(b=>b.label==='קבל פרק').map(b=>JSON.parse(new URL('mailto:'+b.uri).searchParams.get('subject')));
+  assert.deepEqual(requests.map(r=>r.episodeGuid),['a1','a2','b1']);
+  assert.equal(results[1].episodeGuid,'b1');
+});
+
+test('selection confirmation groups mixed statuses under one card per feed',()=>{
+  const {ctx,mails}=setup();
+  const originalCard=ctx.channelCard;
+  ctx.channelCard=(title,url,image,content,mainFolder)=>'<section data-channel="'+url+'">'+originalCard(title,url,image,content,mainFolder)+'</section>';
+  ctx.podkiSendRequestSummary([
+    {channelUrl:'https://a/feed',channelTitle:'A',episodeTitle:'A1',status:'queued'},
+    {channelUrl:'https://b/feed',channelTitle:'B',episodeTitle:'B1',status:'already'},
+    {channelUrl:'https://a/feed',channelTitle:'A',episodeTitle:'A2',status:'failed',error:'<error>'}],null);
+  const html=mails[0].htmlBody;
+  assert.equal((html.match(/data-channel=/g)||[]).length,2);
+  assert.equal(buttons(html).filter(b=>b.label==='קבל פרקים').length,2);
+  assert.ok(html.indexOf('>A1</p>')<html.indexOf('>A2</p>'));assert.ok(html.indexOf('>A2</p>')<html.indexOf('>B1</p>'));
+  assert.match(html,/נוסף לתור/);assert.match(html,/כבר ממתין בתור/);assert.match(html,/לא נוסף לתור — &lt;error&gt;/);
+  assert.match(html,/1 פרקים נוספו לתור, 1 כבר ממתינים, ו-1 לא נוספו/);
+});
+
+test('large grouped confirmations split between episodes and retry only unsent pages',()=>{
+  const {ctx,mails}=setup();ctx.PODKI_BODY_BYTES=14000;
+  const results=Array.from({length:45},(_,i)=>({channelUrl:feed,channelTitle:'ערוץ',episodeTitle:'פרק-'+i+' '+('תיאור '.repeat(30)),status:'queued'}));
+  const job={summaryIndex:0};ctx.podkiState().jobs.push(job);
+  let attempts=0;ctx.MailApp.sendEmail=m=>{if(++attempts===2)throw Error('quota');mails.push(m);};
+  assert.throws(()=>ctx.podkiSendRequestSummary(results,null),/quota/);assert.equal(job.summaryIndex,1);
+  ctx.MailApp.sendEmail=m=>mails.push(m);ctx.podkiSendRequestSummary(results,null);
+  assert.ok(mails.length>1);assert.equal(job.summaryIndex,mails.length);
+  for(const mail of mails)assert.ok(Buffer.byteLength(mail.htmlBody,'utf8')<=ctx.PODKI_BODY_BYTES);
+  const html=mails.map(m=>m.htmlBody).join('');
+  for(let i=0;i<45;i++)assert.equal(html.split('פרק-'+i+' ').length-1,1);
+});
+
+test('channel search button has its new name and opens with an empty subject',()=>{
+  const {ctx}=setup(),button=buttons(ctx.buildAddChannelBtn())[0];
+  assert.equal(button.label,'חפש ערוץ');
+  const uri=new URL('mailto:'+button.uri);
+  assert.equal(uri.searchParams.get('subject'),'');assert.equal(uri.pathname,ctx.CTRL_SUBSCRIBE);
+  assert.ok(!ctx.buildAddChannelBtn().includes('[כתובת RSS או מחרוזת חיפוש]'));
+});
+
+test('every email footer includes help and the current main folder in HTML and plain text',()=>{
+  const {ctx,mails}=setup();let reads=0;
+  ctx.podkiInitMainFolder({getUrl(){reads++;return 'https://drive.google.com/drive/folders/first';}});
+  ctx.sendMissingRssFileEmail();ctx.sendNoResultsEmail('query');
+  assert.equal(reads,1);
+  for(const m of mails){assert.ok(m.htmlBody.includes(ctx.PODKI_HELP_URL));assert.ok(m.htmlBody.includes('/folders/first'));assert.ok(m.body.includes(ctx.PODKI_HELP_URL));assert.ok(m.body.includes('/folders/first'));}
+  ctx.podkiInitMainFolder({getUrl(){reads++;return 'https://drive.google.com/drive/folders/second';}});
+  ctx.sendNoResultsEmail('new');assert.equal(reads,2);assert.ok(mails.at(-1).htmlBody.includes('/folders/second'));assert.ok(!mails.at(-1).htmlBody.includes('/folders/first'));
+});
+
+test('main folder URL is reacquired on every hourly run and never falls back to a stale link',()=>{
+  const {ctx,sys,mainFolder}=mainSetup({noSubscriptions:true});let calls=0;
+  mainFolder.getUrl=()=> 'https://drive.google.com/drive/folders/run-'+(++calls);
+  ctx.main(sys,mainFolder);assert.equal(ctx._podkiMainFolderUrl,'https://drive.google.com/drive/folders/run-1');
+  ctx.main(sys,mainFolder);assert.equal(ctx._podkiMainFolderUrl,'https://drive.google.com/drive/folders/run-2');assert.equal(calls,2);
+  ctx.podkiInitMainFolder({getUrl(){throw Error('unavailable');}});assert.equal(ctx._podkiMainFolderUrl,'');
+});
+
+test('episode search caps Apple results at twenty even when the service returns more',()=>{
+  const {ctx}=setup();ctx.UrlFetchApp.fetch=()=>({getResponseCode:()=>200,getContentText:()=>JSON.stringify({results:Array.from({length:25},(_,i)=>({kind:'podcast-episode',feedUrl:feed,episodeGuid:'g'+i,trackName:'Episode '+i}))})});
+  assert.equal(ctx.podkiSearchEpisodes('query').length,20);
+  assert.equal(Object.keys(ctx.podkiState().appleResults).length,20);
+});
+
+test('long episode search is capped across pages and resumes without refetching or resending',()=>{
+  const {ctx,mails}=setup(),sys=folder();ctx._sysFolder=sys;ctx.PODKI_BODY_BYTES=14000;
+  let searches=0;ctx.podkiSearchEpisodes=()=>{searches++;return Array.from({length:25},(_,i)=>({channelUrl:feed,channelTitle:'ערוץ',episodeGuid:'g'+i,episodeTitle:'Result '+i,description:'מידע '.repeat(70)}));};
+  ctx.podkiEnqueueJob('search',{query:'query'},'search-test');
+  let sends=0;ctx.MailApp.sendEmail=m=>{if(++sends===2)throw Error('quota');mails.push(m);};
+  ctx.podkiPumpJobs(sys,[],null,new Date());
+  const delivery=ctx.podkiState().jobs[0].searchDelivery;assert.equal(delivery.next,1);assert.ok(delivery.pages.length>1);
+  ctx.podkiInitMainFolder({getUrl:()=> 'https://drive.google.com/drive/folders/current'});
+  ctx.MailApp.sendEmail=m=>mails.push(m);ctx.podkiPumpJobs(sys,[],null,new Date());
+  assert.equal(searches,1);assert.equal(ctx.podkiState().jobs.length,0);assert.equal(mails.length,delivery.pages.length);
+  const requests=mails.flatMap(m=>buttons(m.htmlBody).filter(b=>b.label==='קבל פרק'));
+  assert.equal(requests.length,20);assert.equal(new Set(requests.map(b=>b.uri)).size,20);
+  assert.match(mails[0].subject,/חלק 1 מתוך/);assert.match(mails[1].subject,/חלק 2 מתוך/);
+  assert.ok(mails[1].htmlBody.includes('/folders/current'));
+  // A new runtime's footer may add a folder link to previously prepared pages.
+  for(const m of mails)assert.ok(Buffer.byteLength(m.htmlBody,'utf8')<=ctx.PODKI_BODY_BYTES);
+});
+
+test('long channel search keeps at most twenty results and resumes saved pages before another API call',()=>{
+  const {ctx,mails}=setup(),sys=folder();ctx._sysFolder=sys;ctx.PODKI_BODY_BYTES=14000;
+  const results=Array.from({length:25},(_,i)=>({title:'ערוץ '+i,rssUrl:'https://feed.test/'+i,author:'מחבר '.repeat(45),episodeCount:10}));
+  let sends=0;ctx.MailApp.sendEmail=m=>{if(++sends===2)throw Error('quota');mails.push(m);};
+  assert.throws(()=>ctx.sendPodcastSearchResultsEmail('query',results,null),/quota/);
+  const delivery=ctx._emailsData.pendingSearches.query.delivery;assert.equal(delivery.count,20);assert.equal(delivery.next,1);
+  ctx.handleITunesRetry=()=>{throw Error('must use saved results');};ctx.MailApp.sendEmail=m=>mails.push(m);
+  const response=ctx.processSubscribeEmail(incoming('query'),sys,[],null,new Date());
+  assert.equal(response.type,'subscribe_search');assert.equal(response.count,20);assert.equal(ctx._emailsData.pendingSearches.query,undefined);
+  assert.equal(mails.length,delivery.pages.length);
+  const catalogs=mails.flatMap(m=>buttons(m.htmlBody).filter(b=>b.label==='קבל פרקים'));assert.equal(catalogs.length,20);
+  for(const m of mails)assert.ok(Buffer.byteLength(m.htmlBody,'utf8')<=ctx.PODKI_BODY_BYTES);
+});
+
+test('loader critical-error mail includes help and the current Drive folder even when processor loading fails',()=>{
+  const {ctx,mails}=setup(),sys=folder(),mainFolder={getUrl:()=> 'https://drive.google.com/drive/folders/loader',getFoldersByName:()=>iterator([sys])};
+  ctx.PropertiesService={getScriptProperties:()=>({getProperty:()=> 'hour'})};
+  ctx.ScriptApp={getProjectTriggers:()=>[{getUniqueId:()=> 'hour'}]};
+  ctx.DriveApp={getRootFolder:()=>({getFoldersByName:()=>iterator([mainFolder])})};
+  ctx.UrlFetchApp.fetch=()=>{throw Error('load <failed>');};
+  vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../files/podcast_v2.gs'),'utf8'),ctx);
+  ctx.setUp();assert.equal(mails.length,1);
+  assert.ok(mails[0].htmlBody.includes(ctx.PODKI_HELP_URL));assert.ok(mails[0].htmlBody.includes('/folders/loader'));
+  assert.match(mails[0].htmlBody,/load &lt;failed&gt;/);assert.ok(mails[0].body.includes('/folders/loader'));
+});
+
+test('weekly report lists subscribed channels with no activity in both modes, including empty records and missing metadata',()=>{
+  const {ctx,mails}=setup(),d=ctx._emailsData;
+  const regular='https://quiet.test/regular',notify='https://quiet.test/notify',unknown='https://quiet.test/unknown',active='https://active.test/feed',removed='https://removed.test/feed';
+  d.subscriptions.details[regular]={title:'ערוץ שקט רגיל'};
+  d.subscriptions.details[notify]={title:'ערוץ שקט להתראות'};
+  d.subscriptions.details[removed]={title:'ערוץ שהוסר'};
+  d.weekly.channels[notify]={title:'ערוץ שקט להתראות',rssUrl:notify,items:[]};
+  d.weekly.channels[active]={title:'ערוץ עם פרק חדש',rssUrl:active,items:[{episodeTitle:'פרק חדש',status:'notification',guid:'new'}]};
+  const rssList=[{url:regular,notifyOnly:false},{url:notify,notifyOnly:true},{url:unknown,notifyOnly:false},{url:active,notifyOnly:true}];
+  assert.equal(ctx.sendWeeklyEmail(folder(),d,rssList,null),true);assert.equal(mails.length,1);
+  const html=mails[0].htmlBody;
+  assert.equal(html.split('לא נרשמה פעילות בערוץ השבוע.').length-1,3);
+  assert.match(html,/ערוץ שקט רגיל/);assert.match(html,/ערוץ שקט להתראות/);assert.ok(html.includes(unknown));
+  assert.match(html,/מצב ההרשמה: שמירה אוטומטית בדרייב/);assert.match(html,/מצב ההרשמה: התראות בלבד/);
+  assert.ok(!html.includes('ערוץ שהוסר'));assert.match(html,/פרק חדש — התראות בלבד/);
+  const actions=buttons(html),catalogs=actions.filter(b=>b.label==='קבל פרקים');
+  for(const url of [regular,notify,unknown,active])assert.equal(catalogs.filter(b=>new URL('mailto:'+b.uri).searchParams.get('subject')===url).length,1);
+  for(const url of [regular,notify,unknown])assert.ok(actions.some(b=>b.label==='הסר'&&new URL('mailto:'+b.uri).searchParams.get('subject')===url));
 });
