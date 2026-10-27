@@ -1,0 +1,4 @@
+# Editorial reference files contain literal {{...}} examples, not Liquid templates.
+# Keep them in the repository without rendering them as public site pages.
+exclude:
+  - docs
