@@ -1,0 +1,29 @@
+name: Podcast processor tests
+
+on:
+  push:
+    branches:
+      - fix/group-podki-email-channels-20261103
+  pull_request:
+    paths:
+      - 'files/podcast_processor_v2.js'
+      - 'tests/processor.test.cjs'
+      - '.github/workflows/processor-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check files/podcast_processor_v2.js
+      - name: Regression tests
+        run: node --test tests/processor.test.cjs
