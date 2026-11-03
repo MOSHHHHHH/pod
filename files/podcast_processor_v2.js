@@ -2076,26 +2076,38 @@ function sendWeeklyEmail(sysFolder,emailsData,rssList,mainFolder) {
   var weekly=emailsData.weekly;
   try{
     if(!weekly.delivery){
-      var channels=weekly.channels,keys=Object.keys(channels),counts={success:0,failed:0,notification:0},blocks=[],active={};
+      var channels=weekly.channels,keys=Object.keys(channels),counts={success:0,failed:0,notification:0},rows=[],active={};
       keys.forEach(function(k){channels[k].items.forEach(function(it){if(counts[it.status]!==undefined)counts[it.status]++;});});
+      // Preserve the downloads-first order, but group rows by RSS feed before
+      // rendering. The shared helper splits oversized groups between episodes.
       ['downloads','notifications'].forEach(function(section){
         keys.forEach(function(key){
           var d=channels[key],title=d.title || key;
           d.items.filter(function(it){return section==='notifications'?it.status==='notification':it.status!=='notification';}).forEach(function(it){
             if(d.rssUrl)active[d.rssUrl]=true;
-            var content='<p><strong>'+(it.status==='notification'?'🔔 פרק חדש — התראות בלבד':it.status==='success'?"✅ נשמר בדרייב":"❌ שמירת הפרק נכשלה")+'</strong></p>'+
-              '<p dir="auto">'+escapeHtml(it.episodeTitle)+'</p><p>'+escapeHtml(it.pubDate || '')+' · '+escapeHtml(it.duration || '')+'</p>'+
-              (it.fileUrl?'<p><a href="'+escapeHtml(it.fileUrl)+'">פתח את הפרק בדרייב</a></p>':'')+
-              (it.error?'<p dir="auto">'+escapeHtml(String(it.error).slice(0,1000))+'</p>':'')+
-              (it.status==='notification'?buildGetEpisodeButton(title,it.episodeTitle,d.rssUrl,it.guid):'');
-            blocks.push(channelCard(title,d.rssUrl,d.image,content,mainFolder));
+            rows.push({channelUrl:d.rssUrl || null,channelTitle:title,image:d.image,
+              episodeTitle:it.episodeTitle,pubDate:it.pubDate,duration:it.duration,
+              status:it.status,fileUrl:it.fileUrl,error:it.error,guid:it.guid});
           });
         });
       });
-      rssList.filter(function(r){return !active[r.url];}).forEach(function(r){var info=emailsData.subscriptions.details[r.url] || {};
-        blocks.push(channelCard(info.title || r.url,r.url,info.image,"<p>לא נרשמה פעילות בערוץ השבוע. מצב ההרשמה: "+(r.notifyOnly?'התראות בלבד':"שמירה אוטומטית בדרייב")+'.</p>',mainFolder));});
       var intro="<p>השבוע שלך עם פודקי 🎧: "+counts.success+" פרקים נשמרו בדרייב, "+counts.notification+' פרקים חדשים להתראות בלבד'+(counts.failed?', ו-'+counts.failed+" פרקים לא נשמרו":'')+'.</p>';
-      weekly.delivery={id:String(Date.now()),pages:podkiPackBlocks(blocks,intro),next:0,createdAt:new Date().toISOString()};
+      var blocks=podkiGroupedEpisodeCards(rows,function(it){
+        return '<p><strong>'+(it.status==='notification'?'🔔 פרק חדש — התראות בלבד':it.status==='success'?"✅ נשמר בדרייב":"❌ שמירת הפרק נכשלה")+'</strong></p>'+
+          '<p dir="auto">'+escapeHtml(it.episodeTitle)+'</p><p>'+escapeHtml(it.pubDate || '')+' · '+escapeHtml(it.duration || '')+'</p>'+
+          (it.fileUrl?'<p><a href="'+escapeHtml(it.fileUrl)+'">פתח את הפרק בדרייב</a></p>':'')+
+          (it.error?'<p dir="auto">'+escapeHtml(String(it.error).slice(0,1000))+'</p>':'')+
+          (it.status==='notification'?buildGetEpisodeButton(it.channelTitle,it.episodeTitle,it.channelUrl,it.guid):'');
+      },mainFolder,intro,"הסיכום השבועי שלך");
+      var shownInactive=Object.create(null);
+      rssList.forEach(function(r){
+        // Equal display titles can belong to distinct feeds; only collapse exact URLs.
+        if(active[r.url] || shownInactive[r.url])return;
+        shownInactive[r.url]=true;
+        var info=emailsData.subscriptions.details[r.url] || {};
+        blocks.push(channelCard(info.title || r.url,r.url,info.image,"<p>לא נרשמה פעילות בערוץ השבוע. מצב ההרשמה: "+(r.notifyOnly?'התראות בלבד':"שמירה אוטומטית בדרייב")+'.</p>',mainFolder));
+      });
+      weekly.delivery={id:String(Date.now()),pages:podkiPackBlocks(blocks,intro,"הסיכום השבועי שלך"),next:0,createdAt:new Date().toISOString()};
       // Freeze only this snapshot. New scans accumulate in a fresh weekly.channels map.
       weekly.channels={};
       saveEmailsData(sysFolder,emailsData);
