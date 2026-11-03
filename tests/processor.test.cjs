@@ -526,6 +526,59 @@ test('loader critical-error mail includes help and the current Drive folder even
   assert.match(mails[0].htmlBody,/load &lt;failed&gt;/);assert.ok(mails[0].body.includes('/folders/loader'));
 });
 
+
+test('weekly report groups active episodes under one channel header per RSS URL',()=>{
+  const {ctx,mails}=setup(),d=ctx._emailsData;
+  const a='https://feeds.test/a',b='https://feeds.test/b';
+  // Two independent RSS feeds may legitimately share the same display title.
+  d.weekly.channels[a]={title:'שם משותף',rssUrl:a,items:[
+    {episodeTitle:'First episode',status:'success',fileUrl:'https://drive.google.com/file/d/test'},
+    {episodeTitle:'Second episode',status:'notification',guid:'second-guid'}]};
+  d.weekly.channels[b]={title:'שם משותף',rssUrl:b,items:[
+    {episodeTitle:'Third episode',status:'notification',guid:'third-guid'}]};
+  const subscriptions=[{url:a,notifyOnly:true},{url:b,notifyOnly:true}];
+  assert.equal(ctx.sendWeeklyEmail(folder(),d,subscriptions,null),true);
+  assert.equal(mails.length,1);
+  const html=mails[0].htmlBody,actions=buttons(html);
+  assert.equal(actions.filter(x=>x.label==='קבל פרקים').length,2);
+  assert.equal(actions.filter(x=>x.label==='קבל פרק').length,2);
+  for(const name of ['First episode','Second episode','Third episode']){
+    assert.equal(html.split(name).length-1,1);
+  }
+  assert.match(html,/2 פרקים חדשים להתראות בלבד/);
+  assert.match(html,/1 פרקים נשמרו בדרייב/);
+  assert.equal(Object.keys(d.weekly.channels).length,0);
+});
+
+test('weekly oversized feed keeps a single channel header per page, all episodes and safe byte limits',()=>{
+  const {ctx,mails}=setup(),d=ctx._emailsData,sys=folder();
+  const url='https://feeds.test/large';
+  ctx.PODKI_BODY_BYTES=14000;
+  d.weekly.channels[url]={title:'ערוץ ארוך',rssUrl:url,items:Array.from({length:12},(_,i)=>({
+    episodeTitle:'Test episode '+i+' '+('תוכן '.repeat(20)),status:'notification',guid:'g'+i
+  }))};
+  assert.equal(ctx.sendWeeklyEmail(sys,d,[{url,notifyOnly:true}],null),true);
+  assert.ok(mails.length>1);
+  const all=mails.map(m=>m.htmlBody).join('');
+  for(let i=0;i<12;i++)assert.equal(all.split('Test episode '+i+' ').length-1,1);
+  for(const m of mails){
+    assert.ok(Buffer.byteLength(m.htmlBody,'utf8')<=ctx.PODKI_BODY_BYTES);
+    assert.equal(buttons(m.htmlBody).filter(x=>x.label==='קבל פרקים').length,1);
+  }
+  assert.equal(mails.flatMap(m=>buttons(m.htmlBody)).filter(x=>x.label==='קבל פרק').length,12);
+});
+
+test('weekly inactive subscriptions deduplicate identical URLs without dropping distinct feeds with equal names',()=>{
+  const {ctx,mails}=setup(),d=ctx._emailsData;
+  const a='https://feeds.test/first',b='https://feeds.test/second';
+  d.subscriptions.details[a]={title:'כותרת זהה'};
+  d.subscriptions.details[b]={title:'כותרת זהה'};
+  assert.equal(ctx.sendWeeklyEmail(folder(),d,[{url:a,notifyOnly:true},{url:a,notifyOnly:true},{url:b,notifyOnly:false}],null),true);
+  assert.equal(mails.length,1);
+  const controls=buttons(mails[0].htmlBody).filter(x=>x.label==='קבל פרקים');
+  assert.deepEqual(controls.map(x=>new URL('mailto:'+x.uri).searchParams.get('subject')),[a,b]);
+});
+
 test('weekly report lists subscribed channels with no activity in both modes, including empty records and missing metadata',()=>{
   const {ctx,mails}=setup(),d=ctx._emailsData;
   const regular='https://quiet.test/regular',notify='https://quiet.test/notify',unknown='https://quiet.test/unknown',active='https://active.test/feed',removed='https://removed.test/feed';
