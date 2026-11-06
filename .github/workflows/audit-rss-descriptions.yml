@@ -1,0 +1,40 @@
+name: Audit subscribed RSS descriptions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  descriptions:
+    name: Download raw and processed RSS descriptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate JavaScript syntax
+        run: node --check files/podcast_processor_v2.js
+      - name: Fetch every subscribed RSS feed and compare descriptions
+        run: python tests/audit_rss_descriptions.py --feeds tests/subscribed_rss_urls.txt --out rss-audit-output
+      - name: Publish summary in workflow run
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f rss-audit-output/summary.md ]]; then
+            cat rss-audit-output/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload raw and processed descriptions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rss-descriptions-raw-and-processed
+          path: rss-audit-output/
+          retention-days: 7
+          if-no-files-found: error
