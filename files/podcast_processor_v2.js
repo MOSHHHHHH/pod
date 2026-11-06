@@ -529,7 +529,7 @@ function sendMissingRssFileEmail() {
 
 /* ID3v2.3/v2.4 metadata: text and existing cover art are preserved or updated
    without re-encoding audio. Unsafe input tags are left unchanged. */
-var ID3_DIRECT_MAX = 12*1024*1024;
+var ID3_DIRECT_MAX = 4*1024*1024;
 function isMp3Name(name){return /\.mp3$/i.test(String(name||""));}
 function id3Join(parts){var out=[];parts.forEach(function(p){for(var i=0;i<p.length;i++)out.push(p[i]&255);});return out;}
 function id3Ascii(s){return Array.from(s).map(function(c){return c.charCodeAt(0)&127;});}
@@ -698,6 +698,12 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
     tagSkip=savedState.tagSkip||0;
     tagLength=savedState.tagLength||0;
     contentLength=savedState.outputLength||contentLength;
+    // Rebuild only if the tag prefix was not uploaded before the pause.
+    if(tagLength && offset<tagLength){
+      tag=id3Remote(url,meta);
+      if(!tag || tag.skip!==tagSkip || tag.prefix.length!==tagLength)
+        return {success:false,error:"לא ניתן לשחזר בבטחה את תגית ID3 לאחר השהיה"};
+    }
   }else if(meta && isMp3Name(fileName)){
     tag=id3Remote(url,meta);
     if(tag){tagSkip=tag.skip;tagLength=tag.prefix.length;contentLength=originalLength-tagSkip+tagLength;}
@@ -741,7 +747,9 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
       };
     }
 
-    var end = Math.min(offset + CHUNK_SIZE_BYTES - 1, contentLength - 1);
+    // Keep memory bounded while assembling ID3 + audio byte arrays.
+    var activeChunkSize = isMp3Name(fileName) ? 4*1024*1024 : CHUNK_SIZE_BYTES;
+    var end = Math.min(offset + activeChunkSize - 1, contentLength - 1);
 
     var pre=[];
     if(tagLength && offset<tagLength){
@@ -760,7 +768,7 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
         return {success:false,error:"Range לא תקין: השרת לא החזיר את המקטע המבוקש"};
       source=resp.getContent();
     }
-    var chunkPayload=id3Join([pre,source]);
+    var chunkPayload=pre.length?id3Join([pre,source]):source;
 
     var uploadResp = UrlFetchApp.fetch(uploadUrl, {
       method  : "PUT",
