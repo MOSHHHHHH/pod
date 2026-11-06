@@ -253,11 +253,15 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache, notify
     if (pubDate && !isNaN(pubDate) && pubDate < cutoffDate) break;  // RSS חדש→ישן
 
     var title         = item.getChildText("title") || ("פרק_" + (j + 1));
+    var episodeImageUrl = getEpisodeCoverArtUrl(item, itunesNs);
     var enclosureInfo = getEnclosureInfo(item);
     if (!enclosureInfo) continue;
 
     for (var queued = 0; queued < queue.length; queued++) {
-      if (queue[queued].url === enclosureInfo.url && !queue[queued].rssUrl) queue[queued].rssUrl = rssUrl;
+      if (queue[queued].url === enclosureInfo.url) {
+        if (!queue[queued].rssUrl) queue[queued].rssUrl = rssUrl;
+        if (!queue[queued].episodeImageUrl && episodeImageUrl) queue[queued].episodeImageUrl = episodeImageUrl;
+      }
     }
     if (notifyOnly) {
       var notificationGuid = item.getChildText("guid") || enclosureInfo.url;
@@ -311,6 +315,7 @@ function scanFeed(rssUrl, days, mainFolder, queue, seenUrls, folderCache, notify
       folderName      : folderName,
       channelTitle    : channelTitle,
       channelImageUrl : channelImageUrl,
+      episodeImageUrl : episodeImageUrl,
       feedDays        : days,
       episodeTitle    : title,
       pubDate         : pubDateStr,
@@ -561,19 +566,38 @@ function id3Lyric(meta,v){
   return id3Frame("USLT",id3Join([[v===4?3:1],id3Ascii("heb"),v===4?[0]:[255,254,0,0],id3Unicode(value,v)]),v);
 }
 function id3Image(meta,v){
-  if(!meta.channelImageUrl)return null;
-  try{
-    var r=UrlFetchApp.fetch(meta.channelImageUrl,{muteHttpExceptions:true,followRedirects:true});
-    if(r.getResponseCode()!==200)return null;
-    var ct=String(r.getHeaders()["Content-Type"]||r.getHeaders()["content-type"]||"").split(";")[0].toLowerCase();
-    if(ct!=="image/jpeg"&&ct!=="image/png")return null;
-    var data=r.getContent();if(data.length>1024*1024)return null;
-    return id3Frame("APIC",id3Join([[0],id3Ascii(ct),[0,3,0],data]),v);
-  }catch(e){Logger.log("⚠️ עטיפת ID3: "+e.message);return null;}
+  var choices=[];
+  if(meta.episodeImageUrl)choices.push({url:meta.episodeImageUrl,label:"תמונת הפרק"});
+  if(meta.channelImageUrl && meta.channelImageUrl!==meta.episodeImageUrl)
+    choices.push({url:meta.channelImageUrl,label:"תמונת הערוץ"});
+  if(!choices.length){
+    Logger.log("⚠️ לא הוטמעה עטיפת ID3 עבור "+meta.episodeTitle+": לא נמצאה תמונה ב־RSS.");
+    return null;
+  }
+  for(var i=0;i<choices.length;i++){
+    var choice=choices[i];
+    try{
+      var r=UrlFetchApp.fetch(choice.url,{muteHttpExceptions:true,followRedirects:true});
+      if(r.getResponseCode()!==200){Logger.log("⚠️ "+choice.label+": HTTP "+r.getResponseCode());continue;}
+      var ct=String(r.getHeaders()["Content-Type"]||r.getHeaders()["content-type"]||"").split(";")[0].toLowerCase();
+      if(ct==="image/jpg")ct="image/jpeg";
+      if(ct!=="image/jpeg"&&ct!=="image/png"){
+        Logger.log("⚠️ "+choice.label+": פורמט לא נתמך ("+(ct||"לא ידוע")+").");continue;
+      }
+      var bytes=r.getContent();
+      if(bytes.length>1024*1024){Logger.log("⚠️ "+choice.label+": התמונה גדולה מ־1MB.");continue;}
+      if(!bytes.length){Logger.log("⚠️ "+choice.label+": קובץ ריק.");continue;}
+      return id3Frame("APIC",id3Join([[0],id3Ascii(ct),[0,3,0],bytes]),v);
+    }catch(e){Logger.log("⚠️ "+choice.label+": "+e.message);}
+  }
+  Logger.log("⚠️ לא הוטמעה עטיפת ID3 עבור "+meta.episodeTitle+": תמונות ה־RSS הזמינות נכשלו.");
+  return null;
 }
 function id3Tag(meta,original){
-  var inf=id3Info(original);if(!inf||inf.skip>original.length)return null;
-  var v=inf.v,kept=[],art=false;
+  var inf=id3Info(original);if(!inf||inf.skip>original.length){
+    Logger.log("⚠️ לא הוטמעה עטיפת ID3: תגיות מקור לא נתמכות או חסרות.");return null;
+  }
+  var v=inf.v,kept=[];
   if(inf.skip){
     var end=inf.skip-((original[5]&16)?10:0),p=10;
     while(p+10<=end&&original[p]!==0){
@@ -581,8 +605,8 @@ function id3Tag(meta,original){
       if(!/^[A-Z0-9]{4}$/.test(id))return null;
       var n=v===4?id3ReadSync(original,p+4):id3ReadBig(original,p+4);
       if(n<0||p+10+n>end||original[p+8]||original[p+9])return null;
-      if(["TIT2","TALB","TPE1","TPE2","TRCK","TYER","TDRC","TCON","USLT"].indexOf(id)===-1){
-        kept.push(original.slice(p,p+10+n));if(id==="APIC")art=true;
+      if(["TIT2","TALB","TPE1","TPE2","TRCK","TYER","TDRC","TCON","USLT","APIC"].indexOf(id)===-1){
+        kept.push(original.slice(p,p+10+n));
       }
       p+=10+n;
     }
@@ -600,7 +624,7 @@ function id3Tag(meta,original){
     id3Text("TCON","Podcast",v),
     id3Lyric(meta,v)
   ].filter(Boolean);
-  if(!art){var image=id3Image(meta,v);if(image)added.push(image);}
+  var image=id3Image(meta,v);if(image)added.push(image);
   var body=id3Join(kept.concat(added));
   if(body.length>8*1024*1024)return null;
   return {prefix:id3Join([id3Ascii("ID3"),[v,0,0],id3Sync(body.length),body]),skip:inf.skip};
@@ -708,6 +732,8 @@ function downloadDirect(url, fileName, folder, meta, knownLength) {
         }
       }catch(err){Logger.log("⚠️ מדלג על ID3: "+err.message);}
     }
+    if(meta && isMp3Name(fileName) && !(safeLength>0 && safeLength<=ID3_DIRECT_MAX))
+      Logger.log("⚠️ לא הוטמעה עטיפת ID3 עבור "+fileName+": הורדה ישירה ללא עיבוד תגיות (גודל לא ידוע או מעל הסף).");
     var file = folder.createFile(blob);
     return { success: true, error: null, fileId: file.getId() };
   } catch (e) {
@@ -965,6 +991,11 @@ function createLrcFile(folder, baseName, meta) {
  * מוריד ושומר את תמונת הכריכה של הפודקאסט כ-folder.[סיומת].
  * אם קובץ folder.* כבר קיים בתיקייה — לא פועל.
  */
+function getEpisodeCoverArtUrl(item, itunesNs) {
+  var image=item.getChild("image",itunesNs);
+  var href=image && image.getAttribute("href");
+  return href && href.getValue() ? href.getValue() : null;
+}
 function savePodcastCoverArt(channel, podcastFolder, itunesNs) {
   var files = podcastFolder.getFiles();
   while (files.hasNext()) {
@@ -1686,7 +1717,11 @@ function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder)
       var epNum  = item.getChildText('episode', ns) || '';
       var fileExt= getFileExtension(encl.url, encl.type);
       var existingRequest = queue.filter(function(q) { return q.url === encl.url; })[0];
-      if (existingRequest) { existingRequest.source = 'manual'; existingRequest.rssUrl = channelUrl; RET.ok = true; RET.channelTitle = chanTitle; RET.episodeTitle = title; return RET; }
+      if (existingRequest) {
+        existingRequest.source='manual';existingRequest.rssUrl=channelUrl;
+        if(!existingRequest.episodeImageUrl)existingRequest.episodeImageUrl=getEpisodeCoverArtUrl(item,ns);
+        RET.ok=true; RET.channelTitle=chanTitle; RET.episodeTitle=title; return RET;
+      }
       queue.push({
         rssUrl:         channelUrl,
         source:         "manual",
@@ -1696,6 +1731,7 @@ function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder)
         folderName:     folderName,
         channelTitle:   chanTitle,
         channelImageUrl: chanImg,
+        episodeImageUrl: getEpisodeCoverArtUrl(item, ns),
         feedDays:       7,
         episodeTitle:   title,
         pubDate:        item.getChildText('pubDate') || '',
@@ -2029,6 +2065,7 @@ function podkiReadFeed(url) {
       episodeTitle:item.getChildText('title') || 'פרק ללא כותרת',channelTitle:title,
       episodeUrl:encl.url,mimeType:encl.type || 'audio/mpeg',pubDate:item.getChildText('pubDate') || '',
       duration:item.getChildText('duration',ns) || '',author:item.getChildText('author',ns) || author,
+      episodeImageUrl:getEpisodeCoverArtUrl(item,ns),
       episodeNumber:item.getChildText('episode',ns) || '',season:item.getChildText('season',ns) || '',
       subtitle:item.getChildText('subtitle',ns) || '',description:(item.getChildText('description') || '').replace(/<[^>]*>/g,'').slice(0,1200)});
   });
@@ -2052,12 +2089,17 @@ function podkiQueueEpisode(request,queue) {
     error:lastError || "הפרק כבר אינו זמין בפיד של הערוץ, ולא נמצאה כתובת אודיו מאומתת באמצעות Apple Podcasts."};
   var existing=queue.filter(function(q){return q.url===episode.episodeUrl;})[0];
   var status='queued';
-  if(existing){existing.source='manual';existing.rssUrl=request.channelUrl;status='already';}
+  if(existing){
+    existing.source='manual';existing.rssUrl=request.channelUrl;
+    if(!existing.episodeImageUrl && episode.episodeImageUrl)existing.episodeImageUrl=episode.episodeImageUrl;
+    status='already';
+  }
   else{
     var ext=getFileExtension(episode.episodeUrl,episode.mimeType);
     queue.push({rssUrl:request.channelUrl,source:'manual',url:episode.episodeUrl,mimeType:episode.mimeType || 'audio/mpeg',
       fileName:buildFileName(episode.episodeTitle,episode.episodeNumber || '',ext),folderName:sanitizeFolderName(episode.channelTitle),
       channelTitle:episode.channelTitle,channelImageUrl:feed ? feed.image : episode.image,
+      episodeImageUrl:episode.episodeImageUrl || null,
       episodeTitle:episode.episodeTitle,pubDate:episode.pubDate,duration:episode.duration,author:episode.author || '',
       guid:episode.episodeGuid,description:episode.description || '',subtitle:episode.subtitle || '',season:episode.season || '',
       episodeNumber:episode.episodeNumber || '',feedDays:7,retryCount:0,chunkState:null,skipHistory:true,fromSubscription:false});
