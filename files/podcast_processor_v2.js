@@ -748,7 +748,7 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
     }
 
     // Keep memory bounded while assembling ID3 + audio byte arrays.
-    var activeChunkSize = isMp3Name(fileName) ? 4*1024*1024 : CHUNK_SIZE_BYTES;
+    var activeChunkSize = CHUNK_SIZE_BYTES;
     var end = Math.min(offset + activeChunkSize - 1, contentLength - 1);
 
     var pre=[];
