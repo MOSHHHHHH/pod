@@ -607,17 +607,44 @@ function id3Tag(meta,original){
 }
 function id3Remote(url,meta){
   try{
-    var r=UrlFetchApp.fetch(url,{headers:{"Range":"bytes=0-9"},muteHttpExceptions:true,followRedirects:true});
+    var r=fetchPodcastAudio(url,{headers:{"Range":"bytes=0-9"},muteHttpExceptions:true,followRedirects:true});
     if(r.getResponseCode()!==206||r.getContent().length!==10)return null;
     var a=r.getContent().map(function(x){return x&255;});
     var info=id3Info(a);if(!info)return null;
     if(info.skip>10){
-      r=UrlFetchApp.fetch(url,{headers:{"Range":"bytes=0-"+(info.skip-1)},muteHttpExceptions:true,followRedirects:true});
+      r=fetchPodcastAudio(url,{headers:{"Range":"bytes=0-"+(info.skip-1)},muteHttpExceptions:true,followRedirects:true});
       if(r.getResponseCode()!==206||r.getContent().length!==info.skip)return null;
       a=r.getContent().map(function(x){return x&255;});
     }
     return id3Tag(meta,a);
   }catch(e){Logger.log("⚠️ ID3 לא הוכן: "+e.message);return null;}
+}
+
+
+/** Complete redirects that UrlFetchApp did not follow, with a bounded hop count. */
+function fetchPodcastAudio(url,options){
+  var current=String(url);
+  for(var hop=0;hop<=5;hop++){
+    var r=UrlFetchApp.fetch(current,options),code=r.getResponseCode();
+    if([301,302,303,307,308].indexOf(code)<0)return r;
+    var headers=r.getHeaders();
+    var location=String(headers["Location"]||headers["location"]||"").trim();
+    if(!location)return r;
+    var next;
+    if(/^https?:\/\//i.test(location))next=location;
+    else if(location.indexOf("//")===0)next=current.split(":")[0]+":"+location;
+    else {
+      var origin=current.match(/^(https?:\/\/[^\/?#]+)/i);
+      if(!origin)return r;
+      if(location.charAt(0)==="/")next=origin[1]+location;
+      else if(location.charAt(0)==="?")next=current.split("?")[0]+location;
+      else next=current.split("?")[0].replace(/\/[^\/]*$/,"/")+location;
+    }
+    if(!/^https?:\/\//i.test(next))return r;
+    Logger.log("↪️ שרת אודיו החזיר HTTP "+code+"; עוקב אחר ההפניה ("+(hop+1)+"/5).");
+    current=next;
+  }
+  throw new Error("יותר מדי הפניות HTTP בהורדת פודקאסט");
 }
 
 // הורדת קובץ אודיו ושמירה ישירה ב-Drive
@@ -630,7 +657,7 @@ function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime, meta) 
   var supportsRange  = false;
 
   try {
-    var headResp = UrlFetchApp.fetch(url, {
+    var headResp = fetchPodcastAudio(url, {
       headers            : { "Range": "bytes=0-0" },
       muteHttpExceptions : true,
       followRedirects    : true
@@ -647,26 +674,30 @@ function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime, meta) 
   if (contentLength === 0 || contentLength <= MAX_DIRECT_BYTES) {
     if (meta && isMp3Name(fileName) && supportsRange && contentLength > ID3_DIRECT_MAX)
       return downloadChunked(url,fileName,mimeType,folder,contentLength,startTime,null,meta);
-    return downloadDirect(url,fileName,folder,meta);
+    return downloadDirect(url,fileName,folder,meta,contentLength);
   }
 
   Logger.log("📦 קובץ גדול: " + Math.round(contentLength / 1024 / 1024) + " MB");
   if (!supportsRange) {
     Logger.log("⚠️ השרת אינו תומך בבקשות Range. מנסה הורדה רגילה.");
-    return downloadDirect(url, fileName, folder, meta);
+    return downloadDirect(url, fileName, folder, meta, contentLength);
   }
 
   return downloadChunked(url, fileName, mimeType, folder, contentLength, startTime, null, meta);
 }
 
-function downloadDirect(url, fileName, folder, meta) {
+function downloadDirect(url, fileName, folder, meta, knownLength) {
   try {
-    var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+    var resp = fetchPodcastAudio(url, { muteHttpExceptions: true, followRedirects: true });
     if (resp.getResponseCode() !== 200) {
       return { success: false, error: "HTTP " + resp.getResponseCode(), fileId: null };
     }
     var blob=resp.getBlob().setName(fileName);
-    if(meta && isMp3Name(fileName) && blob.getSize()<=ID3_DIRECT_MAX){
+    // Avoid copying large direct downloads into JS just to measure their size.
+    var responseHeaders=resp.getHeaders();
+    var responseLength=parseInt(responseHeaders["Content-Length"]||responseHeaders["content-length"]||"0",10)||0;
+    var safeLength=knownLength||responseLength;
+    if(meta && isMp3Name(fileName) && safeLength>0 && safeLength<=ID3_DIRECT_MAX){
       try{
         var bytes=blob.getBytes();
         var b=bytes.map(function(x){return x&255;});
@@ -760,13 +791,25 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
     var sourceCount=end-offset+1-pre.length;
     var source=[];
     if(sourceCount>0){
-      var resp=UrlFetchApp.fetch(url,{
+      var resp=fetchPodcastAudio(url,{
         headers:{"Range":"bytes="+sourceStart+"-"+(sourceStart+sourceCount-1)},
         muteHttpExceptions:true,followRedirects:true
       });
-      if(resp.getResponseCode()!==206 || resp.getContent().length!==sourceCount)
-        return {success:false,error:"Range לא תקין: השרת לא החזיר את המקטע המבוקש"};
-      source=resp.getContent();
+      var fetchedBytes=resp.getContent();
+      var fetchedCode=resp.getResponseCode();
+      if(fetchedCode!==206 || fetchedBytes.length!==sourceCount){
+        Logger.log("⚠️ Range: HTTP "+fetchedCode+", התקבלו "+fetchedBytes.length+" בתים במקום "+sourceCount);
+        // This upload is still empty. Do not splice a 200 response into the
+        // resumable upload; that could silently corrupt the MP3.
+        if(offset===0 && !savedState && originalLength<=MAX_DIRECT_BYTES){
+          try{UrlFetchApp.fetch(uploadUrl,{method:"DELETE",muteHttpExceptions:true});}catch(cancelErr){}
+          Logger.log("↪️ מעבר להורדה ישירה בעקבות תגובת Range לא תקינה.");
+          return downloadDirect(url,fileName,folder,meta,originalLength);
+        }
+        return {success:false,error:"Range לא תקין: HTTP "+fetchedCode+
+          ", התקבלו "+fetchedBytes.length+" בתים במקום "+sourceCount};
+      }
+      source=fetchedBytes;
     }
     var chunkPayload=pre.length?id3Join([pre,source]):source;
 
