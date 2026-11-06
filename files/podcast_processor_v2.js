@@ -556,12 +556,51 @@ function id3Info(bytes){
   if((v!==3&&v!==4)||(flags&224)||skip>4*1024*1024||skip<10)return null;
   return {skip:skip,v:v};
 }
+/**
+ * Normalize RSS HTML/CDATA descriptions for both ID3 USLT and LRC.
+ * Preserve paragraphs, lists, URLs and timestamps without guessing word breaks.
+ */
+function normalizePodcastDescription(value) {
+  var html=String(value==null?"":value).replace(/\r\n?/g,"\n");
+  html=html.replace(/<!--[\s\S]*?-->/g,"");
+  html=html.replace(/<(script|style|noscript|iframe|svg)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,"");
+  function entities(t){
+    var named={amp:"&",lt:"<",gt:">",quot:'"',apos:"'",nbsp:" ",ndash:"–",mdash:"—",
+      hellip:"…",bull:"•",laquo:"«",raquo:"»",lsquo:"‘",rsquo:"’",ldquo:"“",rdquo:"”",
+      lrm:"\u200e",rlm:"\u200f"};
+    return t.replace(/&(#(?:x[0-9a-f]+|[0-9]+)|[a-z][a-z0-9]+);/gi,function(match,key){
+      if(key.charAt(0)==="#"){
+        var hex=key.charAt(1).toLowerCase()==="x";
+        var n=parseInt(key.slice(hex?2:1),hex?16:10);
+        if(!isFinite(n)||n<=0||n>0x10ffff||(n>=0xd800&&n<=0xdfff))return match;
+        return String.fromCodePoint(n);
+      }
+      return Object.prototype.hasOwnProperty.call(named,key.toLowerCase())?named[key.toLowerCase()]:match;
+    });
+  }
+  html=html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a\s*>/gi,function(all,attrs,label){
+    var match=attrs.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+    var url=entities(match?(match[1]||match[2]||match[3]||""):"").trim();
+    var text=entities(label.replace(/<\/?[a-z][^>]*>/gi,"")).trim();
+    if(!/^https?:\/\//i.test(url)||text===url||text.indexOf(url)!==-1)return text||url;
+    return text?text+" ("+url+")":url;
+  });
+  html=html.replace(/<br\b[^>]*\/?>/gi,"\n");
+  html=html.replace(/<li\b[^>]*>/gi,"\n• ");
+  html=html.replace(/<\/li\s*>/gi,"\n");
+  html=html.replace(/<\/(?:p|div|section|article|blockquote|h[1-6]|ul|ol|table|tr)\s*>/gi,"\n\n");
+  html=html.replace(/<(?:p|div|section|article|blockquote|h[1-6]|ul|ol|table|tr)\b[^>]*>/gi,"\n\n");
+  html=html.replace(/<\/?t[dh]\b[^>]*>/gi,"  ");
+  // Only remove Latin-letter HTML tags: preserve literal Hebrew <...> text.
+  html=entities(html.replace(/<\/?[a-z][^>]*>/gi,""));
+  return html.replace(/[\t\f\v\u00a0 ]+/g," ").replace(/ *\n */g,"\n")
+    .replace(/\n{3,}/g,"\n\n").trim();
+}
+
 function id3Lyric(meta,v){
   var d=meta.pubDate?new Date(meta.pubDate):null;
   var date=d&&!isNaN(d.getTime())?formatDate(d):String(meta.pubDate||"");
-  var desc=String(meta.description||"").replace(/<[^>]*>/g,"")
-    .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")
-    .replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g," ").trim();
+  var desc=normalizePodcastDescription(meta.description);
   var value="תאריך פרסום: "+date+"\nנשמר באמצעות פודקי\n\nתיאור:\n"+convertTimestampsToLrc(desc);
   return id3Frame("USLT",id3Join([[v===4?3:1],id3Ascii("heb"),v===4?[0]:[255,254,0,0],id3Unicode(value,v)]),v);
 }
@@ -976,11 +1015,7 @@ function createLrcFile(folder, baseName, meta) {
   lines.push("");
   lines.push("תיאור:");
 
-  var cleanDescription = (meta.description || "")
-    .replace(/<[^>]*>/g, "")
-    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
-    .trim();
+  var cleanDescription = normalizePodcastDescription(meta.description);
   lines.push(convertTimestampsToLrc(cleanDescription));
 
   folder.createFile(lrcName, lines.join("\n"), MimeType.PLAIN_TEXT);
@@ -2067,7 +2102,7 @@ function podkiReadFeed(url) {
       duration:item.getChildText('duration',ns) || '',author:item.getChildText('author',ns) || author,
       episodeImageUrl:getEpisodeCoverArtUrl(item,ns),
       episodeNumber:item.getChildText('episode',ns) || '',season:item.getChildText('season',ns) || '',
-      subtitle:item.getChildText('subtitle',ns) || '',description:(item.getChildText('description') || '').replace(/<[^>]*>/g,'').slice(0,1200)});
+      subtitle:item.getChildText('subtitle',ns) || '',description:item.getChildText('description') || ''});
   });
   _podkiFeedCache[url]=result; return result;
 }
