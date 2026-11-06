@@ -1,0 +1,28 @@
+# RSS URLs only, copied with user approval from private podcasts.txt on 2026-11-06.
+# No subscription flags, names, dates, account data, or private file contents.
+https://feeds.transistor.fm/dc476eb0-44b2-4c64-85cc-e84336fc8d2c
+https://www.omnycontent.com/d/playlist/2ee97a4e-8795-4260-9648-accf00a38c6a/a5d4b51f-5b9e-43db-84da-ace100c04108/0ab18f83-1327-4f4e-9d7a-ace100c0411f/podcast.rss
+https://www.omnycontent.com/d/playlist/23f697a0-7e6a-4e96-a223-a82c00962b12/dbe32976-5401-4c93-87ed-a919008d58ae/1ea69f94-8d46-4ff2-aaca-a919008d58b8/podcast.rss
+https://rss.buzzsprout.com/278171.rss
+https://rss.buzzsprout.com/1887121.rss
+https://feeds.simplecast.com/oYXzB8F5
+https://anchor.fm/s/10439ac9c/podcast/rss
+https://feed.podbean.com/hashirimshhaavnu/feed.xml
+https://www.omnycontent.com/d/playlist/23f697a0-7e6a-4e96-a223-a82c00962b12/95440ebf-10fe-4253-8816-af85013fd370/489fba5c-c864-404d-a94c-af8501413111/podcast.rss
+https://anchor.fm/s/106c03904/podcast/rss
+https://anchor.fm/s/112003850/podcast/rss
+https://anchor.fm/s/10e94f840/podcast/rss
+https://feeds.transistor.fm/4bf07a0b-acb9-40a4-89c3-debc30f5ef93
+https://anchor.fm/s/ff1bdce4/podcast/rss
+https://rss.buzzsprout.com/1873093.rss
+https://feeds.transistor.fm/29b9b741-b2b2-4068-a8e2-a4bf2daa265a
+https://www.omnycontent.com/d/playlist/23f697a0-7e6a-4e96-a223-a82c00962b12/acf55018-3331-41be-9c34-a919008d593c/bd9198c9-39cc-41f7-8612-a919008d593c/podcast.rss
+https://www.spreaker.com/show/4228834/episodes/feed
+https://www.omnycontent.com/d/playlist/6dcbc33f-1fb6-49de-9ae2-ad8a00c01523/59ce075a-ac52-479c-b557-add600fa73a4/d96b38ce-3d62-47a4-956b-add600ffa110/podcast.rss
+https://www.omnycontent.com/d/playlist/23f697a0-7e6a-4e96-a223-a82c00962b12/549f1693-5513-4fd9-8128-acbb00ab7e29/08e8a3de-ae13-4a76-9085-acbb00ac75e4/podcast.rss
+https://serve.podhome.fm/rss/a21f44c6-8d6d-48dc-a7ce-3cc24f7f54a9
+https://anchor.fm/s/f2d2fef4/podcast/rss
+https://podcasts.files.bbci.co.uk/p02pc9tn.rss
+https://learningenglish.voanews.com/podcast/?zoneId=4456
+https://feeds.megaphone.fm/LEME2532531912
+https://podcasts.vpr.net/but-why
