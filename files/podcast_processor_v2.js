@@ -144,9 +144,9 @@ function runPodcastMain(sysFolder, mainFolder) {
     var result;
     if (item.chunkState) {
       result = downloadChunked(item.url, item.fileName, item.mimeType, targetFolder,
-                               item.chunkState.contentLength, startTime, item.chunkState);
+                               item.chunkState.contentLength, startTime, item.chunkState, item);
     } else {
-      result = downloadAndSaveAudio(item.url, item.fileName, item.mimeType, targetFolder, startTime);
+      result = downloadAndSaveAudio(item.url, item.fileName, item.mimeType, targetFolder, startTime, item);
     }
     if (result.success) {
       downloaded++;
@@ -154,7 +154,8 @@ function runPodcastMain(sysFolder, mainFolder) {
       item.fileId  = result.fileId || null;
       item.fileUrl = item.fileId ? "https://drive.google.com/file/d/" + item.fileId + "/view" : null;
       Logger.log("✅ " + item.fileName + (item.fileId ? " 🔗" : ""));
-      createLrcFile(targetFolder, item.fileName.substring(0, item.fileName.lastIndexOf(".")), item);
+      if (!isMp3Name(item.fileName))
+         createLrcFile(targetFolder, item.fileName.substring(0, item.fileName.lastIndexOf(".")), item);
       addToHistory(_downloadHistory, item);
       addToWeeklyPending(_emailsData, item, "success", null);
       queue.splice(idx, 1);
@@ -525,12 +526,106 @@ function sendMissingRssFileEmail() {
 
 
 // =====================================================================
+
+/* ID3v2.3/v2.4 metadata: text and existing cover art are preserved or updated
+   without re-encoding audio. Unsafe input tags are left unchanged. */
+var ID3_DIRECT_MAX = 12*1024*1024;
+function isMp3Name(name){return /\.mp3$/i.test(String(name||""));}
+function id3Join(parts){var out=[];parts.forEach(function(p){for(var i=0;i<p.length;i++)out.push(p[i]&255);});return out;}
+function id3Ascii(s){return Array.from(s).map(function(c){return c.charCodeAt(0)&127;});}
+function id3Sync(n){return [(n>>>21)&127,(n>>>14)&127,(n>>>7)&127,n&127];}
+function id3ReadSync(b,p){return (b[p]&127)*2097152+(b[p+1]&127)*16384+(b[p+2]&127)*128+(b[p+3]&127);}
+function id3ReadBig(b,p){return (b[p]*16777216)+(b[p+1]<<16)+(b[p+2]<<8)+b[p+3];}
+function id3Big(n){return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255];}
+function id3Unicode(t,v){
+  t=String(t||"");
+  if(v===4)return id3Join([Utilities.newBlob(t,"text/plain").getBytes()]);
+  var a=[255,254];for(var i=0;i<t.length;i++){var n=t.charCodeAt(i);a.push(n&255,(n>>>8)&255);}return a;
+}
+function id3Frame(id,body,v){return id3Join([id3Ascii(id),v===4?id3Sync(body.length):id3Big(body.length),[0,0],body]);}
+function id3Text(id,value,v){return value===undefined||value===null||String(value)===""?null:
+  id3Frame(id,id3Join([[v===4?3:1],id3Unicode(value,v)]),v);}
+function id3Info(bytes){
+  if(bytes.length<10||bytes[0]!==73||bytes[1]!==68||bytes[2]!==51)return {skip:0,v:3};
+  var v=bytes[3],flags=bytes[5],skip=10+id3ReadSync(bytes,6)+((flags&16)?10:0);
+  if((v!==3&&v!==4)||(flags&224)||skip>4*1024*1024||skip<10)return null;
+  return {skip:skip,v:v};
+}
+function id3Lyric(meta,v){
+  var d=meta.pubDate?new Date(meta.pubDate):null;
+  var date=d&&!isNaN(d.getTime())?formatDate(d):String(meta.pubDate||"");
+  var desc=String(meta.description||"").replace(/<[^>]*>/g,"")
+    .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")
+    .replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g," ").trim();
+  var value="תאריך פרסום: "+date+"\nנשמר באמצעות פודקי\n\nתיאור:\n"+convertTimestampsToLrc(desc);
+  return id3Frame("USLT",id3Join([[v===4?3:1],id3Ascii("heb"),v===4?[0]:[255,254,0,0],id3Unicode(value,v)]),v);
+}
+function id3Image(meta,v){
+  if(!meta.channelImageUrl)return null;
+  try{
+    var r=UrlFetchApp.fetch(meta.channelImageUrl,{muteHttpExceptions:true,followRedirects:true});
+    if(r.getResponseCode()!==200)return null;
+    var ct=String(r.getHeaders()["Content-Type"]||r.getHeaders()["content-type"]||"").split(";")[0].toLowerCase();
+    if(ct!=="image/jpeg"&&ct!=="image/png")return null;
+    var data=r.getContent();if(data.length>1024*1024)return null;
+    return id3Frame("APIC",id3Join([[0],id3Ascii(ct),[0,3,0],data]),v);
+  }catch(e){Logger.log("⚠️ עטיפת ID3: "+e.message);return null;}
+}
+function id3Tag(meta,original){
+  var inf=id3Info(original);if(!inf||inf.skip>original.length)return null;
+  var v=inf.v,kept=[],art=false;
+  if(inf.skip){
+    var end=inf.skip-((original[5]&16)?10:0),p=10;
+    while(p+10<=end&&original[p]!==0){
+      var id=String.fromCharCode.apply(null,original.slice(p,p+4));
+      if(!/^[A-Z0-9]{4}$/.test(id))return null;
+      var n=v===4?id3ReadSync(original,p+4):id3ReadBig(original,p+4);
+      if(n<0||p+10+n>end||original[p+8]||original[p+9])return null;
+      if(["TIT2","TALB","TPE1","TPE2","TRCK","TYER","TDRC","TCON","USLT"].indexOf(id)===-1){
+        kept.push(original.slice(p,p+10+n));if(id==="APIC")art=true;
+      }
+      p+=10+n;
+    }
+  }
+  var date=meta.pubDate?new Date(meta.pubDate):null;
+  var year=date&&!isNaN(date.getTime())?String(date.getFullYear()):"";
+  var full=date&&!isNaN(date.getTime())?date.toISOString().slice(0,10):"";
+  var added=[
+    id3Text("TIT2",meta.episodeTitle,v),
+    id3Text("TALB",meta.channelTitle,v),
+    id3Text("TPE1",meta.author,v),
+    id3Text("TPE2",meta.channelTitle,v),
+    id3Text("TRCK",meta.episodeNumber,v),
+    id3Text(v===4?"TDRC":"TYER",v===4?full:year,v),
+    id3Text("TCON","Podcast",v),
+    id3Lyric(meta,v)
+  ].filter(Boolean);
+  if(!art){var image=id3Image(meta,v);if(image)added.push(image);}
+  var body=id3Join(kept.concat(added));
+  if(body.length>8*1024*1024)return null;
+  return {prefix:id3Join([id3Ascii("ID3"),[v,0,0],id3Sync(body.length),body]),skip:inf.skip};
+}
+function id3Remote(url,meta){
+  try{
+    var r=UrlFetchApp.fetch(url,{headers:{"Range":"bytes=0-9"},muteHttpExceptions:true,followRedirects:true});
+    if(r.getResponseCode()!==206||r.getContent().length!==10)return null;
+    var a=r.getContent().map(function(x){return x&255;});
+    var info=id3Info(a);if(!info)return null;
+    if(info.skip>10){
+      r=UrlFetchApp.fetch(url,{headers:{"Range":"bytes=0-"+(info.skip-1)},muteHttpExceptions:true,followRedirects:true});
+      if(r.getResponseCode()!==206||r.getContent().length!==info.skip)return null;
+      a=r.getContent().map(function(x){return x&255;});
+    }
+    return id3Tag(meta,a);
+  }catch(e){Logger.log("⚠️ ID3 לא הוכן: "+e.message);return null;}
+}
+
 // הורדת קובץ אודיו ושמירה ישירה ב-Drive
 // תומכת בקבצים גדולים מ-45MB דרך Chunked Download + Resumable Upload
 // מחזירה {success: boolean, error: string|null}
 // =====================================================================
 
-function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime) {
+function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime, meta) {
   var contentLength = 0;
   var supportsRange  = false;
 
@@ -550,27 +645,39 @@ function downloadAndSaveAudio(url, fileName, mimeType, folder, startTime) {
   }
 
   if (contentLength === 0 || contentLength <= MAX_DIRECT_BYTES) {
-    return downloadDirect(url, fileName, folder);
+    if (meta && isMp3Name(fileName) && supportsRange && contentLength > ID3_DIRECT_MAX)
+      return downloadChunked(url,fileName,mimeType,folder,contentLength,startTime,null,meta);
+    return downloadDirect(url,fileName,folder,meta);
   }
 
   Logger.log("📦 קובץ גדול: " + Math.round(contentLength / 1024 / 1024) + " MB");
   if (!supportsRange) {
     Logger.log("⚠️ השרת אינו תומך בבקשות Range. מנסה הורדה רגילה.");
-    return downloadDirect(url, fileName, folder);
+    return downloadDirect(url, fileName, folder, meta);
   }
 
-  return downloadChunked(url, fileName, mimeType, folder, contentLength, startTime,
-    null  // no saved state on first attempt
-  );
+  return downloadChunked(url, fileName, mimeType, folder, contentLength, startTime, null, meta);
 }
 
-function downloadDirect(url, fileName, folder) {
+function downloadDirect(url, fileName, folder, meta) {
   try {
     var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
     if (resp.getResponseCode() !== 200) {
       return { success: false, error: "HTTP " + resp.getResponseCode(), fileId: null };
     }
-    var file = folder.createFile(resp.getBlob().setName(fileName));
+    var blob=resp.getBlob().setName(fileName);
+    if(meta && isMp3Name(fileName) && blob.getSize()<=ID3_DIRECT_MAX){
+      try{
+        var bytes=blob.getBytes();
+        var b=bytes.map(function(x){return x&255;});
+        var info=id3Info(b);
+        if(info){
+          var tag=id3Tag(meta,b.slice(0,Math.max(10,info.skip)));
+          if(tag)blob=Utilities.newBlob(id3Join([tag.prefix,bytes.slice(tag.skip)]),"audio/mpeg",fileName);
+        }
+      }catch(err){Logger.log("⚠️ מדלג על ID3: "+err.message);}
+    }
+    var file = folder.createFile(blob);
     return { success: true, error: null, fileId: file.getId() };
   } catch (e) {
     return { success: false, error: e.message, fileId: null };
@@ -582,10 +689,19 @@ function downloadDirect(url, fileName, folder) {
  * savedState: {uploadUrl, offset} נשמר בפריט התור כ-item.chunkState.
  * session ה-resumable upload של Drive תקף 7 ימים.
  */
-function downloadChunked(url, fileName, mimeType, folder, contentLength, startTime, savedState) {
+function downloadChunked(url, fileName, mimeType, folder, contentLength, startTime, savedState, meta) {
   var token     = ScriptApp.getOAuthToken();
   var uploadUrl = savedState && savedState.uploadUrl ? savedState.uploadUrl : null;
   var offset    = savedState && savedState.offset    ? savedState.offset    : 0;
+  var originalLength=contentLength,tag=null,tagSkip=0,tagLength=0;
+  if(savedState){
+    tagSkip=savedState.tagSkip||0;
+    tagLength=savedState.tagLength||0;
+    contentLength=savedState.outputLength||contentLength;
+  }else if(meta && isMp3Name(fileName)){
+    tag=id3Remote(url,meta);
+    if(tag){tagSkip=tag.skip;tagLength=tag.prefix.length;contentLength=originalLength-tagSkip+tagLength;}
+  }
 
   // ── פתיחת session חדש אם אין saved state ──
   if (!uploadUrl) {
@@ -621,23 +737,30 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
         success  : false,
         paused   : true,
         error    : "time_limit",
-        chunkState: { uploadUrl: uploadUrl, offset: offset, contentLength: contentLength }
+        chunkState: { uploadUrl: uploadUrl, offset: offset, contentLength: originalLength, outputLength: contentLength, tagSkip: tagSkip, tagLength: tagLength }
       };
     }
 
     var end = Math.min(offset + CHUNK_SIZE_BYTES - 1, contentLength - 1);
 
-    var chunkResp = UrlFetchApp.fetch(url, {
-      headers            : { "Range": "bytes=" + offset + "-" + end },
-      muteHttpExceptions : true,
-      followRedirects    : true
-    });
-    var chunkCode = chunkResp.getResponseCode();
-    if (chunkCode !== 206 && chunkCode !== 200) {
-      // שגיאת הורדה — מבטל session
-      try { UrlFetchApp.fetch(uploadUrl, { method: "delete", muteHttpExceptions: true }); } catch(e) {}
-      return { success: false, error: "הורדת מקטע נכשלה: HTTP " + chunkCode };
+    var pre=[];
+    if(tagLength && offset<tagLength){
+      if(!tag)return {success:false,error:"חסרה תגית ID3 בעת חידוש העלאה"};
+      pre=tag.prefix.slice(offset,Math.min(end+1,tagLength));
     }
+    var sourceStart=tagSkip+Math.max(0,offset-tagLength);
+    var sourceCount=end-offset+1-pre.length;
+    var source=[];
+    if(sourceCount>0){
+      var resp=UrlFetchApp.fetch(url,{
+        headers:{"Range":"bytes="+sourceStart+"-"+(sourceStart+sourceCount-1)},
+        muteHttpExceptions:true,followRedirects:true
+      });
+      if(resp.getResponseCode()!==206 || resp.getContent().length!==sourceCount)
+        return {success:false,error:"Range לא תקין: השרת לא החזיר את המקטע המבוקש"};
+      source=resp.getContent();
+    }
+    var chunkPayload=id3Join([pre,source]);
 
     var uploadResp = UrlFetchApp.fetch(uploadUrl, {
       method  : "PUT",
@@ -645,7 +768,7 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
         "Content-Range" : "bytes " + offset + "-" + end + "/" + contentLength,
         "Content-Type"  : mimeType
       },
-      payload            : chunkResp.getContent(),
+      payload            : chunkPayload,
       muteHttpExceptions : true
     });
     var uploadCode = uploadResp.getResponseCode();
