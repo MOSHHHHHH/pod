@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/podki-promo-narration.yml'
+      - 'scripts/generate_podki_promo_narration.py'
   workflow_dispatch:
 
 permissions:
