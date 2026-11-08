@@ -39,33 +39,51 @@ STYLE = (
 
 
 def synthesize(client, slug, transcript):
+    """Use the documented GenerateContent TTS API; emit safe, actionable diagnostics."""
     for attempt in range(1, 5):
         try:
-            result = client.interactions.create(
+            response = client.models.generate_content(
                 model=MODEL,
-                input=[{
-                    "type": "user_input",
-                    "content": [{
-                        "type": "text",
+                contents=[{
+                    "role": "user",
+                    "parts": [{
                         "text": transcript,
-                        "annotations": [{"type": "speech_metadata", "style": STYLE}],
+                        "speech_metadata": {"style": STYLE},
                     }],
                 }],
-                response_format={"type": "audio"},
-                generation_config={"speech_config": [{"voice": VOICE}]},
+                config={
+                    "response_modalities": ["AUDIO"],
+                    "speech_config": {"voice_config": {"voice": VOICE}},
+                },
             )
-            data = base64.b64decode(result.output_audio.data)
+            parts = response.candidates[0].content.parts if response.candidates else []
+            audio = next(
+                (p.inline_data.data for p in parts if p.inline_data and p.inline_data.data),
+                None,
+            )
+            if not audio:
+                raise RuntimeError("EMPTY_AUDIO: Gemini returned no audio parts")
+            data = bytes(audio)  # google-genai already decodes base64
             if not data.startswith(b"RIFF") or b"WAVE" not in data[:16]:
-                raise RuntimeError(f"{slug}: unexpected audio format (expected WAV)")
+                raise RuntimeError("UNEXPECTED_FORMAT: expected a complete WAV")
             return data
         except Exception as exc:
-            message = str(exc).lower()
-            transient = any(x in message for x in ("429", "500", "502", "503", "504", "unavailable", "timeout"))
-            # Never print the raw error: some SDK errors contain sensitive request data.
+            import re
+            status = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+            category = type(exc).__name__
+            # Show the meaningful API diagnostic while redacting the key and credentials.
+            detail = str(exc).replace(os.environ["GEMINI_API_KEY"], "[REDACTED]")
+            detail = re.sub(r"(?i)(key|token|authorization|password)([=: ]+)([^\\s,;]+)",
+                            r"\\1\\2[REDACTED]", detail)
+            detail = detail.replace("\\n", " ")[:450]
+            print(f"::error title=Gemini TTS {slug}::{category}; HTTP={status}; {detail}", flush=True)
+            transient = str(status) in ("429", "500", "502", "503", "504") or any(
+                word in detail.lower() for word in ("timeout", "temporarily unavailable", "overloaded")
+            )
             if not transient or attempt == 4:
-                raise RuntimeError(f"{slug}: Gemini generation failed (transient={transient}, attempt={attempt})") from None
+                raise RuntimeError(f"{slug}: TTS failed (HTTP={status}, type={category})") from None
             delay = 5 * (2 ** (attempt - 1))
-            print(f"{slug}: temporary Gemini error; retry {attempt}/3 after {delay}s")
+            print(f"{slug}: retry after {delay}s ({attempt}/3)", flush=True)
             time.sleep(delay)
 
 
