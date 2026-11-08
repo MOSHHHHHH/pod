@@ -1,76 +1,104 @@
 #!/usr/bin/env python3
-"""Generate Hebrew Podki promo narration as individual WAV files using Gemini 3.8 Flash TTS.
-Use the GEMINI_API_KEY environment secret. Never print it.
+"""Generate independent Hebrew narrator tracks for the Podki control-room promo.
+
+The WAV files and transcripts are uploaded as Actions artifacts only.
+Never write the API key to logs or files.
 """
 import base64
 import os
 from pathlib import Path
+import time
 import wave
 
 from google import genai
 
 MODEL = "gemini-3.8-flash-tts"
-VOICE = "Puck"
+VOICE = "Charon"
 OUT = Path("podki-promo-narration")
-OUT.mkdir(exist_ok=True)
-
-# Always use niqqud for the mascot's name in spoken scripts: פּוֹדְקִי.
 SCENES = [
-    ("01-intro", "היי! אני פּוֹדְקִי, ואני כאן כדי להפוך את עולם הפודקאסטים שלכם לפשוט ונוח יותר!"),
-    ("02-search", "מחפשים פודקאסט חדש? פּוֹדְקִי מוצא עבורכם ערוצים ופרקים, ומאפשר לבחור בדיוק את מה שמעניין אתכם."),
-    ("03-request", "מצאתם פרק שאהבתם? בוחרים את הפרקים הרצויים, שולחים בקשה פשוטה במייל, וזה הכול!"),
-    ("04-drive", "פּוֹדְקִי שומר את הפרקים שביקשתם ישירות בדרייב שלכם, מסודרים לפי ערוצים. מגלים, שומרים ומאזינים — בדרך שלכם!"),
+    (
+        "01-control-room",
+        "בעולם של אינסוף פודקאסטים, יש מי שעושה בשבילכם את העבודה. "
+        "הכירו את פּוֹדְקִי — הדרך החכמה למצוא, לארגן ולשמור את הפודקאסטים שאתם אוהבים.",
+    ),
+    (
+        "02-discovery",
+        "מחפשים פודקאסט מסוים? או פרק שמעניין אתכם? "
+        "פּוֹדְקִי מאתר את התוכן, מציג את הפרקים הזמינים, "
+        "ומאפשר לכם לבחור בדיוק מה תרצו לשמור.",
+    ),
 ]
-
 STYLE = (
-    "Speak in natural modern Israeli Hebrew, as a warm, cheerful male technology-news "
-    "presenter in a friendly podcast promo. Energetic but not theatrical, clearly articulated, "
-    "medium-fast tempo and consistent timbre between takes. "
-    "Read the Hebrew text exactly as written, including the vocalized mascot name פּוֹדְקִי. "
-    "No music, effects, introductions or extra words."
+    "Narrate in polished, natural Israeli Hebrew with a confident, deep male "
+    "professional television technology-promo announcer voice. Dramatic but "
+    "not exaggerated; clear diction, measured pace, energetic emphasis and "
+    "consistent timbre across both scenes. This is an external narrator, NOT "
+    "Podki speaking. Pronounce פּוֹדְקִי as Podki. Read ONLY the exact Hebrew "
+    "script. No intro, dialogue, music, sound effects or extra words."
 )
 
-def main():
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        raise RuntimeError("GEMINI_API_KEY repository secret is missing.")
-    client = genai.Client(api_key=key)
-    for slug, transcript in SCENES:
-        assert "פודקי" not in transcript, "Mascot name must always be vocalized."
-        print(f"Generating {slug} using {MODEL}...")
-        result = client.interactions.create(
-            model=MODEL,
-            input=[{
-                "type": "user_input",
-                "content": [{
-                    "type": "text",
-                    "text": transcript,
-                    "annotations": [{
-                        "type": "speech_metadata",
-                        "style": STYLE,
+
+def synthesize(client, slug, transcript):
+    for attempt in range(1, 5):
+        try:
+            result = client.interactions.create(
+                model=MODEL,
+                input=[{
+                    "type": "user_input",
+                    "content": [{
+                        "type": "text",
+                        "text": transcript,
+                        "annotations": [{"type": "speech_metadata", "style": STYLE}],
                     }],
                 }],
-            }],
-            response_format={"type": "audio"},
-            generation_config={"speech_config": [{"voice": VOICE}]},
+                response_format={"type": "audio"},
+                generation_config={"speech_config": [{"voice": VOICE}]},
+            )
+            data = base64.b64decode(result.output_audio.data)
+            if not data.startswith(b"RIFF") or b"WAVE" not in data[:16]:
+                raise RuntimeError(f"{slug}: unexpected audio format (expected WAV)")
+            return data
+        except Exception as exc:
+            message = str(exc).lower()
+            transient = any(x in message for x in ("429", "500", "502", "503", "504", "unavailable", "timeout"))
+            # Never print the raw error: some SDK errors contain sensitive request data.
+            if not transient or attempt == 4:
+                raise RuntimeError(f"{slug}: Gemini generation failed (transient={transient}, attempt={attempt})") from None
+            delay = 5 * (2 ** (attempt - 1))
+            print(f"{slug}: temporary Gemini error; retry {attempt}/3 after {delay}s")
+            time.sleep(delay)
+
+
+def main():
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise SystemExit("Missing GEMINI_API_KEY repository Actions secret.")
+    OUT.mkdir(exist_ok=True)
+    client = genai.Client(api_key=key)
+    try:
+        for slug, transcript in SCENES:
+            if "פודקי" in transcript:
+                raise ValueError("Write mascot name with niqqud: פּוֹדְקִי")
+            (OUT / (slug + ".txt")).write_text(transcript + "\n", encoding="utf-8")
+            print(f"Generating {slug} with {MODEL}...")
+            data = synthesize(client, slug, transcript)
+            path = OUT / (slug + ".wav")
+            path.write_bytes(data)
+            with wave.open(str(path), "rb") as wav:
+                duration = wav.getnframes() / wav.getframerate()
+            print(f"{slug}: {duration:.2f}s WAV")
+            if not 3 <= duration <= 40:
+                raise RuntimeError(f"{slug}: audio duration outside expected range")
+        (OUT / "README.txt").write_text(
+            "קריינות חיצונית בעברית לסרטון חדר הבקרה של פודקי.\n"
+            "שני קטעי WAV נפרדים, ללא מוזיקה, לסנכרון מול סרטוני Flow.\n"
+            "טקסטים תואמים מצורפים בכל קטע.\n",
+            encoding="utf-8",
         )
-        data = base64.b64decode(result.output_audio.data)
-        if not data.startswith(b"RIFF") or b"WAVE" not in data[:16]:
-            raise RuntimeError(f"{slug}: API did not return a WAV file")
-        path = OUT / (slug + ".wav")
-        path.write_bytes(data)
-        (OUT / (slug + ".txt")).write_text(transcript + "\n", encoding="utf-8")
-        with wave.open(str(path), "rb") as wav:
-            duration = wav.getnframes() / wav.getframerate()
-            print(f"{slug}: {duration:.2f}s, {wav.getframerate()} Hz, {len(data)} bytes")
-        if not (2 <= duration <= 45):
-            raise RuntimeError(f"{slug}: unexpected duration {duration:.2f}s")
-    (OUT / "README.txt").write_text(
-        "קריינות לסרטון פודקי | Gemini 3.8 Flash TTS | WAV ללא מוזיקה\n"
-        "הקריינות מופרדת לסצנות; יש לבצע סנכרון ועריכה מול סרטוני Flow.\n",
-        encoding="utf-8",
-    )
-    print("All narration clips generated successfully.")
+        print("Narration generated successfully.")
+    finally:
+        client.close()
+
 
 if __name__ == "__main__":
     main()
