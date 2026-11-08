@@ -12,7 +12,7 @@ import wave
 
 from google import genai
 
-MODEL = "gemini-3.8-flash-tts"
+MODEL = "gemini-3.1-flash-tts-preview"
 VOICE = "Charon"
 OUT = Path("podki-promo-narration")
 SCENES = [
@@ -42,19 +42,24 @@ def synthesize(client, slug, transcript):
     """Use the documented GenerateContent TTS API; emit safe, actionable diagnostics."""
     for attempt in range(1, 5):
         try:
+            from google.genai import types
+            prompt = (
+                "Generate spoken Hebrew narration ONLY. " + STYLE +
+                "\nSpoken transcript (read verbatim):\n" + transcript
+            )
             response = client.models.generate_content(
                 model=MODEL,
-                contents=[{
-                    "role": "user",
-                    "parts": [{
-                        "text": transcript,
-                        "speech_metadata": {"style": STYLE},
-                    }],
-                }],
-                config={
-                    "response_modalities": ["AUDIO"],
-                    "speech_config": {"voice_config": {"voice": VOICE}},
-                },
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                voice_name=VOICE
+                            )
+                        )
+                    ),
+                ),
             )
             parts = response.candidates[0].content.parts if response.candidates else []
             audio = next(
@@ -63,9 +68,19 @@ def synthesize(client, slug, transcript):
             )
             if not audio:
                 raise RuntimeError("EMPTY_AUDIO: Gemini returned no audio parts")
-            data = bytes(audio)  # google-genai already decodes base64
-            if not data.startswith(b"RIFF") or b"WAVE" not in data[:16]:
-                raise RuntimeError("UNEXPECTED_FORMAT: expected a complete WAV")
+            raw = bytes(audio)
+            if raw.startswith(b"RIFF") and b"WAVE" in raw[:16]:
+                data = raw
+            else:
+                # Gemini 3.1 returns headerless PCM: mono, 16-bit, 24 kHz.
+                import io
+                buffer = io.BytesIO()
+                with wave.open(buffer, "wb") as wav:
+                    wav.setnchannels(1)
+                    wav.setsampwidth(2)
+                    wav.setframerate(24000)
+                    wav.writeframes(raw)
+                data = buffer.getvalue()
             return data
         except Exception as exc:
             import re
