@@ -1,0 +1,37 @@
+name: Podki Hebrew video voiceovers (Gemini 3.8)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/podki-video-voiceovers.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  narrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Google Gen AI SDK
+        run: python -m pip install 'google-genai>=1.50,<3'
+      - name: Generate Hebrew voiceover WAVs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tools/podki_voiceover.py
+      - name: Upload audio and transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: podki-hebrew-voiceovers
+          path: podki-voiceovers/
+          retention-days: 7
+          if-no-files-found: warn
