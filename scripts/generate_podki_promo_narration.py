@@ -107,7 +107,8 @@ def main():
     if not key:
         raise SystemExit("Missing GEMINI_API_KEY repository Actions secret.")
     OUT.mkdir(exist_ok=True)
-    client = genai.Client(api_key=key)
+    from google.genai import types
+    client = genai.Client(api_key=key, http_options=types.HttpOptions(api_version="v1beta"))
     try:
         for slug, transcript in SCENES:
             if "פודקי" in transcript:
