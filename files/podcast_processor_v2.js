@@ -932,7 +932,14 @@ function getOrCreateFolder(parentFolder, folderName) {
 }
 
 function fileExistsInFolder(folder, fileName) {
-  return folder.getFilesByName(fileName).hasNext();
+  // Both sides use the same normalization, including legacy filenames with emoji.
+  var normalized = normalizeAudioFileName(fileName);
+  if (folder.getFilesByName(fileName).hasNext()) return true;
+  var files = folder.getFiles();
+  while (files.hasNext()) {
+    if (normalizeAudioFileName(files.next().getName()) === normalized) return true;
+  }
+  return false;
 }
 
 function getEnclosureInfo(item) {
@@ -1092,8 +1099,16 @@ function sanitizeFolderName(name) {
   return name.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim().substring(0, 100);
 }
 
+function normalizeAudioFileName(name) {
+  // Preserve Hebrew and ordinary text. Remove emoji components consistently
+  // when creating filenames and when checking already saved Drive files.
+  return String(name || "")
+    .replace(/(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Modifier}|[\u200D\uFE0E\uFE0F\u20E3])/gu, "")
+    .replace(/[\\/:*?"<>|\x00-\x1F\x7F]/g, "_")
+    .replace(/\s+/g, " ").trim().substring(0, 150);
+}
 function sanitizeFileName(name) {
-  return name.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim().substring(0, 150);
+  return normalizeAudioFileName(name);
 }
 
 
