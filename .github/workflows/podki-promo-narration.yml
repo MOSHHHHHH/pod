@@ -1,0 +1,50 @@
+name: Podki promo - Hebrew voiceover (Gemini 3.8)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/podki-promo-narration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: podki-promo-voiceover
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Google Gen AI SDK
+        run: python -m pip install --upgrade google-genai
+      - name: Verify key is configured
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::Missing GEMINI_API_KEY repository secret. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "Gemini API key is configured."
+      - name: Generate separate narrated scene tracks
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/generate_podki_promo_narration.py
+      - name: Upload WAV recordings and exact transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: podki-promo-narration-wav
+          path: podki-promo-narration/
+          if-no-files-found: warn
+          retention-days: 30
