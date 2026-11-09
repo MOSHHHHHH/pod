@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/audit-rss-video.yml'
+      - 'tests/audit_rss_video.py'
 
 permissions:
   contents: read
@@ -18,76 +19,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Inspect RSS media (read-only; no downloads of media files)
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, re, datetime, urllib.request, xml.etree.ElementTree as ET
-          from pathlib import Path
-          ns = '{https://podcastindex.org/namespace/1.0}'
-          mn = '{http://search.yahoo.com/mrss/}'
-          urls = [s.strip() for s in Path('tests/subscribed_rss_urls.txt').read_text().splitlines() if s.strip() and not s.lstrip().startswith('#')]
-          result = []
-          for idx, url in enumerate(urls, 1):
-              entry = {'index':idx,'url':url,'status':'error','episodes':0,'video_episodes':0,'audio_and_video_episodes':0,'video_formats':{},'examples':[]}
-              try:
-                  req = urllib.request.Request(url,headers={'User-Agent':'Podki-RSS-Video-Audit/1.0','Accept':'application/rss+xml, application/xml, text/xml, */*'})
-                  with urllib.request.urlopen(req,timeout=25) as response:
-                      data=response.read(12*1024*1024+1)
-                  if len(data)>12*1024*1024: raise ValueError('RSS exceeds 12 MiB')
-                  root=ET.fromstring(data); channel=root.find('channel')
-                  if channel is None: raise ValueError('RSS channel not found')
-                  entry['title']=channel.findtext('title','')
-                  items=channel.findall('item')
-                  entry['episodes']=len(items)
-                  for item in items:
-                      media=[]
-                      for enc in item.findall('enclosure'):
-                          media.append((enc.get('type',''),enc.get('url',''),'enclosure'))
-                      for alt in item.findall(ns+'alternateEnclosure'):
-                          media.append((alt.get('type',''),'', 'alternateEnclosure'))
-                          for source in alt.findall(ns+'source'):
-                              media.append((alt.get('type',''),source.get('uri',''),'alternateEnclosure/source'))
-                      for node in item.findall(mn+'content'):
-                          media.append((node.get('type',''),node.get('url',''),'media:content'))
-                      def kind(t,u):
-                          t=t.lower().split(';')[0].strip();u=u.lower().split('?')[0]
-                          if t.startswith('video/') or re.search(r'\.(mp4|m4v|mov|webm|mkv)$',u):return 'video'
-                          if t.startswith('audio/') or re.search(r'\.(mp3|m4a|aac|ogg|opus|wav|flac)$',u):return 'audio'
-                          return 'unknown'
-                      video=[m for m in media if kind(m[0],m[1])=='video']
-                      audio=[m for m in media if kind(m[0],m[1])=='audio']
-                      if video:
-                          entry['video_episodes']+=1
-                          if audio:entry['audio_and_video_episodes']+=1
-                          for t,u,src in video:
-                              key=t or '(extension only)'
-                              entry['video_formats'][key]=entry['video_formats'].get(key,0)+1
-                          if len(entry['examples'])<3:
-                              entry['examples'].append({'title':item.findtext('title',''), 'video_sources':list(dict.fromkeys(v[2] for v in video)),'audio_also_present':bool(audio)})
-                  entry['status']='ok'
-                  print(f"[{idx}/{len(urls)}] {entry['title']}: {entry['video_episodes']}/{entry['episodes']} video episodes; {entry['audio_and_video_episodes']} both",flush=True)
-              except Exception as e:
-                  entry['error']=f'{type(e).__name__}: {e}'
-                  print(f'[{idx}/{len(urls)}] ERROR: {entry["error"]}',flush=True)
-              result.append(entry)
-          Path('video-audit.json').write_text(json.dumps({'checked_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'feeds':result},ensure_ascii=False,indent=2),encoding='utf-8')
-          ok=sum(r['status']=='ok' for r in result)
-          video=sum(r['video_episodes']>0 for r in result)
-          both=sum(r['audio_and_video_episodes']>0 for r in result)
-          md=['# Podki RSS video audit','',f'Checked: {len(result)} feeds; readable: {ok}; with video: {video}; with audio and video in at least one episode: {both}.','','| Channel | Episodes | Video | Both | Status |','|---|---:|---:|---:|---|']
-          for r in result:
-              title=(r.get('title') or r['url']).replace('|','/')
-              md.append(f"| {title} | {r['episodes']} | {r['video_episodes']} | {r['audio_and_video_episodes']} | {r['status']} |")
-          Path('video-audit.md').write_text('\n'.join(md)+'\n',encoding='utf-8')
-          with open(__import__('os').environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('\n'.join(md)+'\n')
-          PY
+      - name: Validate audit syntax
+        run: python -m py_compile tests/audit_rss_video.py
+      - name: Inspect RSS media and relevant declarations (no media downloads)
+        run: python tests/audit_rss_video.py
       - name: Save results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: subscribed-rss-video-audit
+          name: subscribed-rss-video-audit-v2
           path: |
             video-audit.json
             video-audit.md
           retention-days: 14
+          if-no-files-found: warn
