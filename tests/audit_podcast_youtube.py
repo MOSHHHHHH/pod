@@ -10,7 +10,7 @@ CHANNELS=[
 ]
 def fetch(url):
  req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 (Podki RSS matching audit; read only)","Accept":"application/atom+xml,application/rss+xml,text/html,*/*"})
- with urllib.request.urlopen(req,timeout=25) as r: return r.read(9_000_000)
+ with urllib.request.urlopen(req,timeout=25) as r: return r.read(50_000_000)
 def norm(t):
  t=re.sub(r"(?u)[^\w\s]"," ",(t or "").lower())
  return " ".join(t.split())
