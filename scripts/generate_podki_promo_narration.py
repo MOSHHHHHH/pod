@@ -27,6 +27,10 @@ SCENES = [
         "פּוֹדְקִי מאתר את התוכן, מציג את הפרקים הזמינים, "
         "ומאפשר לכם לבחור בדיוק מה תרצו לשמור.",
     ),
+    (
+        "03-email-request",
+        "בוחרים פרק, שולחים בקשה במייל, ופּוֹדְקִי מתחיל להכין את ההורדה.",
+    ),
 ]
 STYLE = (
     "Narrate in polished, natural Israeli Hebrew with a confident, deep male "
