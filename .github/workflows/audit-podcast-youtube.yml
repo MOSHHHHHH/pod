@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/audit-podcast-youtube.yml'
+      - 'tests/audit_podcast_youtube.py'
 permissions:
   contents: read
 jobs:
