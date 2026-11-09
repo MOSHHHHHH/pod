@@ -1,0 +1,27 @@
+name: Compare podcast episodes with YouTube videos
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/audit-podcast-youtube.yml'
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare latest RSS episodes and official channel YouTube Atom feeds
+        run: python tests/audit_podcast_youtube.py
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rss-youtube-match-audit
+          path: youtube-match-audit.*
+          retention-days: 14
+          if-no-files-found: warn
