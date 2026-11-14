@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/podki-video-voiceovers.yml'
+      - 'tools/podki_voiceover.py'
 
 permissions:
   contents: read
