@@ -18,20 +18,57 @@
   style.textContent = `
     html[data-invitation-locked] body > :not(#invitation-gate) { display: none !important; }
     #invitation-gate[hidden] { display: none !important; }
-    #invitation-gate { box-sizing: border-box; width: min(100%, 560px); margin: 10vh auto;
-      padding: 28px; border: 1px solid #bed3eb; border-radius: 20px; background: #fff;
-      color: #17324d; font: 17px/1.8 'Heebo', Arial, sans-serif; text-align: center; }
-    #invitation-gate h1 { font-size: 25px; line-height: 1.5; margin: 0 0 18px; }
-    #invitation-gate p { margin: 8px 0; }
-    #invitation-gate label { display: block; margin-top: 20px; }
-    #invitation-gate input { box-sizing: border-box; width: 100%; max-width: 240px;
-      padding: 10px; border: 1px solid #bed3eb; border-radius: 9px;
-      font: inherit; text-align: center; direction: ltr; }
-    #invitation-gate button { display: block; margin: 12px auto 0; padding: 10px 28px;
-      border: 0; border-radius: 9px; background: #1764c0; color: white;
-      font: inherit; cursor: pointer; }
+    html[data-invitation-locked] body { min-height: 100vh; min-height: 100svh;
+      align-items: center; padding: 28px 20px; }
+    #invitation-gate { position: relative; box-sizing: border-box; width: min(100%, 480px);
+      margin: auto; padding: 36px 40px 24px; overflow: hidden;
+      border: 1px solid #dce8f5; border-radius: 28px; background: #fff;
+      box-shadow: 0 24px 70px -28px #17324d35, 0 4px 18px #17324d06;
+      color: #17324d; font: 16px/1.75 'Heebo', Arial, sans-serif; text-align: center; }
+    #invitation-gate::before { content: ''; position: absolute; inset: 0 0 auto;
+      height: 4px; background: linear-gradient(90deg, #1764c0, #29a2b6); }
+    #invitation-gate .invitation-brand { margin: 0 0 24px; color: #4c6680;
+      font-size: 14px; font-weight: 600; }
+    #invitation-gate .invitation-icon { display: grid; place-items: center;
+      width: 68px; height: 68px; margin: 0 auto 22px; border: 1px solid #dce8f5;
+      border-radius: 22px; background: linear-gradient(145deg, #f3f8ff, #e6f2fb);
+      color: #1764c0; }
+    #invitation-gate h1 { max-width: 340px; margin: 0 auto 18px;
+      font-size: clamp(24px, 5vw, 29px); font-weight: 750; line-height: 1.45;
+      letter-spacing: -.5px; text-wrap: balance; }
+    #invitation-gate .invitation-message { padding: 14px 16px; border: 1px solid #e4edf6;
+      border-radius: 14px; background: #f7faff; color: #4c6680; font-size: 14px; }
+    #invitation-gate p { margin: 0; }
+    #invitation-gate .invitation-message p + p { margin-top: 2px; }
+    #invitation-gate form { margin-top: 26px; }
+    #invitation-gate label { display: block; margin-bottom: 9px;
+      text-align: start; font-size: 14px; font-weight: 600; }
+    #invitation-gate input { box-sizing: border-box; display: block; width: 100%;
+      height: 62px; padding: 8px 14px; border: 1.5px solid #bed3eb; border-radius: 12px;
+      background: #fcfdff; color: #17324d; font: 600 28px/1.3 'Heebo', Arial, sans-serif;
+      text-align: center; direction: ltr; letter-spacing: .28em; text-indent: .28em;
+      transition: border-color .18s, box-shadow .18s; }
+    #invitation-gate input::placeholder { color: #a4b8cc; opacity: 1; }
+    #invitation-gate input:focus { border-color: #1764c0; background: #fff;
+      box-shadow: 0 0 0 4px #1764c012; }
+    #invitation-gate button { display: flex; align-items: center; justify-content: center;
+      gap: 10px; width: 100%; min-height: 52px; margin: 14px 0 0; padding: 12px 22px;
+      border: 1px solid #145ab0; border-radius: 12px;
+      background: linear-gradient(180deg, #2070cc, #1764c0); color: white;
+      box-shadow: 0 5px 12px #1764c01c; font: 600 16px/1.5 'Heebo', Arial, sans-serif;
+      cursor: pointer; transition: background .18s, box-shadow .18s, transform .18s; }
+    #invitation-gate button:hover { background: #1458aa; box-shadow: 0 6px 18px #1764c02b; }
+    #invitation-gate button:active { transform: translateY(1px); }
     #invitation-gate :focus-visible { outline: 3px solid #087d92; outline-offset: 3px; }
-    #invitation-error { color: #b93b59; }
+    #invitation-gate #invitation-error { min-height: 25px; margin-top: 10px;
+      color: #b93b59; font-size: 14px; }
+    @media (max-width: 480px) {
+      #invitation-gate { padding: 28px 24px 18px; border-radius: 22px; }
+      #invitation-gate .invitation-brand { margin-bottom: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #invitation-gate input, #invitation-gate button { transition: none; }
+    }
   `;
   document.head.appendChild(style);
 
@@ -91,14 +128,29 @@
     gate.dir = 'rtl';
     gate.setAttribute('aria-labelledby', 'invitation-title');
     gate.innerHTML = `
+      <p class="invitation-brand">פודקי</p>
+      <div class="invitation-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="10" width="14" height="11" rx="3"></rect>
+          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"></path>
+        </svg>
+      </div>
       <h1 id="invitation-title">ממשק ההרשמה פתוח בקבלת הזמנה בלבד</h1>
-      <p>הקישור שקיבלת כבר לא תקף</p>
-      <p>פנה למפתח לקבלת קוד עדכני</p>
+      <div class="invitation-message">
+        <p>הקישור שקיבלת כבר לא תקף</p>
+        <p>פנה למפתח לקבלת קוד עדכני</p>
+      </div>
       <form>
         <label for="invitation-code">קוד הזמנה</label>
         <input id="invitation-code" type="text" inputmode="numeric" autocomplete="off"
-          pattern="[0-9]{1,4}" maxlength="4" required aria-describedby="invitation-error">
-        <button type="submit">כניסה</button>
+          pattern="[0-9]{1,4}" maxlength="4" placeholder="····" required aria-describedby="invitation-error">
+        <button type="submit">כניסה
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5m6-6-6 6 6 6"></path>
+          </svg>
+        </button>
         <p id="invitation-error" role="status" aria-live="polite"></p>
       </form>
     `;
