@@ -12,29 +12,23 @@ VOICE = "Charon"
 OUT = Path("podki-voiceovers")
 TRANSCRIPT = """אוהבים פודקאסטים?
 
-גם אנחנו.
+גם אנחנו!
 
-אבל בואו נודה באמת...
-
-עם כל כך הרבה תוכניות, פרקים ועדכונים — מי מצליח לעקוב אחרי הכול?
+אבל מה עושים כשרוצים לשמור פרק להאזנה מאוחרת יותר? בלי להיות תלויים באינטרנט או באפליקציה מסוימת?
 
 הכירו את פּוֹדְקִי!
 
-העוזר האישי שלכם לעולם הפודקאסטים.
+העוזר האישי שלכם לשמירת פודקאסטים.
 
-הוא עוקב אחרי הפודקאסטים שאתם אוהבים, מעדכן אתכם על פרקים חדשים, ועוזר לכם למצוא בדיוק את מה שחיפשתם.
+פשוט מבקשים — ופּוֹדְקִי דואג שהפרקים שאתם אוהבים יגיעו ישירות ל־Google Drive שלכם!
 
-רוצים לשמור פרק להאזנה מאוחרת יותר?
+משם תוכלו להוריד אותם למכשיר, ולהאזין מתי שתרצו, גם בלי חיבור לאינטרנט, ובנגן שאתם אוהבים.
 
-פּוֹדְקִי דואג שהוא יגיע ישר ל־Google Drive שלכם!
+ואפשר גם להירשם לעדכונים, כדי לא לפספס פרקים חדשים!
 
-פחות לחפש.
+הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם.
 
-פחות לפספס.
-
-יותר להקשיב!
-
-פּוֹדְקִי — הפודקאסטים שלכם, בדרך שלכם."""
+פּוֹדְקִי — הפודקאסטים שלכם, בדרך שלכם!"""
 
 STYLE = (
     "Professional Israeli Hebrew commercial voiceover. Warm, youthful, charismatic "
@@ -42,7 +36,7 @@ STYLE = (
     "curiosity and conversational humor; gradually build genuine excitement. "
     "Introduce פּוֹדְקִי with an enthusiastic, memorable reveal. "
     "Keep a brisk but intelligible pace and natural expressive pauses. "
-    "Give the three 'פחות' / 'יותר' slogan lines a crisp, rhythmic cadence; "
+    "Emphasize the freedom of offline listening and ownership of saved files. Give the 'הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם.' slogan a rhythmic, confident cadence; "
     "finish with a warm, confident brand signature. Pronounce פּוֹדְקִי "
     "naturally as POD-kee in Israeli Hebrew. Speak only the supplied transcript, "
     "without stage directions, additions, music, or sound effects."
