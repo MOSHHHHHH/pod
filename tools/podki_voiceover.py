@@ -20,15 +20,13 @@ TRANSCRIPT = """אוהבים פודקאסטים?
 
 העוזר האישי שלכם לשמירת פודקאסטים.
 
-פשוט מבקשים — ופּוֹדְקִי דואג שהפרקים שאתם אוהבים יגיעו ישירות ל־Google Drive שלכם!
+פשוט מבקשים — ופּוֹדְקִי דואג שהפרקים שאתם אוהבים יגיעו ישירות ל־Google Drive שלכם, מסודרים בתיקיות לפי ערוץ!
 
 משם תוכלו להוריד אותם למכשיר, ולהאזין מתי שתרצו, גם בלי חיבור לאינטרנט, ובנגן שאתם אוהבים.
 
 ואפשר גם להירשם לעדכונים, כדי לא לפספס פרקים חדשים!
 
-הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם.
-
-פּוֹדְקִי — הפודקאסטים שלכם, בדרך שלכם!"""
+הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם."""
 
 STYLE = (
     "Professional Israeli Hebrew commercial voiceover. Warm, youthful, charismatic "
@@ -37,7 +35,7 @@ STYLE = (
     "Introduce פּוֹדְקִי with an enthusiastic, memorable reveal. "
     "Keep a brisk but intelligible pace and natural expressive pauses. "
     "Emphasize the freedom of offline listening and ownership of saved files. Give the 'הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם.' slogan a rhythmic, confident cadence; "
-    "finish with a warm, confident brand signature. Pronounce פּוֹדְקִי "
+    "finish confidently on the three-part slogan, without adding any brand signature. Pronounce פּוֹדְקִי "
     "naturally as POD-kee in Israeli Hebrew. Speak only the supplied transcript, "
     "without stage directions, additions, music, or sound effects."
 )
