@@ -1,0 +1,10 @@
+[gemini_phone_media]
+type = websocket_client
+uri = ws://127.0.0.1:8765/media
+protocols = media
+username = asterisk
+password = REPLACE_WITH_PHONE_ASTERISK_PASSWORD
+connection_type = per_call_config
+connection_timeout = 1000
+reconnect_attempts = 1
+tls_enabled = no

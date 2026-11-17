@@ -35,6 +35,8 @@ async def play_assistant_audio(session, media):
                 await media.flush_audio()
             if message.data:
                 await media.play_pcm(message.data)
+            if message.server_content and message.server_content.turn_complete:
+                await media.finish_turn()
         if not saw_message:
             return CallOutcome("connection_error", "connection-error")
 
@@ -68,7 +70,8 @@ async def run_live_call(media, digit, api_key, thresholds, *, consent_given):
     """Use an authenticated caller's API key after the IVR verifies consent.
 
     The transport supplies receive_pcm (mono signed PCM 16 kHz; EOF is empty bytes),
-    play_pcm (mono PCM 24 kHz), and flush_audio (discard queued assistant audio).
+    play_pcm (mono PCM 24 kHz), finish_turn (play the last partial frame),
+    and flush_audio (discard queued assistant audio).
     It uses the returned announcement, if any, to play a prompt and exit the SIP leg.
     """
     if not consent_given:
