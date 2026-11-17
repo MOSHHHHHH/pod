@@ -27,7 +27,9 @@ class GatewayTest(unittest.IsolatedAsyncioTestCase):
         root = Path(directory.name)
         cipher = Fernet(Fernet.generate_key())
         roster = root / "roster.json"
-        provision(roster, "+972501234567", "123456", "fake-user-key", cipher)
+        provision(roster, "+972501234567", "fake-user-key", cipher,
+                  first_name="יעקב", last_name="ישראלי")
+        self.roster = roster
         self.db = root / "reports.sqlite3"
         self.gateway = Gateway(
             roster, cipher, b"fake-asterisk-password-for-tests",
@@ -38,9 +40,9 @@ class GatewayTest(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.client.close)
         self.auth = BasicAuth("asterisk", self.gateway.password.decode())
 
-    async def connect(self):
+    async def connect(self, digit="2"):
         ws = await self.client.ws_connect(
-            "/media?digit=2&caller=0501234567", auth=self.auth, protocols=("media",),
+            f"/media?digit={digit}&caller=0501234567", auth=self.auth, protocols=("media",),
         )
         await ws.send_json({"event": "MEDIA_START", "format": "slin16",
                             "optimal_frame_size": 640, "ptime": 20})
@@ -64,39 +66,70 @@ class GatewayTest(unittest.IsolatedAsyncioTestCase):
     async def test_declining_consent_never_opens_live(self):
         with patch("phone_gateway.run_live_call", new_callable=AsyncMock) as live:
             ws = await self.connect()
-            await self.respond_to_prompt(ws, "123456")
             await self.respond_to_prompt(ws, "2")
             self.assertIn((await ws.receive(timeout=2)).type, (WSMsgType.CLOSE, WSMsgType.CLOSED))
             live.assert_not_called()
         with sqlite3.connect(self.db) as database:
             self.assertEqual(database.execute("SELECT count(*) FROM calls").fetchone(), (0,))
 
-    async def test_wrong_pin_does_not_open_live(self):
+    async def test_unknown_caller_hears_specific_message(self):
         with patch("phone_gateway.run_live_call", new_callable=AsyncMock) as live:
+            self.roster.write_text("{}")
             ws = await self.connect()
-            await self.respond_to_prompt(ws, "654321")
+            await self.respond_to_prompt(ws, "")
+            self.assertEqual(await ws.receive_json(timeout=2), {"command": "HANGUP"})
             self.assertIn((await ws.receive(timeout=2)).type, (WSMsgType.CLOSE, WSMsgType.CLOSED))
             live.assert_not_called()
+
+    async def test_consent_is_saved_once_per_user(self):
+        self.assertFalse(self.gateway.has_consent("registered"))
+        self.gateway.accept_consent("registered")
+        self.gateway.accept_consent("registered")
+        self.assertTrue(self.gateway.has_consent("registered"))
+        with sqlite3.connect(self.db) as database:
+            self.assertEqual(database.execute("SELECT count(*) FROM consents").fetchone(), (1,))
+
+    async def test_main_entrance_opens_menu_after_one_time_consent(self):
+        with patch("phone_gateway.run_live_call", new_callable=AsyncMock) as live:
+            live.return_value = CallOutcome("model_unavailable", "model-unavailable")
+            ws = await self.connect("0")
+            await self.respond_to_prompt(ws, "")
+            await self.respond_to_prompt(ws, "1")
+            await self.respond_to_prompt(ws, "2")
+            await self.respond_to_prompt(ws, "")
+            self.assertEqual(await ws.receive_json(timeout=2), {"command": "HANGUP"})
+            live.assert_awaited_once()
+            self.assertEqual(live.call_args.args[1], "2")
+            user_id = json.loads(self.roster.read_text())["+972501234567"]["id"]
+            self.assertTrue(self.gateway.has_consent(user_id))
+            await ws.close()
+            await self.gateway.cleanup(None)
+            ws = await self.connect("2")
+            # Existing consent goes directly to the model-unavailable notice.
+            await self.respond_to_prompt(ws, "")
+            self.assertEqual(await ws.receive_json(timeout=2), {"command": "HANGUP"})
+            self.assertEqual(live.await_count, 2)
 
     async def test_call_captures_both_streams_and_saves_report(self):
         call_ready = asyncio.Event()
         playback = (b"\x00\x03" * 480)
         caller = b"\x00\x01" * 320
 
-        async def fake_live(media, digit, key, thresholds, *, consent_given):
+        async def fake_live(media, digit, key, thresholds, *, consent_given, first_name, news):
             self.assertEqual((digit, key, consent_given), ("2", "fake-user-key", True))
+            self.assertEqual(first_name, "יעקב")
             call_ready.set()
             self.assertEqual(await media.receive_pcm(), caller)
             await media.play_pcm(playback)
             # Give the simulated PSTN enough time to play the 20 ms frame.
             await asyncio.sleep(0.04)
             await media.flush_audio()
-            return CallOutcome("possible_violation", "policy-stop", ("shouting",))
+            return CallOutcome("possible_violation", "policy-stop", ("shouting",),
+                               ({"rule": "shouting", "probability": 0.99},))
 
         with (patch("phone_gateway.run_live_call", side_effect=fake_live),
               patch("phone_gateway.classify_call", return_value=["science"]) as classify):
             ws = await self.connect()
-            await self.respond_to_prompt(ws, "123456")
             await self.respond_to_prompt(ws, "1")
             await asyncio.wait_for(call_ready.wait(), 2)
             await ws.send_bytes(caller)

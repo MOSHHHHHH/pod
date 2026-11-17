@@ -1,6 +1,7 @@
-; Route each provider SIP destination to the corresponding extension 1–4.
+; Route each provider SIP destination to the corresponding extension 0–4 and 9.
+; Use destination 0 at the main line entrance for caller checks and the complete menu.
 ; Include this context only from the authenticated/identified provider endpoint.
 [from-yemot-gemini]
-exten => _[1-4],1,NoOp(Gemini Live model extension)
+exten => _[0-49],1,NoOp(Gemini Live model extension)
  same => n,Dial(WebSocket/gemini_phone_media/c(slin16)f(json)v(digit=${EXTEN},caller=${URIENCODE(${CALLERID(num)})}),8)
  same => n,Hangup()

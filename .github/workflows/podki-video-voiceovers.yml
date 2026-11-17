@@ -2,12 +2,6 @@ name: Podki Hebrew video voiceovers (Gemini 3.8)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [gemini-live-phone]
-    paths:
-      - '.github/workflows/podki-video-voiceovers.yml'
-      - 'phone-line/phone_menu.py'
-      - 'phone-line/record_and_probe.py'
 
 permissions:
   contents: read

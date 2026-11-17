@@ -84,12 +84,14 @@ def main():
                      "model": model, "voice": VOICE, "ok": False}
             manifest[stem] = entry
             try:
-                if previous.get("hash") != fingerprint or not raw.exists():
+                if previous.get("source_hash") != fingerprint or not raw.exists():
                     if made_request:
                         time.sleep(15)
                     made_request = True
                     raw.write_bytes(synthesize(client, transcript, model))
+                    entry["source_hash"] = fingerprint
                     write_manifest(manifest)
+                entry["source_hash"] = fingerprint
                 convert(raw, target)
                 entry["ok"] = True
                 write_manifest(manifest)

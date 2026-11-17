@@ -4,6 +4,8 @@ import asyncio
 from dataclasses import dataclass
 from io import BytesIO
 import wave
+from datetime import datetime, timezone
+from time import monotonic
 
 from phone_decisions import check_caller
 from phone_menu import MONITOR_INTERVAL_SECONDS, MONITOR_WINDOW_SECONDS
@@ -25,6 +27,7 @@ def encode_wav(pcm):
 class MonitorStop:
     reason: str
     rules: tuple[str, ...] = ()
+    details: tuple[dict, ...] = ()
 
 
 class CallMonitor:
@@ -37,6 +40,8 @@ class CallMonitor:
         self.thresholds = dict(thresholds)
         self.interval = interval
         self.deadline = deadline
+        self.started = monotonic()
+        self.failures = 0
         self._window = bytearray()
         self._samples_received = 0
         self._samples_checked = 0
@@ -66,9 +71,20 @@ class CallMonitor:
                     timeout=self.deadline,
                 )
             except Exception:
-                return MonitorStop("monitoring_unavailable")
+                # Private pilot: a quota or monitoring error must not stop the call.
+                self.failures += 1
+                return None
             if rules:
-                return MonitorStop("possible_violation", tuple(rules))
+                from phone_decisions import MONITOR_RULES
+                detected = datetime.now(timezone.utc).isoformat()
+                end = round(monotonic() - self.started, 3)
+                details = tuple({
+                    "rule": rule, "description": MONITOR_RULES[rule],
+                    "probability": probability, "detected_at": detected,
+                    "window_start_seconds": max(0, end - MONITOR_WINDOW_SECONDS),
+                    "window_end_seconds": end,
+                } for rule, probability in rules.items())
+                return MonitorStop("possible_violation", tuple(rules), details)
             return None
 
     async def run(self):

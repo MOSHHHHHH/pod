@@ -1,20 +1,14 @@
-"""Provision authorized callers without storing plaintext Gemini keys or PINs."""
+"""Maintain private caller profiles with encrypted Gemini API keys."""
 
 import argparse
-import base64
 import getpass
-import hashlib
-import hmac
 import json
 import os
 from pathlib import Path
 import re
-import secrets
 from uuid import uuid4
 
 from cryptography.fernet import Fernet
-
-PIN_LENGTH = 6
 
 
 def normalize_number(value):
@@ -31,20 +25,16 @@ def normalize_number(value):
     return number
 
 
-def digest_pin(pin, salt):
-    return hashlib.scrypt(pin.encode("ascii"), salt=salt, n=16384, r=8, p=1)
-
-
-def provision(path, number, pin, api_key, cipher):
-    if not re.fullmatch(r"[0-9]{6}", pin) or not api_key:
-        raise ValueError("A six-digit PIN and API key are required")
+def provision(path, number, api_key, cipher, *, first_name, last_name):
+    number = normalize_number(number)
+    if not first_name.strip() or not last_name.strip() or not api_key:
+        raise ValueError("First name, last name and API key are required")
     callers = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     current = callers.get(number) or {}
-    salt = secrets.token_bytes(16)
     callers[number] = {
         "id": current.get("id") or uuid4().hex,
-        "salt": base64.b64encode(salt).decode("ascii"),
-        "pin_hash": base64.b64encode(digest_pin(pin, salt)).decode("ascii"),
+        "first_name": first_name.strip(),
+        "last_name": last_name.strip(),
         "key": cipher.encrypt(api_key.encode()).decode("ascii"),
     }
     # An editor interruption leaves the prior roster intact.
@@ -57,24 +47,16 @@ def provision(path, number, pin, api_key, cipher):
         temporary.unlink(missing_ok=True)
 
 
-def verify_pin(record, pin, cipher):
-    actual = digest_pin(pin, base64.b64decode(record["salt"]))
-    if not hmac.compare_digest(actual, base64.b64decode(record["pin_hash"])):
-        return None
-    return cipher.decrypt(record["key"].encode()).decode()
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("roster", type=Path)
     parser.add_argument("number")
     args = parser.parse_args()
     cipher = Fernet(os.environ["PHONE_MASTER_KEY"].encode())
-    pin = getpass.getpass("Six-digit phone PIN: ")
-    if pin != getpass.getpass("Repeat PIN: "):
-        parser.error("PINs do not match")
+    first_name = input("First name: ").strip()
+    last_name = input("Last name: ").strip()
     api_key = getpass.getpass("User Gemini API key: ").strip()
-    provision(args.roster, normalize_number(args.number), pin, api_key, cipher)
+    provision(args.roster, args.number, api_key, cipher, first_name=first_name, last_name=last_name)
     print("Caller saved")
 
 
