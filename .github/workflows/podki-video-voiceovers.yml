@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   narrate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out repository
@@ -32,7 +32,7 @@ jobs:
       - name: Install Google Gen AI SDK
         run: python -m pip install 'google-genai>=1.50,<3'
       - name: Install FFmpeg
-        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
       - name: Generate Gemini Live phone prompts with checkpoints
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
