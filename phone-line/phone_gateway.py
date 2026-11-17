@@ -19,6 +19,7 @@ from cryptography.fernet import Fernet
 
 from asterisk_media import AsteriskMedia, ConversationAudio, Disconnected
 from call_monitor import encode_wav
+from forms_export import FormsExporter
 from live_call import CallOutcome, run_live_call
 from phone_decisions import MONITOR_RULES, classify_call
 from phone_menu import MODELS
@@ -44,7 +45,7 @@ def load_prompt(path):
 
 
 class Gateway:
-    def __init__(self, roster, cipher, password, prompts, thresholds, report_db, *, call_seconds=480, capacity=8):
+    def __init__(self, roster, cipher, password, prompts, thresholds, report_db, *, call_seconds=480, capacity=8, forms=None):
         self.roster = roster
         self.cipher = cipher
         self.password = password
@@ -53,6 +54,7 @@ class Gateway:
         self.report_db = report_db
         self.call_seconds = call_seconds
         self.capacity = capacity
+        self.forms = forms
         self.active = 0
         self.pending_reports = set()
         self.locked_callers = set()
@@ -86,6 +88,11 @@ class Gateway:
                 self.save_report,
                 (*metadata, outcome.reason, json.dumps(topics), status, json.dumps(outcome.flagged_rules)),
             )
+            if self.forms:
+                try:
+                    await asyncio.to_thread(self.forms.pending, self.report_db, call_id=metadata[0])
+                except Exception as error:
+                    LOGGER.warning("Google Forms export pending (%s)", type(error).__name__)
         finally:
             self.active -= 1
 
@@ -208,6 +215,7 @@ def main():
         Path(os.environ["PHONE_ROSTER"]), Fernet(os.environ["PHONE_MASTER_KEY"].encode()), secret,
         {name: load_prompt(directory / f"{name}.wav") for name in PROMPTS},
         thresholds, Path(os.environ["PHONE_REPORT_DB"]), call_seconds=call_seconds,
+        forms=FormsExporter.from_env(),
     )
     # Request access logs would contain the caller number in the WebSocket URL.
     web.run_app(make_app(gateway), host="127.0.0.1", port=8765, access_log=None)
