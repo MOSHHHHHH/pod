@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """Render phone prompts and probe Gemini with synthetic Hebrew speech."""
 import asyncio
-import base64
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 import wave
 
 from google import genai
 from google.genai import types
 
+from phone_decisions import evaluate_audio
 from phone_menu import DECISION_MODEL, MODELS, TEST_UTTERANCE, prompts
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
@@ -58,7 +59,7 @@ def ffmpeg(audio, *arguments):
 
 def error_status(error):
     # Avoid putting credentials, endpoints or raw provider errors into artifacts.
-    status = getattr(error, "code", None)
+    status = getattr(error, "code", None) or getattr(error, "status_code", None)
     return {"ok": False, "error_type": type(error).__name__, "provider_code": status}
 
 
@@ -83,22 +84,18 @@ async def probe_live(client, model, speech_pcm):
         return error_status(error)
 
 
-async def probe(client, audio):
+async def probe(client, api_key, audio):
     speech_pcm = ffmpeg(audio, "-ar", "16000", "-ac", "1", "-f", "s16le", "pipe:1")
     results = {}
     async with client.aio as async_client:
         for digit, (model, _, _) in MODELS.items():
             results[digit] = {"model": model, **await probe_live(async_client, model, speech_pcm)}
         try:
-            response = await asyncio.wait_for(async_client.decisions.create(
-                model=DECISION_MODEL,
-                input=[{"type": "audio", "mime_type": "audio/wav",
-                        "data": base64.b64encode(audio).decode("ascii")}],
-                questions={"audio_test": {"type": "noul",
-                                          "instructions": "האם הדובר מבקש לבצע בדיקת שמע?"}},
-            ), timeout=20)
-            result = response.answers["audio_test"]
-            results["decision"] = {"model": DECISION_MODEL, "ok": True, "probability_yes": result.noul}
+            scores = await asyncio.to_thread(
+                evaluate_audio, api_key, audio,
+                {"audio_test": "האם הדובר מבקש לבצע בדיקת שמע?"}, timeout=20,
+            )
+            results["decision"] = {"model": DECISION_MODEL, "ok": True, "probability_yes": scores["audio_test"]}
         except Exception as error:
             results["decision"] = {"model": DECISION_MODEL, **error_status(error)}
     return results
@@ -106,6 +103,17 @@ async def probe(client, audio):
 
 def write_json(name, value):
     (OUT / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def synthesize_with_retry(client, transcript):
+    for attempt in range(3):
+        try:
+            return synthesize(client, transcript)
+        except Exception as error:
+            if error_status(error)["provider_code"] != 429 or attempt == 2:
+                raise
+            print("TTS quota response; retrying in 65 seconds.", flush=True)
+            time.sleep(65)
 
 
 def main():
@@ -116,9 +124,11 @@ def main():
     with genai.Client(api_key=api_key) as client:
         manifest = []
         for stem, transcript in prompts().items():
+            if manifest:
+                time.sleep(13)
             filename = f"{stem}.wav"
             try:
-                audio = synthesize(client, transcript)
+                audio = synthesize_with_retry(client, transcript)
                 pcm = ffmpeg(audio, "-ar", "8000", "-ac", "1", "-f", "s16le", "pipe:1")
                 if not pcm:
                     raise RuntimeError("Empty phone audio")
@@ -132,8 +142,11 @@ def main():
                 print(f"Failed {filename}: {type(error).__name__}", flush=True)
         write_json("transcripts.json", {"model": TTS_MODEL, "voice": VOICE, "prompts": manifest})
         try:
-            test_audio = synthesize(client, TEST_UTTERANCE)
-            write_json("api-probe.json", asyncio.run(probe(client, test_audio)))
+            time.sleep(13)
+            test_audio = synthesize_with_retry(client, TEST_UTTERANCE)
+            results = asyncio.run(probe(client, api_key, test_audio))
+            write_json("api-probe.json", results)
+            print(json.dumps(results, ensure_ascii=False), flush=True)
         except Exception as error:
             write_json("api-probe.json", {"probe_setup": error_status(error)})
         if not all(prompt["ok"] for prompt in manifest):
