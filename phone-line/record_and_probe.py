@@ -1,156 +1,109 @@
 #!/usr/bin/env python3
-"""Render phone prompts and probe Gemini with synthetic Hebrew speech."""
-import asyncio
+"""Generate changed phone prompts, checkpoint each file, and stop on quota exhaustion."""
+
+import hashlib
 import json
 import os
 from pathlib import Path
 import subprocess
-import sys
 import time
 import wave
 
 from google import genai
 from google.genai import types
 
-from phone_decisions import evaluate_audio
-from phone_menu import DECISION_MODEL, MODELS, TEST_UTTERANCE, prompts
+from phone_menu import prompts
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from podki_voiceover import MODEL as TTS_MODEL, VOICE  # noqa: E402
-
-STYLE = (
-    "Clear native Israeli Hebrew for a phone menu. Friendly, neutral voice. "
-    "Pause after each instruction. Read exactly the supplied text. No music or effects."
-)
 OUT = Path("gemini-live-phone-audio")
-SYSTEM_TEST = "ענה בעברית. לבדיקת שמע, אמור בקצרה: הבדיקה הצליחה."
+TTS_MODEL = "gemini-3.8-flash-tts"
+PRIVACY_MODEL = "gemini-3.8-flash-lite-tts"
+VOICE = "Charon"
+STYLE = "Native Israeli Hebrew telephone instructions. Friendly, calm, clear. Read only the supplied text. No music."
+MANIFEST = OUT / "transcripts.json"
 
 
-def synthesize(client, transcript):
+def write_manifest(manifest):
+    temporary = MANIFEST.with_suffix(".tmp")
+    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(MANIFEST)
+
+
+def synthesize(client, transcript, model):
     response = client.models.generate_content(
-        model=TTS_MODEL,
-        contents=types.Content(
-            role="user",
-            parts=[types.Part(text=transcript, speech_metadata=types.SpeechMetadata(style=STYLE))],
-        ),
+        model=model,
+        contents=types.Content(role="user", parts=[
+            types.Part(text=transcript, speech_metadata=types.SpeechMetadata(style=STYLE)),
+        ]),
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(voice=VOICE)),
         ),
     )
-    audio = next(
-        (bytes(part.inline_data.data) for part in response.parts or []
-         if part.inline_data and part.inline_data.data),
-        b"",
-    )
+    audio = b"".join(bytes(part.inline_data.data) for part in response.parts or []
+                     if part.inline_data and part.inline_data.data)
     if not audio.startswith(b"RIFF") or audio[8:12] != b"WAVE":
-        raise RuntimeError("TTS returned no WAV audio")
+        raise ValueError("No WAV audio returned")
     return audio
 
 
-def ffmpeg(audio, *arguments):
-    return subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", "pipe:0", *arguments],
-        input=audio,
-        capture_output=True,
-        check=True,
+def convert(source, target):
+    pcm = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(source), "-ar", "8000", "-ac", "1",
+         "-f", "s16le", "pipe:1"], capture_output=True, check=True,
     ).stdout
-
-
-def error_status(error):
-    # Avoid putting credentials, endpoints or raw provider errors into artifacts.
-    status = getattr(error, "code", None) or getattr(error, "status_code", None)
-    return {"ok": False, "error_type": type(error).__name__, "provider_code": status}
-
-
-async def probe_live(client, model, speech_pcm):
-    try:
-        async with asyncio.timeout(25):
-            async with client.live.connect(
-                model=model,
-                config={"response_modalities": ["AUDIO"], "system_instruction": SYSTEM_TEST},
-            ) as session:
-                for offset in range(0, len(speech_pcm), 3200):
-                    await session.send_realtime_input(
-                        audio=types.Blob(data=speech_pcm[offset:offset + 3200], mime_type="audio/pcm;rate=16000"),
-                    )
-                    await asyncio.sleep(0.1)
-                await session.send_realtime_input(audio_stream_end=True)
-                async for message in session.receive():
-                    if message.data:
-                        return {"ok": True, "received_audio": True}
-                return {"ok": False, "error_type": "NoAudio", "provider_code": None}
-    except Exception as error:
-        return error_status(error)
-
-
-async def probe(client, api_key, audio):
-    speech_pcm = ffmpeg(audio, "-ar", "16000", "-ac", "1", "-f", "s16le", "pipe:1")
-    results = {}
-    async with client.aio as async_client:
-        for digit, (model, _, _) in MODELS.items():
-            results[digit] = {"model": model, **await probe_live(async_client, model, speech_pcm)}
-        try:
-            scores = await asyncio.to_thread(
-                evaluate_audio, api_key, audio,
-                {"audio_test": "האם הדובר מבקש לבצע בדיקת שמע?"}, timeout=20,
-            )
-            results["decision"] = {"model": DECISION_MODEL, "ok": True, "probability_yes": scores["audio_test"]}
-        except Exception as error:
-            results["decision"] = {"model": DECISION_MODEL, **error_status(error)}
-    return results
-
-
-def write_json(name, value):
-    (OUT / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def synthesize_with_retry(client, transcript):
-    for attempt in range(3):
-        try:
-            return synthesize(client, transcript)
-        except Exception as error:
-            if error_status(error)["provider_code"] != 429 or attempt == 2:
-                raise
-            print("TTS quota response; retrying in 65 seconds.", flush=True)
-            time.sleep(65)
+    if not pcm:
+        raise ValueError("Empty audio conversion")
+    temporary = target.with_suffix(".tmp")
+    with wave.open(str(temporary), "wb") as audio:
+        audio.setparams((1, 2, 8000, 0, "NONE", "not compressed"))
+        audio.writeframes(pcm)
+    temporary.replace(target)
 
 
 def main():
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise SystemExit("GEMINI_API_KEY is missing")
-    OUT.mkdir(parents=True, exist_ok=True)
-    with genai.Client(api_key=api_key) as client:
-        manifest = []
+    OUT.mkdir(exist_ok=True)
+    manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {}
+    # Older runs wrote a list-based manifest. Those files lack content hashes.
+    if not isinstance(manifest, dict) or "prompts" in manifest:
+        manifest = {}
+    made_request = False
+    with genai.Client(api_key=os.environ["GEMINI_API_KEY"], http_options={"api_version": "v1beta"}) as client:
         for stem, transcript in prompts().items():
-            if manifest:
-                time.sleep(13)
+            model = PRIVACY_MODEL if stem == "privacy" else TTS_MODEL
+            fingerprint = hashlib.sha256(json.dumps(
+                [transcript, model, VOICE, STYLE], ensure_ascii=False,
+            ).encode()).hexdigest()
             filename = f"{stem}.wav"
+            raw = OUT / f"{stem}.source.wav"
+            target = OUT / filename
+            previous = manifest.get(stem, {})
+            if previous.get("hash") == fingerprint and previous.get("ok") and target.exists():
+                print(f"Reusing {filename}", flush=True)
+                continue
+            entry = {"file": filename, "transcript": transcript, "hash": fingerprint,
+                     "model": model, "voice": VOICE, "ok": False}
+            manifest[stem] = entry
             try:
-                audio = synthesize_with_retry(client, transcript)
-                pcm = ffmpeg(audio, "-ar", "8000", "-ac", "1", "-f", "s16le", "pipe:1")
-                if not pcm:
-                    raise RuntimeError("Empty phone audio")
-                with wave.open(str(OUT / filename), "wb") as wav:
-                    wav.setparams((1, 2, 8000, 0, "NONE", "not compressed"))
-                    wav.writeframes(pcm)
-                manifest.append({"file": filename, "transcript": transcript, "ok": True})
+                if previous.get("hash") != fingerprint or not raw.exists():
+                    if made_request:
+                        time.sleep(15)
+                    made_request = True
+                    raw.write_bytes(synthesize(client, transcript, model))
+                    write_manifest(manifest)
+                convert(raw, target)
+                entry["ok"] = True
+                write_manifest(manifest)
                 print(f"Saved {filename}", flush=True)
             except Exception as error:
-                manifest.append({"file": filename, "transcript": transcript, **error_status(error)})
-                print(f"Failed {filename}: {type(error).__name__}", flush=True)
-        write_json("transcripts.json", {"model": TTS_MODEL, "voice": VOICE, "prompts": manifest})
-        try:
-            time.sleep(13)
-            test_audio = synthesize_with_retry(client, TEST_UTTERANCE)
-            results = asyncio.run(probe(client, api_key, test_audio))
-            write_json("api-probe.json", results)
-            print(json.dumps(results, ensure_ascii=False), flush=True)
-        except Exception as error:
-            write_json("api-probe.json", {"probe_setup": error_status(error)})
-        if not all(prompt["ok"] for prompt in manifest):
-            raise SystemExit("Some phone prompts failed. See transcripts.json.")
+                code = getattr(error, "code", None) or getattr(error, "status_code", None)
+                entry.update(error_type=type(error).__name__, provider_code=code)
+                write_manifest(manifest)
+                print(f"Stopped at {filename}: {type(error).__name__}, code={code}", flush=True)
+                if code == 429:
+                    print("Quota exhausted. Completed audio is checkpointed for the next run.", flush=True)
+                    return
+                raise
+    print("All phone prompts are recorded.", flush=True)
 
 
 if __name__ == "__main__":
