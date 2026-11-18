@@ -1,0 +1,17 @@
+{
+  "directory": "/GeminiPrompts",
+  "format": "wav, mono, 8000 Hz, PCM 16-bit",
+  "files": {
+    "call-limit": "000.wav",
+    "connection-error": "001.wav",
+    "consent": "002.wav",
+    "model-unavailable": "003.wav",
+    "models": "004.wav",
+    "opening": "005.wav",
+    "policy-stop": "006.wav",
+    "privacy": "007.wav",
+    "quota": "008.wav",
+    "unknown-caller": "009.wav"
+  },
+  "status": "Uploaded and verified in Yemot web manager. Audio staged only; live routing is not yet configured."
+}
