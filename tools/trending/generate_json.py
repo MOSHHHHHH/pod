@@ -57,7 +57,7 @@ def recency(date):
 
 def hebrew_share(title):
     """Hebrew letters divided by all Unicode characters in the episode title."""
-    return sum("\\u05d0" <= ch <= "\\u05ea" for ch in title) / len(title) if title else 0.0
+    return sum("א" <= ch <= "ת" for ch in title) / len(title) if title else 0.0
 
 def normalize_topic(topic):
     return " ".join((topic or "").casefold().split())
