@@ -94,7 +94,9 @@ def main():
     client = genai.Client(api_key=key, http_options={"api_version":"v1beta"})
     ts = trends()
     candidates = []
-    seen = set()\n    filtered_non_hebrew = 0\n    history = load_history()
+    seen = set()
+    filtered_non_hebrew = 0
+    history = load_history()
     for trend in ts:
         for ep in episodes(trend["term"]):
             eid = str(ep.get("trackId") or ep.get("episodeUrl") or "")
