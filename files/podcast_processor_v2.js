@@ -41,7 +41,8 @@ var _downloadHistory = [];
 var _emailsData      = null;
 var _rssList         = [];
 var _podkiMainFolderUrl = ''; // Refreshed from the current run's folder, never persisted.
-var _sysFolder       = null;  // reference לשימוש בפונקציות עזר
+var _sysFolder       = null;
+var _podkiRecommendationCache = undefined;  // reference לשימוש בפונקציות עזר
 
 
 // =====================================================================
@@ -1192,6 +1193,8 @@ function initEmailsStructure(data) {
   if (!_emailsData.processedEmailIds) _emailsData.processedEmailIds = [];
   if (!_emailsData.pendingSearches)     _emailsData.pendingSearches = {};
   if (!_emailsData.pendingEpisodeSummary) _emailsData.pendingEpisodeSummary = [];
+  if (!_emailsData.recommendations) _emailsData.recommendations = {sentByRecipient:{}};
+  if (!_emailsData.recommendations.sentByRecipient) _emailsData.recommendations.sentByRecipient = {};
 }
 
 function _daysFromNow(d) {
@@ -1949,7 +1952,7 @@ function sendInvalidSubscriptionEmail(error) {
 /** Shared Podki mail and request helpers. */
 var PODKI_VERSION = '4.0.1';
 var PODKI_BODY_BYTES = 70 * 1024;
-var PODKI_PAGE_RESERVE_BYTES = 1024; // Leave room for current-run footer links on resumed pages.
+var PODKI_PAGE_RESERVE_BYTES = 5 * 1024; // Leave room for current-run footer links on resumed pages.
 var PODKI_ATTACHMENT_BYTES = 18 * 1024 * 1024;
 var PODKI_REQUEST_BYTES = 2 * 1024 * 1024;
 var PODKI_MAX_SELECTION = 1000;
@@ -2027,6 +2030,42 @@ function _emailWrap(title, body) {
     '</table></td></tr></table></body></html>';
 }
 
+// Recommendations are optional: email delivery must never fail if the daily feed is unavailable.
+function podkiDailyRecommendation() {
+  if (_podkiRecommendationCache !== undefined) return _podkiRecommendationCache;
+  _podkiRecommendationCache = null;
+  try {
+    var url = 'https://raw.githubusercontent.com/MOSHHHHHH/pod/main/data/trending/latest.json';
+    var response = UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
+    if (response.getResponseCode() !== 200) return null;
+    var data = JSON.parse(response.getContentText('UTF-8'));
+    var age = Date.now()-new Date(data.generated_at).getTime();
+    if (!isFinite(age) || age < 0 || age > 48*3600000) return null;
+    var item = data.recommendation;
+    if (!item || !item.title || !/^https:\/\//.test(item.episode_url || '')) return null;
+    _podkiRecommendationCache = item;
+    return item;
+  } catch(e) { Logger.log('Recommendation feed unavailable: '+e.message); return null; }
+}
+function podkiRecommendationCard(item) {
+  var image = /^https:\/\//.test(item.image_url || '') ?
+    '<img src="'+escapeHtml(item.image_url)+'" width="100" height="100" alt="עטיפת הפודקאסט" style="width:100px;height:100px;border-radius:12px;object-fit:cover;display:block;">' :
+    '<div style="font-size:38px;padding:18px;">🎧</div>';
+  var minutes = item.duration_ms ? Math.round(item.duration_ms/60000) : 0;
+  return '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 12px;background:#f0f7ff;border:1px solid #c7ddf5;border-radius:14px;"><tr><td style="padding:16px;">'+
+    '<p style="font-size:13px;color:#2861a2;margin:0 0 12px;font-weight:bold;">🎧 פודקי ממליץ היום</p>'+
+    '<table role="presentation" dir="rtl" cellpadding="0" cellspacing="0" width="100%"><tr>'+
+    '<td width="108" valign="top" style="padding-left:12px;">'+image+'</td>'+
+    '<td valign="top" style="font-size:15px;line-height:1.6;"><strong>'+escapeHtml(item.title)+'</strong>'+
+    '<p style="margin:6px 0;color:#52647a;font-size:12px;">'+escapeHtml(item.podcast || '')+(minutes?' · כ־'+minutes+' דקות':'')+'</p></td></tr></table>'+
+    '<p style="font-size:13px;line-height:1.6;color:#334155;margin:12px 0;">פרק על תזמון השקעות בשוק ההון והפער בין קנייה והחזקה לניסיון לחזות את השוק.</p>'+
+    '<a href="'+escapeHtml(item.episode_url)+'" style="display:inline-block;background:#155eef;color:#ffffff;text-decoration:none;border-radius:9px;padding:10px 18px;font-weight:bold;">להאזנה לפרק</a>'+
+    '</td></tr></table>';
+}
+function podkiRecommendationDay() {
+  return Utilities.formatDate(new Date(),'Asia/Jerusalem','yyyy-MM-dd');
+}
+
 // Used by every JS-originated message. Sender address remains the account running GAS.
 function podkiSendEmail(message) {
   message.name = 'פודקי — בוט הפודקאסטים שלך';
@@ -2037,7 +2076,26 @@ function podkiSendEmail(message) {
   if(_podkiMainFolderUrl && message.body.indexOf(_podkiMainFolderUrl)<0)message.body+='\nפודקאסטים 2.0 — התיקייה שלי בדרייב: '+_podkiMainFolderUrl;
   if (MailApp.getRemainingDailyQuota && MailApp.getRemainingDailyQuota() < 1) throw new Error("מכסת שליחת המיילים היומית הסתיימה. אנסה לשלוח שוב בהרצה הבאה.");
   if (message.htmlBody && podkiBytes(message.htmlBody) > 190 * 1024) throw new Error("הודעת המייל גדולה מדי לשליחה.");
+  var recipient = String(message.to || '').trim().toLowerCase();
+  var today = podkiRecommendationDay();
+  var sent = _emailsData && _emailsData.recommendations && _emailsData.recommendations.sentByRecipient;
+  var include = !!(recipient && sent && sent[recipient] !== today && message.htmlBody);
+  var recommendation = include ? podkiDailyRecommendation() : null;
+  if (recommendation) {
+    var footer = podkiFooter();
+    var card = podkiRecommendationCard(recommendation);
+    // _emailWrap already places the footer after content; insert card before it.
+    if (message.htmlBody.indexOf(footer) >= 0 &&
+        podkiBytes(message.htmlBody)+podkiBytes(card) <= 190*1024) {
+      message.htmlBody = message.htmlBody.replace(footer,card+footer);
+    } else recommendation = null;
+  }
   MailApp.sendEmail(message);
+  if (recommendation && _emailsData && _sysFolder) {
+    sent[recipient] = today;
+    // Persist immediately after success, including between multipart email pages.
+    saveEmailsData(_sysFolder,_emailsData);
+  }
 }
 
 function podkiEnqueueJob(type, payload, id) {
