@@ -86,7 +86,7 @@ def repetition_penalty(candidate, history):
             penalty += 25 * (1 - days / 14) if days < 14 else 0
     return round(min(70, penalty), 2)
 
-# Ten transparent weight experiments; no single set is treated as validated.
+# Thirty experiments; balanced is the provisional default.
 SCENARIOS = {
     "balanced": (35,25,15,15,10),
     "relevance_first": (60,15,10,10,5),
@@ -98,6 +98,26 @@ SCENARIOS = {
     "news_focused": (35,40,15,5,5),
     "discovery_focused": (20,15,20,20,25),
     "even_weights": (20,20,20,20,20),
+    "extreme_relevance_90": (90,3,3,3,1),
+    "extreme_freshness_90": (3,90,3,3,1),
+    "extreme_popularity_90": (3,3,90,3,1),
+    "extreme_quality_90": (3,3,3,90,1),
+    "extreme_multi_trend_90": (3,3,3,1,90),
+    "pure_relevance": (100,0,0,0,0),
+    "pure_freshness": (0,100,0,0,0),
+    "pure_popularity": (0,0,100,0,0),
+    "pure_quality": (0,0,0,100,0),
+    "pure_multi_trend": (0,0,0,0,100),
+    "relevance_freshness": (50,50,0,0,0),
+    "relevance_popularity": (50,0,50,0,0),
+    "relevance_multi_trend": (50,0,0,0,50),
+    "freshness_quality": (0,50,0,50,0),
+    "popularity_quality": (0,0,50,50,0),
+    "quality_multi_trend": (0,0,0,50,50),
+    "strong_relevance_freshness": (45,40,5,5,5),
+    "strong_relevance_quality": (45,5,5,40,5),
+    "freshness_popularity": (5,45,40,5,5),
+    "quality_diversity": (10,10,10,35,35),
 }
 METRICS = ("relevance","freshness","popularity","quality","multi_trend")
 
@@ -251,8 +271,11 @@ def main():
                       "podcast":x["podcast"],"trend":x["trend"],
                       "score":x["total_score"]} for x in scored[:5]]
         })
+    assert len(SCENARIOS)==30 and all(sum(w)==100 for w in SCENARIOS.values())
     result = {
         "generated_at":NOW.isoformat(),"model":"gemini-decision-1",
+        "selected_scenario":"balanced",
+        "recommendation":experiments[0]["recommendation"],
         "status":"experiment_only_no_email",
         "trends_scanned":len(ts),"episode_trend_pairs_evaluated":len(candidates),
         "unique_episodes":len(ranked),
@@ -265,6 +288,23 @@ def main():
         "candidates":ranked
     }
     (OUT/"daily_recommendation.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
+    # Experiment archive is not publication history; do not penalize unpublished choices.
+    run_id = os.getenv("GITHUB_RUN_ID", NOW.strftime("%Y%m%dT%H%M%S"))
+    archive = Path("data/trending/experiments")
+    archive.mkdir(parents=True,exist_ok=True)
+    archive_file = archive / (str(run_id)+".json")
+    archive_file.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
+    summary_path = Path("data/trending/experiment_history.json")
+    summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else {"schema_version":1,"runs":[]}
+    runs = [entry for entry in summary.get("runs",[]) if str(entry.get("run_id"))!=str(run_id)]
+    chosen = experiments[0]["recommendation"]
+    runs.append({"run_id":str(run_id),"generated_at":NOW.isoformat(),
+                 "selected_scenario":"balanced","selected_episode_id":chosen["episode_id"],
+                 "selected_title":chosen["title"],"selected_score":chosen["total_score"],
+                 "scenarios":len(experiments),"archive_path":str(archive_file)})
+    summary["runs"] = sorted(runs,key=lambda entry:entry["generated_at"])
+    summary_path.parent.mkdir(parents=True,exist_ok=True)
+    summary_path.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
     print(f"Scanned {len(ts)} trends, filtered {filtered_non_hebrew} titles, assessed {len(candidates)} pairs and {len(ranked)} unique episodes.")
     for exp in experiments:
         chosen = exp["recommendation"]
