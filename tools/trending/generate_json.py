@@ -155,7 +155,9 @@ def main():
         "generated_at":NOW.isoformat(),"model":"gemini-decision-1",
         "source":"Google Trends Israel RSS + Apple iTunes Search API",
         "status":"candidate_only_no_email",
-        "trends_scanned":len(ts),"episodes_evaluated":len(ranked),\n        "filtered_non_hebrew_titles":filtered_non_hebrew,\n        "history_entries_loaded":len(history),"hebrew_title_threshold":0.20,
+        "trends_scanned":len(ts),"episodes_evaluated":len(ranked),
+        "filtered_non_hebrew_titles":filtered_non_hebrew,
+        "history_entries_loaded":len(history),"hebrew_title_threshold":0.20,
         "recommendation":eligible[0] if eligible else None,
         "reason": "Highest weighted score above quality thresholds" if eligible else "No episode passed quality thresholds",
         "candidates":ranked[:20]
