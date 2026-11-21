@@ -173,7 +173,8 @@ def main():
                 "published_at":ep.get("releaseDate"),
                 "episode_url":ep.get("trackViewUrl") or ep.get("episodeUrl"),
                 "feed_url":ep.get("feedUrl"),
-                "duration_ms":ep.get("trackTimeMillis")
+                "duration_ms":ep.get("trackTimeMillis"),
+                "image_url":ep.get("artworkUrl600") or ep.get("artworkUrl100")
             })
     # Limit Decision API costs; score each episode-trend association only once.
     candidates = candidates[:60]
@@ -288,6 +289,9 @@ def main():
         "candidates":ranked
     }
     (OUT/"daily_recommendation.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
+    latest_path = Path("data/trending/latest.json")
+    latest_path.parent.mkdir(parents=True,exist_ok=True)
+    latest_path.write_text(json.dumps({"generated_at":result["generated_at"],"selected_scenario":"balanced","recommendation":result["recommendation"]},ensure_ascii=False,indent=2),encoding="utf-8")
     # Experiment archive is not publication history; do not penalize unpublished choices.
     run_id = os.getenv("GITHUB_RUN_ID", NOW.strftime("%Y%m%dT%H%M%S"))
     archive = Path("data/trending/experiments")
