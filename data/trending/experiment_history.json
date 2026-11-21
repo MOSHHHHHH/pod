@@ -10,6 +10,16 @@
       "selected_score": 61.16,
       "scenarios": 30,
       "archive_path": "data/trending/experiments/44939316553.json"
+    },
+    {
+      "run_id": "44940240262",
+      "generated_at": "2026-11-21T19:18:52.753731+00:00",
+      "selected_scenario": "balanced",
+      "selected_episode_id": "1000800921611",
+      "selected_title": "🚨 מ־16.4% רווח למינוס 9.5% — הטעות שרוב המשקיעים עושים",
+      "selected_score": 61.16,
+      "scenarios": 30,
+      "archive_path": "data/trending/experiments/44940240262.json"
     }
   ]
 }
