@@ -2058,7 +2058,7 @@ function podkiRecommendationCard(item) {
     '<td width="108" valign="top" style="padding-left:12px;">'+image+'</td>'+
     '<td valign="top" style="font-size:15px;line-height:1.6;"><strong>'+escapeHtml(item.title)+'</strong>'+
     '<p style="margin:6px 0;color:#52647a;font-size:12px;">'+escapeHtml(item.podcast || '')+(minutes?' · כ־'+minutes+' דקות':'')+'</p></td></tr></table>'+
-    '<p style="font-size:13px;line-height:1.6;color:#334155;margin:12px 0;">פרק על תזמון השקעות בשוק ההון והפער בין קנייה והחזקה לניסיון לחזות את השוק.</p>'+
+    '<p style="font-size:13px;line-height:1.6;color:#334155;margin:12px 0;">המלצה שנבחרה לפי נושאים בולטים, רלוונטיות ועדכניות.</p>'+
     '<a href="'+escapeHtml(item.episode_url)+'" style="display:inline-block;background:#155eef;color:#ffffff;text-decoration:none;border-radius:9px;padding:10px 18px;font-weight:bold;">להאזנה לפרק</a>'+
     '</td></tr></table>';
 }
