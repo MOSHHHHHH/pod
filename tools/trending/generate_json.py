@@ -150,7 +150,7 @@ def main():
         x["repetition_penalty"] = repetition_penalty(x, history)
         x["total_score"] = round(max(0, x["base_score"] - x["repetition_penalty"]),2)
     ranked.sort(key=lambda x:x["total_score"],reverse=True)
-    eligible = [x for x in ranked if x["relevance"]>=80 and x["total_score"]>=75]
+    eligible = ranked
     result = {
         "generated_at":NOW.isoformat(),"model":"gemini-decision-1",
         "source":"Google Trends Israel RSS + Apple iTunes Search API",
@@ -159,7 +159,7 @@ def main():
         "filtered_non_hebrew_titles":filtered_non_hebrew,
         "history_entries_loaded":len(history),"hebrew_title_threshold":0.20,
         "recommendation":eligible[0] if eligible else None,
-        "reason": "Highest weighted score above quality thresholds" if eligible else "No episode passed quality thresholds",
+        "reason": "Highest weighted score among Hebrew-title-filtered candidates" if eligible else "No candidates passed Hebrew title filtering",
         "candidates":ranked[:20]
     }
     (OUT/"daily_recommendation.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
