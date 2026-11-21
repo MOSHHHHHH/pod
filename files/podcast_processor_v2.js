@@ -2017,9 +2017,17 @@ function podkiMood(title) {
   return 'success';
 }
 
+// Conservative Gmail-safe HTML optimization: shorten inline CSS only.
+// Preserve table markup, text spacing, attributes, mailto URLs and image URLs.
+function podkiCompactEmailHtml(html) {
+  return String(html).replace(/style="([^"]*)"/g,function(full,css){
+    return 'style="'+css.replace(/\s*([:;])\s*/g,'$1').replace(/;+$/,'')+'"';
+  });
+}
+
 function _emailWrap(title, body) {
   var mood = podkiMood(title);
-  return '<!doctype html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head><body dir="rtl" style="direction:rtl;text-align:right;margin:0;padding:12px;background:#edf4fb;font-family:Arial,sans-serif;color:#17324d;">'+
+  return podkiCompactEmailHtml('<!doctype html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head><body dir="rtl" style="direction:rtl;text-align:right;margin:0;padding:12px;background:#edf4fb;font-family:Arial,sans-serif;color:#17324d;">'+
     '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">'+
     '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:white;direction:rtl;text-align:right;border-radius:18px;">'+
     '<tr><td dir="rtl" style="padding:22px;background:#e1efff;direction:rtl;text-align:right;">'+
@@ -2027,7 +2035,7 @@ function _emailWrap(title, body) {
     '<h1 style="font-size:25px;margin:8px 0;">פודקי 🎧</h1><p style="margin:0;">'+escapeHtml(title)+'</p></td></tr>'+
     '<tr><td dir="rtl" style="direction:rtl;text-align:right;padding:20px;line-height:1.75;overflow-wrap:anywhere;">'+body+podkiFooter()+'</td></tr>'+
     '<tr><td dir="rtl" style="padding:14px;text-align:center;color:#64748b;font-size:11px;">פודקי · בוט הפודקאסטים שלך · גרסה '+PODKI_VERSION+' · '+escapeHtml(formatDate(new Date()))+'</td></tr>'+
-    '</table></td></tr></table></body></html>';
+    '</table></td></tr></table></body></html>');
 }
 
 // Recommendations are optional: email delivery must never fail if the daily feed is unavailable.
@@ -2090,6 +2098,7 @@ function podkiSendEmail(message) {
       message.htmlBody = message.htmlBody.replace(footer,card+footer);
     } else recommendation = null;
   }
+  if (message.htmlBody) message.htmlBody = podkiCompactEmailHtml(message.htmlBody);
   MailApp.sendEmail(message);
   if (recommendation && _emailsData && _sysFolder) {
     sent[recipient] = today;
@@ -2438,14 +2447,35 @@ function sendWeeklyEmail(sysFolder,emailsData,rssList,mainFolder) {
           (it.error?'<p dir="auto">'+escapeHtml(String(it.error).slice(0,1000))+'</p>':'')+
           (it.status==='notification'?buildGetEpisodeButton(it.channelTitle,it.episodeTitle,it.channelUrl,it.guid):'');
       },mainFolder,intro,"הסיכום השבועי שלך");
-      var shownInactive=Object.create(null);
+      var shownInactive=Object.create(null),inactive=[];
       rssList.forEach(function(r){
         // Equal display titles can belong to distinct feeds; only collapse exact URLs.
         if(active[r.url] || shownInactive[r.url])return;
         shownInactive[r.url]=true;
         var info=emailsData.subscriptions.details[r.url] || {};
-        blocks.push(channelCard(info.title || r.url,r.url,info.image,"<p>לא נרשמה פעילות בערוץ השבוע. מצב ההרשמה: "+(r.notifyOnly?'התראות בלבד':"שמירה אוטומטית בדרייב")+'.</p>',mainFolder));
+        inactive.push({url:r.url,title:info.title || r.url,image:info.image,notifyOnly:r.notifyOnly});
       });
+      if(inactive.length){
+        var inactiveTitle='ערוצים ללא פעילות השבוע ('+inactive.length+')';
+        var inactiveHeader='<h2 style="margin:8px 0 12px;">'+inactiveTitle+'</h2>';
+        var inactiveRows='';
+        function inactiveGroup(rows){
+          return '<table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;text-align:right;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px;">'+
+            '<tr><td style="padding:12px;background:#f8fafc;">'+inactiveHeader+'</td></tr>'+rows+'</table>';
+        }
+        inactive.forEach(function(r){
+          var row='<tr><td dir="rtl" style="direction:rtl;text-align:right;padding:10px 12px;border-top:1px solid #e2e8f0;">'+
+            channelImgTag(r.image)+' <span style="margin-right:8px;">'+channelNameTag(r.title,mainFolder)+'</span>'+
+            '<div style="margin-top:5px;font-size:13px;">מצב ההרשמה: '+(r.notifyOnly?'התראות בלבד':'שמירה אוטומטית בדרייב')+'</div>'+
+            '<div dir="rtl" style="direction:rtl;text-align:right;margin-top:6px;">'+buildChannelControlButtons(r.title,r.url)+'</div></td></tr>';
+          if(inactiveRows && podkiBytes(_emailWrap('הסיכום השבועי שלך',intro+inactiveGroup(inactiveRows+row)))>PODKI_BODY_BYTES-PODKI_PAGE_RESERVE_BYTES){
+            blocks.push(inactiveGroup(inactiveRows));
+            inactiveRows='';
+          }
+          inactiveRows+=row;
+        });
+        if(inactiveRows)blocks.push(inactiveGroup(inactiveRows));
+      }
       weekly.delivery={id:String(Date.now()),pages:podkiPackBlocks(blocks,intro,"הסיכום השבועי שלך"),next:0,createdAt:new Date().toISOString()};
       // Freeze only this snapshot. New scans accumulate in a fresh weekly.channels map.
       weekly.channels={};
