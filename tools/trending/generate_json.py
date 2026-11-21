@@ -97,7 +97,7 @@ def main():
         questions = {
             f"item_{i}":{"type":"score",
               "instructions":f"Evaluate ITEM {i}: How closely does this episode genuinely address the specific trending search intent, rather than just sharing a keyword? Penalize unrelated or misleading matches.",
-              "rubric":["Unrelated","Weak keyword overlap","Some topical relevance","Strong relevant explanation","Directly addresses search intent"]}
+              "criteria":["Unrelated","Weak keyword overlap","Some topical relevance","Strong relevant explanation","Directly addresses search intent"]}
             for i in range(len(batch))}
         response = client.decisions.create(model="gemini-decision-1",input=shared,questions=questions)
         for i,x in enumerate(batch):
