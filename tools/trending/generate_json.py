@@ -86,28 +86,62 @@ def repetition_penalty(candidate, history):
             penalty += 25 * (1 - days / 14) if days < 14 else 0
     return round(min(70, penalty), 2)
 
+# Ten transparent weight experiments; no single set is treated as validated.
+SCENARIOS = {
+    "balanced": (35,25,15,15,10),
+    "relevance_first": (60,15,10,10,5),
+    "freshness_first": (25,45,10,10,10),
+    "trend_popularity_first": (25,15,40,10,10),
+    "quality_first": (25,15,10,40,10),
+    "multi_trend_first": (25,15,10,10,40),
+    "relevance_quality": (40,10,5,40,5),
+    "news_focused": (35,40,15,5,5),
+    "discovery_focused": (20,15,20,20,25),
+    "even_weights": (20,20,20,20,20),
+}
+METRICS = ("relevance","freshness","popularity","quality","multi_trend")
+
+def decision_scores(client, items, instructions, criteria):
+    """One Gemini Decision 1 scoring question per item, batched."""
+    results = []
+    for start in range(0, len(items), 15):
+        batch = items[start:start+15]
+        shared = "\n\n".join(f"ITEM {i}: {item}" for i,item in enumerate(batch))
+        questions = {
+            f"item_{i}": {
+                "type":"score",
+                "instructions":f"Evaluate ITEM {i} only. {instructions}",
+                "criteria":criteria
+            } for i in range(len(batch))
+        }
+        response = client.decisions.create(
+            model="gemini-decision-1", input=shared, questions=questions)
+        for i in range(len(batch)):
+            ans = response.answers[f"item_{i}"]
+            results.append((round(float(ans.score)*25,2), float(ans.confidence)))
+    return results
+
 def main():
     from google import genai
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        raise RuntimeError("GEMINI_API_KEY secret is required; no unranked recommendation will be published")
+        raise RuntimeError("GEMINI_API_KEY secret is required")
     client = genai.Client(api_key=key, http_options={"api_version":"v1beta"})
     ts = trends()
+    history = load_history()
     candidates = []
     seen = set()
     filtered_non_hebrew = 0
-    history = load_history()
     for trend in ts:
         for ep in episodes(trend["term"]):
             eid = str(ep.get("trackId") or ep.get("episodeUrl") or "")
-            if not eid or (trend["term"],eid) in seen:
+            if not eid or (trend["term"], eid) in seen:
                 continue
-            seen.add((trend["term"],eid))
+            seen.add((trend["term"], eid))
             title = ep.get("trackName") or ""
-            if hebrew_share(title) < 0.20:
+            if hebrew_share(title) < .20:
                 filtered_non_hebrew += 1
                 continue
-            published = ep.get("releaseDate")
             description = re.sub("<[^>]*>", " ", ep.get("description") or ep.get("shortDescription") or "")
             if not description.strip():
                 continue
@@ -116,54 +150,125 @@ def main():
                 "episode_id":eid,"title":title,
                 "podcast":ep.get("collectionName",""),
                 "description":description[:1600],
-                "published_at":published,
+                "published_at":ep.get("releaseDate"),
                 "episode_url":ep.get("trackViewUrl") or ep.get("episodeUrl"),
                 "feed_url":ep.get("feedUrl"),
                 "duration_ms":ep.get("trackTimeMillis")
             })
-    # Keep a modest bounded test set; use one decision question per candidate.
+    # Limit Decision API costs; score each episode-trend association only once.
     candidates = candidates[:60]
     if not candidates:
-        raise RuntimeError("No podcast episode candidates returned from Apple Podcasts")
-    ranked = []
-    for start in range(0,len(candidates),15):
-        batch = candidates[start:start+15]
-        shared = "\n\n".join(
-            f"ITEM {i}: TREND {x['trend']}\nEPISODE {x['title']}\nSHOW {x['podcast']}\nDESCRIPTION {x['description']}"
-            for i,x in enumerate(batch))
-        questions = {
-            f"item_{i}":{"type":"score",
-              "instructions":f"Evaluate ITEM {i}: How closely does this episode genuinely address the specific trending search intent, rather than just sharing a keyword? Penalize unrelated or misleading matches.",
-              "criteria":["Unrelated","Weak keyword overlap","Some topical relevance","Strong relevant explanation","Directly addresses search intent"]}
-            for i in range(len(batch))}
-        response = client.decisions.create(model="gemini-decision-1",input=shared,questions=questions)
-        for i,x in enumerate(batch):
-            ans = response.answers[f"item_{i}"]
-            relevance = round(float(ans.score)/4*100,2)
-            freshness = recency(parse_date(x["published_at"]))
-            ranked.append({**x,"relevance":relevance,"freshness":freshness,"decision_confidence":float(ans.confidence)})
-    max_traffic = max((traffic_value(x["traffic"]) for x in ranked),default=0)
-    for x in ranked:
+        raise RuntimeError("No Hebrew-titled episode candidates found")
+    inputs = [
+        f"TREND {x['trend']}; EPISODE {x['title']}; SHOW {x['podcast']}; DESCRIPTION {x['description']}"
+        for x in candidates
+    ]
+    relevance = decision_scores(
+        client, inputs,
+        "How closely does the episode actually address the specific trending search intent? Penalize keyword-only coincidences.",
+        ["Unrelated","Weak overlap","Some relevance","Strong relevance","Directly addresses intent"])
+    # Assess likely content value and event currency using metadata only, not audio.
+    unique = {}
+    for x in candidates:
+        unique.setdefault(x["episode_id"], x)
+    unique_items = list(unique.values())
+    quality_inputs = [
+        f"EPISODE {x['title']}; SHOW {x['podcast']}; DESCRIPTION {x['description']}"
+        for x in unique_items
+    ]
+    quality = decision_scores(
+        client, quality_inputs,
+        "Estimate expected informational value, specificity and substance based ONLY on the title and description. Do not claim to have heard the episode.",
+        ["No evident value","Very limited","Moderate","Substantial","Exceptional"])
+    currency_inputs = [
+        f"TREND {x['trend']}; EPISODE {x['title']}; PUBLISHED {x['published_at']}; DESCRIPTION {x['description']}"
+        for x in candidates
+    ]
+    currency = decision_scores(
+        client, currency_inputs,
+        "Assess whether this episode's discussion is still current for the trending event as of "+NOW.date().isoformat()+". Distinguish previews from post-event analysis. Use metadata only.",
+        ["Clearly obsolete","Mostly outdated","Unclear or evergreen","Mostly current","Directly current"])
+    topics = list(dict.fromkeys(x["trend"] for x in candidates))
+    topic_pairs = [(a,b) for i,a in enumerate(topics) for b in topics[i+1:]]
+    similarities = {}
+    if topic_pairs:
+        sim_inputs = [f"TREND A: {a}; TREND B: {b}" for a,b in topic_pairs]
+        sim_scores = decision_scores(
+            client, sim_inputs,
+            "Are these essentially the SAME public interest or event, not merely broadly related? Score high only for near-duplicate search intents.",
+            ["Unrelated","Weakly related","Related but distinct","Nearly same","Same intent"])
+        similarities = {tuple(sorted(pair)):score/100 for pair,(score,_) in zip(topic_pairs,sim_scores)}
+    max_traffic = max((traffic_value(x["traffic"]) for x in candidates),default=0)
+    grouped = {}
+    for i,x in enumerate(candidates):
         popularity = 100*traffic_value(x["traffic"])/max_traffic if max_traffic else 0
-        x["popularity"] = round(popularity,2)
-        x["base_score"] = round(.55*x["relevance"]+.30*x["freshness"]+.15*popularity,2)
-        x["repetition_penalty"] = repetition_penalty(x, history)
-        x["total_score"] = round(max(0, x["base_score"] - x["repetition_penalty"]),2)
-    ranked.sort(key=lambda x:x["total_score"],reverse=True)
-    eligible = ranked
+        dated = recency(parse_date(x["published_at"]))
+        # Blend actual release age and semantic event currency.
+        freshness = round(.5*dated+.5*currency[i][0],2)
+        assoc = {**x,"relevance":relevance[i][0],
+                 "decision_confidence":relevance[i][1],
+                 "event_currency":currency[i][0],
+                 "release_recency":dated,"freshness":freshness,
+                 "popularity":round(popularity,2)}
+        grouped.setdefault(x["episode_id"],[]).append(assoc)
+    ranked = []
+    for eid, associations in grouped.items():
+        primary = max(associations,key=lambda a:(a["relevance"]*.7+a["popularity"]*.3))
+        extras = sorted((a for a in associations if a is not primary),
+                        key=lambda a:a["relevance"]*a["popularity"],reverse=True)
+        counted = [primary["trend"]]
+        bonus = 0.0
+        for a in extras:
+            novelty = 1-max((similarities.get(tuple(sorted((a["trend"],t))),0)
+                             for t in counted),default=0)
+            bonus += 10*(a["relevance"]/100)*(a["popularity"]/100)*novelty
+            counted.append(a["trend"])
+        # Multi-trend metric is capped and normalized to 0..100.
+        multi_trend = round(min(100,bonus*10),2)
+        q = quality[unique_items.index(unique[eid])][0]
+        entry = {**primary, "quality":q,"multi_trend":multi_trend,
+                 "extra_trend_bonus_points":round(min(10,bonus),2),
+                 "matched_trends":associations,
+                 "repetition_penalty":repetition_penalty(primary,history)}
+        # Also discourage repeat shows; requires persistent history to be effective.
+        for item in history:
+            date = parse_date(item.get("recommended_at") or item.get("date"))
+            if date and 0 <= (NOW-date).total_seconds()/86400 < 7 and item.get("podcast")==entry["podcast"]:
+                entry["repetition_penalty"] = min(70,entry["repetition_penalty"]+12)
+        ranked.append(entry)
+    experiments = []
+    for name,weights in SCENARIOS.items():
+        scored = []
+        for item in ranked:
+            raw = sum(item[k]*w/100 for k,w in zip(METRICS,weights))
+            score = round(max(0,raw-item["repetition_penalty"]),2)
+            scored.append({**item,"base_score":round(raw,2),"total_score":score})
+        scored.sort(key=lambda x:(x["total_score"],x["relevance"]),reverse=True)
+        experiments.append({
+            "name":name,"weights":dict(zip(METRICS,weights)),
+            "recommendation":scored[0] if scored else None,
+            "top_5":[{"episode_id":x["episode_id"],"title":x["title"],
+                      "podcast":x["podcast"],"trend":x["trend"],
+                      "score":x["total_score"]} for x in scored[:5]]
+        })
     result = {
         "generated_at":NOW.isoformat(),"model":"gemini-decision-1",
-        "source":"Google Trends Israel RSS + Apple iTunes Search API",
-        "status":"candidate_only_no_email",
-        "trends_scanned":len(ts),"episodes_evaluated":len(ranked),
+        "status":"experiment_only_no_email",
+        "trends_scanned":len(ts),"episode_trend_pairs_evaluated":len(candidates),
+        "unique_episodes":len(ranked),
         "filtered_non_hebrew_titles":filtered_non_hebrew,
-        "history_entries_loaded":len(history),"hebrew_title_threshold":0.20,
-        "recommendation":eligible[0] if eligible else None,
-        "reason": "Highest weighted score among Hebrew-title-filtered candidates" if eligible else "No candidates passed Hebrew title filtering",
-        "candidates":ranked[:20]
+        "history_entries_loaded":len(history),
+        "hebrew_title_threshold":.20,
+        "methodology":"Quality and event currency estimated from metadata only; multi-trend bonus discounts similar topics; all scenarios reuse identical model assessments.",
+        "trend_similarities":[{"a":a,"b":b,"similarity":v} for (a,b),v in similarities.items()],
+        "experiments":experiments,
+        "candidates":ranked
     }
     (OUT/"daily_recommendation.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(f"Scanned {len(ts)} trends, filtered {filtered_non_hebrew} non-Hebrew titles, ranked {len(ranked)} episodes, eligible {len(eligible)}, history entries {len(history)}")
+    print(f"Scanned {len(ts)} trends, filtered {filtered_non_hebrew} titles, assessed {len(candidates)} pairs and {len(ranked)} unique episodes.")
+    for exp in experiments:
+        chosen = exp["recommendation"]
+        print(f"{exp['name']}: {chosen['title'] if chosen else 'NONE'} ({chosen['total_score'] if chosen else '-'})")
     print("Output: trending-output/daily_recommendation.json")
 
 if __name__=="__main__":
