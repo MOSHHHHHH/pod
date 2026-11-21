@@ -1,6 +1,8 @@
 name: Podki Trending JSON Experiment
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *' # daily at 04:17 UTC (06:17/07:17 Israel)
 permissions:
   contents: write
 jobs:
