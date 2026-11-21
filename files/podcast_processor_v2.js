@@ -2067,7 +2067,7 @@ function podkiRecommendationCard(item) {
     '<td valign="top" style="font-size:15px;line-height:1.6;"><strong>'+escapeHtml(item.title)+'</strong>'+
     '<p style="margin:6px 0;color:#52647a;font-size:12px;">'+escapeHtml(item.podcast || '')+(minutes?' · כ־'+minutes+' דקות':'')+'</p></td></tr></table>'+
     '<p style="font-size:13px;line-height:1.6;color:#334155;margin:12px 0;">המלצה שנבחרה לפי נושאים בולטים, רלוונטיות ועדכניות.</p>'+
-    '<a href="'+escapeHtml(item.episode_url)+'" style="display:inline-block;background:#155eef;color:#ffffff;text-decoration:none;border-radius:9px;padding:10px 18px;font-weight:bold;">להאזנה לפרק</a>'+ 
+    '<a href="'+escapeHtml(item.episode_url)+'" style="display:inline-block;padding:5px 13px;background:#155eef;direction:rtl;text-align:center;color:#fff;border-radius:20px;text-decoration:none;font-size:.78rem;font-weight:600;margin:2px 3px;">להאזנה לפרק</a>'+ 
     (item.trend ? ' '+buildMailtoBtn('חפש פרקים אודות ״'+String(item.trend).slice(0,80)+'״',CTRL_GET_EPISODE,String(item.trend).slice(0,500),
       'שלח הודעה זו כדי לחפש פרקים נוספים בנושא: '+String(item.trend).slice(0,500),'#0f766e') : '')+
     '</td></tr></table>';
