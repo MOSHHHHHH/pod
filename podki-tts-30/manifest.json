@@ -201,6 +201,18 @@
       "voice": "Zephyr",
       "style": "Experimental glitch-pop chopped vocal cadence, two syllables in a syncopated stutter-like effect without repetition or extra sounds.",
       "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "17-glitch-pop.wav",
+      "seconds": 1.04,
+      "bytes": 57628
+    },
+    {
+      "n": 18,
+      "batch": 4,
+      "title": "ASMR close",
+      "voice": "Leda",
+      "style": "Extreme close-mic ASMR half-sung whisper, subtle pitch up on the second syllable, minimal breath.",
+      "transcript": "פּוֹדְקִי",
       "status": "failed",
       "error_type": "quota",
       "error_class": "ClientError"
