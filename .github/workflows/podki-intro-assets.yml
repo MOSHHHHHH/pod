@@ -25,5 +25,6 @@ jobs:
           git add assets/audio/podki-intro-*-stereo.mp3
           if ! git diff --cached --quiet; then
             git commit -m "assets: generate Podki short MP3 intro"
+            git pull --rebase origin "$(git branch --show-current)"
             git push
           fi
