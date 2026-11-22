@@ -105,6 +105,30 @@
       "voice": "Zephyr",
       "style": "Almost-whispered breathy voice that still traces two musical pitches, intimate sonic signature.",
       "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "09-whisper-melody.wav",
+      "seconds": 1.32,
+      "bytes": 71068
+    },
+    {
+      "n": 10,
+      "batch": 2,
+      "title": "Robot vocoder",
+      "voice": "Orus",
+      "style": "Hyper-clean robotic synthetic vocoder timbre, two precisely quantized notes, futuristic yet understandable Hebrew.",
+      "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "10-robot-vocoder.wav",
+      "seconds": 1.72,
+      "bytes": 90268
+    },
+    {
+      "n": 11,
+      "batch": 3,
+      "title": "Children cartoon",
+      "voice": "Leda",
+      "style": "Cartoonishly tiny squeaky mascot voice with a wildly ascending pitch bend across the two syllables.",
+      "transcript": "פּוֹדְקִי",
       "status": "failed",
       "error_type": "quota",
       "error_class": "ClientError"
