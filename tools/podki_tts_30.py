@@ -233,7 +233,8 @@ def main():
         if n%5==0:
             print(f"Completed batch {batch}/6; saving artifact ZIP",flush=True)
             save()
-        time.sleep(1)
+        # Gentle pacing between successful requests, particularly after a previous quota failure.
+        time.sleep(3)
     MANIFEST.sort(key=lambda x:x["n"])
     save()
     client.close()
