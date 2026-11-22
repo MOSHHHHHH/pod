@@ -233,7 +233,7 @@ def main():
         if n%5==0:
             print(f"Completed batch {batch}/6; saving artifact ZIP",flush=True)
             save()
-        # Continue from the first missing WAV, with conservative pacing between calls.
+        # Continued attempt from sample 17; preserve all successful WAVs.
         time.sleep(5)
     MANIFEST.sort(key=lambda x:x["n"])
     save()
