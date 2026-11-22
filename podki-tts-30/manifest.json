@@ -213,9 +213,70 @@
       "voice": "Leda",
       "style": "Extreme close-mic ASMR half-sung whisper, subtle pitch up on the second syllable, minimal breath.",
       "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "18-asmr-close.wav",
+      "seconds": 1.32,
+      "bytes": 71068
+    },
+    {
+      "n": 19,
+      "batch": 4,
+      "title": "Metal growl",
+      "voice": "Charon",
+      "style": "Extreme gritty heavy-metal growl sung in two discernible musical pitches, still unmistakably pronouncing the exact Hebrew name.",
+      "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "19-metal-growl.wav",
+      "seconds": 2.88,
+      "bytes": 145948
+    },
+    {
+      "n": 20,
+      "batch": 4,
+      "title": "Yodel",
+      "voice": "Puck",
+      "style": "One brief Swiss yodel-style register break exactly at the syllable boundary, no extra notes or additional vocalizations.",
+      "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "20-yodel.wav",
+      "seconds": 1.4,
+      "bytes": 74908
+    },
+    {
+      "n": 21,
+      "batch": 5,
+      "title": "Baroque ornament",
+      "voice": "Kore",
+      "style": "Baroque classical soprano ornament, small upper mordent on the second syllable, two syllables only.",
+      "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "21-baroque-ornament.wav",
+      "seconds": 1.64,
+      "bytes": 86428
+    },
+    {
+      "n": 22,
+      "batch": 5,
+      "title": "Gregorian chant",
+      "voice": "Orus",
+      "style": "Solo Gregorian-chant-like modal intonation, solemn resonant church acoustics but absolutely one voice and one name.",
+      "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "22-gregorian-chant.wav",
+      "seconds": 2.72,
+      "bytes": 138268
+    },
+    {
+      "n": 23,
+      "batch": 5,
+      "title": "Chiptune vocal",
+      "voice": "Zephyr",
+      "style": "8-bit game character voice impression, pixelated tone with two square-wave-like vocal pitches; readable Hebrew.",
+      "transcript": "פּוֹדְקִי",
       "status": "failed",
       "error_type": "quota",
-      "error_class": "ClientError"
+      "error_class": "ClientError",
+      "consecutive_quota_errors": 3
     }
   ]
 }
