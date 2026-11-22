@@ -2055,6 +2055,24 @@ function podkiDailyRecommendation() {
     return item;
   } catch(e) { Logger.log('Recommendation feed unavailable: '+e.message); return null; }
 }
+// Resolve the recommendation against its RSS feed before using the existing
+// single-episode request mechanism. Apple episode IDs are not necessarily RSS GUIDs.
+function podkiRecommendationGetEpisodeButton(item) {
+  if (!item.feed_url || !item.title) return '';
+  try {
+    var feed=podkiReadFeed(item.feed_url);
+    var matches=feed.episodes.filter(function(e){return e.episodeTitle===item.title;});
+    if (matches.length!==1) {
+      Logger.log('Recommendation episode could not be uniquely matched in RSS: '+item.title);
+      return '';
+    }
+    return buildGetEpisodeButton(item.podcast || feed.title,item.title,item.feed_url,matches[0].episodeGuid);
+  }catch(e){
+    Logger.log('Recommendation get-episode button unavailable: '+e.message);
+    return '';
+  }
+}
+
 function podkiRecommendationCard(item) {
   var image = /^https:\/\//.test(item.image_url || '') ?
     '<img src="'+escapeHtml(item.image_url)+'" width="100" height="100" alt="עטיפת הפודקאסט" style="width:100px;height:100px;border-radius:12px;object-fit:cover;display:block;">' :
@@ -2067,7 +2085,7 @@ function podkiRecommendationCard(item) {
     '<td valign="top" style="font-size:15px;line-height:1.6;"><strong>'+escapeHtml(item.title)+'</strong>'+
     '<p style="margin:6px 0;color:#52647a;font-size:12px;">'+escapeHtml(item.podcast || '')+(minutes?' · כ־'+minutes+' דקות':'')+'</p></td></tr></table>'+
     '<p style="font-size:13px;line-height:1.6;color:#334155;margin:12px 0;">המלצה שנבחרה לפי נושאים בולטים, רלוונטיות ועדכניות.</p>'+
-    '<a href="'+escapeHtml(item.episode_url)+'" style="display:inline-block;padding:5px 13px;background:#155eef;direction:rtl;text-align:center;color:#fff;border-radius:20px;text-decoration:none;font-size:.78rem;font-weight:600;margin:2px 3px;">להאזנה לפרק</a>'+ 
+    podkiRecommendationGetEpisodeButton(item)+
     (item.trend ? ' '+buildMailtoBtn('חפש פרקים אודות ״'+String(item.trend).slice(0,80)+'״',CTRL_GET_EPISODE,String(item.trend).slice(0,500),
       'שלח הודעה זו כדי לחפש פרקים נוספים בנושא: '+String(item.trend).slice(0,500),'#0f766e') : '')+
     '</td></tr></table>';
