@@ -598,3 +598,27 @@ test('weekly report lists subscribed channels with no activity in both modes, in
   for(const url of [regular,notify,unknown,active])assert.equal(catalogs.filter(b=>new URL('mailto:'+b.uri).searchParams.get('subject')===url).length,1);
   for(const url of [regular,notify,unknown])assert.ok(actions.some(b=>b.label==='הסר'&&new URL('mailto:'+b.uri).searchParams.get('subject')===url));
 });
+
+
+test('Podki MP3 intro accepts only supported MPEG-1 Layer III stereo rates',()=>{
+  const {ctx}=setup();
+  assert.equal(ctx.podkiMp3StereoRate([255,251,144,0]),44100);
+  assert.equal(ctx.podkiMp3StereoRate([255,251,148,0]),48000);
+  assert.equal(ctx.podkiMp3StereoRate([255,251,144,192]),0);
+  assert.equal(ctx.podkiMp3StereoRate([0,0,0,0]),0);
+  assert.equal(ctx.podkiMp3StereoRate([255,243,144,0]),0);
+});
+test('Podki audio logo can be disabled without downloading an asset',()=>{
+  const {ctx}=setup();
+  ctx.PropertiesService={getScriptProperties:()=>({getProperty:()=> 'false'})};
+  assert.equal(ctx.podkiIntroBytes([255,251,144,0],'episode.mp3').length,0);
+  assert.equal(ctx.podkiIntroBytes([255,251,144,0],'episode.m4a').length,0);
+});
+test('Podki audio logo unavailable: preserve original episode and cache failure',()=>{
+  const {ctx}=setup();let fetches=0;
+  ctx.PropertiesService={getScriptProperties:()=>({getProperty:()=>null})};
+  ctx.UrlFetchApp.fetch=()=>{fetches++;return {getResponseCode:()=>404,getContent:()=>[]};};
+  assert.equal(ctx.podkiIntroBytes([255,251,144,0],'episode.mp3').length,0);
+  assert.equal(ctx.podkiIntroBytes([255,251,144,0],'episode.mp3').length,0);
+  assert.equal(fetches,1);
+});
