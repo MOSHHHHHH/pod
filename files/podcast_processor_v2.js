@@ -2107,7 +2107,8 @@ function podkiSendEmail(message) {
   var include = !!(recipient && sent && sent[recipient] !== today && message.htmlBody);
   var recommendation = include ? podkiDailyRecommendation() : null;
   if (recommendation) {
-    var footer = podkiFooter();
+    // _emailWrap compacts inline CSS, so match the compacted footer exactly.
+    var footer = podkiCompactEmailHtml(podkiFooter());
     var card = podkiRecommendationCard(recommendation);
     // _emailWrap already places the footer after content; insert card before it.
     if (message.htmlBody.indexOf(footer) >= 0 &&
