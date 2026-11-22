@@ -2061,12 +2061,12 @@ function podkiRecommendationGetEpisodeButton(item) {
   // The button must not depend on live RSS availability when composing the email.
   if (!podkiUrl(item.feed_url) || !item.episode_id) return '';
   var id=String(item.episode_id);
-  if (!/^\\d{1,20}$/.test(id)) return '';
+  if (!/^\d{1,20}$/.test(id)) return '';
   return buildMailtoBtn('קבל פרק',CTRL_GET_EPISODE,
     JSON.stringify({channelUrl:item.feed_url,episodeGuid:'apple-track:'+id,
       appleTrackId:id,episodeTitle:item.title || '',channelTitle:item.podcast || ''}),
     'כדי לשמור בדרייב את הפרק '+(item.title || '')+
-    ', יש לשלוח את הודעת המייל הזו. הבקשה לא תשנה את מצב ההרשמה לערוץ.\\n\\n'+PRIVACY_NOTE,
+    ', יש לשלוח את הודעת המייל הזו. הבקשה לא תשנה את מצב ההרשמה לערוץ.\n\n'+PRIVACY_NOTE,
     '#155eef');
 }
 
@@ -2233,7 +2233,7 @@ function podkiQueueEpisode(request,queue) {
     // recommendation requests also work after the in-memory search cache expires.
     try {
       var appleId=String(request.appleTrackId);
-      if (!/^\\d{1,20}$/.test(appleId)) throw new Error('מזהה Apple אינו תקין.');
+      if (!/^\d{1,20}$/.test(appleId)) throw new Error('מזהה Apple אינו תקין.');
       var lookup=UrlFetchApp.fetch('https://itunes.apple.com/lookup?id='+encodeURIComponent(appleId)+'&entity=podcastEpisode&country=IL',
         {muteHttpExceptions:true,followRedirects:true});
       if(lookup.getResponseCode()!==200) throw new Error('שירות Apple אינו זמין.');
