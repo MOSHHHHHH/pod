@@ -164,7 +164,9 @@ STYLES=[
 ]
 ROOT=Path("podki-tts-30")
 ROOT.mkdir(exist_ok=True)
-MANIFEST=[]
+# Resume from committed results; a quota failure may be retried on a later run.
+MANIFEST_PATH=ROOT/"manifest.json"
+MANIFEST=json.loads(MANIFEST_PATH.read_text(encoding="utf-8")).get("items",[]) if MANIFEST_PATH.exists() else []
 def save():
     (ROOT/"manifest.json").write_text(json.dumps({"model":MODEL,"spoken_text":WORD,"items":MANIFEST},ensure_ascii=False,indent=2),encoding="utf-8")
     with zipfile.ZipFile(ROOT/"podki-tts-results.zip","w",zipfile.ZIP_DEFLATED) as z:
@@ -180,6 +182,12 @@ def main():
     if not os.getenv("GEMINI_API_KEY"):raise SystemExit("Missing secret GEMINI_API_KEY")
     client=genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     for n,(title,voice,style) in enumerate(STYLES,1):
+        previous=next((x for x in MANIFEST if x.get("n")==n),None)
+        if previous and previous.get("status")=="ok" and (ROOT/previous.get("file","")).is_file():
+            print(f"SKIP {n}: previous WAV already saved",flush=True)
+            continue
+        # Failed attempts are not successes and must be replaced rather than duplicated.
+        MANIFEST[:]=[x for x in MANIFEST if x.get("n")!=n]
         batch=(n-1)//5+1
         print(f"BATCH {batch}/6; example {n}/30: {title}; voice={voice}",flush=True)
         item={"n":n,"batch":batch,"title":title,"voice":voice,"style":style,"transcript":WORD}
@@ -226,6 +234,7 @@ def main():
             print(f"Completed batch {batch}/6; saving artifact ZIP",flush=True)
             save()
         time.sleep(1)
+    MANIFEST.sort(key=lambda x:x["n"])
     save()
     client.close()
 if __name__=="__main__":main()
