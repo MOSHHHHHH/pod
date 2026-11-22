@@ -233,7 +233,7 @@ def main():
         if n%5==0:
             print(f"Completed batch {batch}/6; saving artifact ZIP",flush=True)
             save()
-        # Gentle pacing between successful requests, particularly after a previous quota failure.
+        # Resume attempt 4: preserve completed assets and respect API quota. # Gentle pacing between successful requests, particularly after a previous quota failure.
         time.sleep(3)
     MANIFEST.sort(key=lambda x:x["n"])
     save()
