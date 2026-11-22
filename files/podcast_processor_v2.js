@@ -2058,19 +2058,16 @@ function podkiDailyRecommendation() {
 // Resolve the recommendation against its RSS feed before using the existing
 // single-episode request mechanism. Apple episode IDs are not necessarily RSS GUIDs.
 function podkiRecommendationGetEpisodeButton(item) {
-  if (!item.feed_url || !item.title) return '';
-  try {
-    var feed=podkiReadFeed(item.feed_url);
-    var matches=feed.episodes.filter(function(e){return e.episodeTitle===item.title;});
-    if (matches.length!==1) {
-      Logger.log('Recommendation episode could not be uniquely matched in RSS: '+item.title);
-      return '';
-    }
-    return buildGetEpisodeButton(item.podcast || feed.title,item.title,item.feed_url,matches[0].episodeGuid);
-  }catch(e){
-    Logger.log('Recommendation get-episode button unavailable: '+e.message);
-    return '';
-  }
+  // The button must not depend on live RSS availability when composing the email.
+  if (!podkiUrl(item.feed_url) || !item.episode_id) return '';
+  var id=String(item.episode_id);
+  if (!/^\\d{1,20}$/.test(id)) return '';
+  return buildMailtoBtn('קבל פרק',CTRL_GET_EPISODE,
+    JSON.stringify({channelUrl:item.feed_url,episodeGuid:'apple-track:'+id,
+      appleTrackId:id,episodeTitle:item.title || '',channelTitle:item.podcast || ''}),
+    'כדי לשמור בדרייב את הפרק '+(item.title || '')+
+    ', יש לשלוח את הודעת המייל הזו. הבקשה לא תשנה את מצב ההרשמה לערוץ.\\n\\n'+PRIVACY_NOTE,
+    '#155eef');
 }
 
 function podkiRecommendationCard(item) {
@@ -2230,6 +2227,29 @@ function podkiQueueEpisode(request,queue) {
     feed=podkiReadFeed(request.channelUrl);
     episode=feed.episodes.filter(function(e){return e.episodeGuid===request.episodeGuid || e.episodeUrl===request.episodeGuid;})[0];
   }catch(e){lastError=e.message;}
+  if(!episode && request.appleTrackId && request.episodeGuid==='apple-track:'+String(request.appleTrackId)){
+    // Resolve Apple's episode ID at processing time, then verify against the RSS.
+    // Never trust a client-supplied media URL.
+    try {
+      var appleId=String(request.appleTrackId);
+      if (!/^\\d{1,20}$/.test(appleId)) throw new Error('מזהה Apple אינו תקין.');
+      var lookup=UrlFetchApp.fetch('https://itunes.apple.com/lookup?id='+encodeURIComponent(appleId)+'&entity=podcastEpisode&country=IL',
+        {muteHttpExceptions:true,followRedirects:true});
+      if(lookup.getResponseCode()!==200) throw new Error('שירות Apple אינו זמין.');
+      var matches=JSON.parse(lookup.getContentText('UTF-8')).results || [];
+      var apple=matches.filter(function(x){return String(x.trackId)===appleId && x.wrapperType==='podcastEpisode';})[0];
+      if(!apple) throw new Error('הפרק לא נמצא ב־Apple Podcasts.');
+      if(!feed)feed=podkiReadFeed(request.channelUrl);
+      var byAudio=feed.episodes.filter(function(e){return e.episodeUrl===apple.episodeUrl;});
+      if(byAudio.length===1)episode=byAudio[0];
+      if(!episode){
+        var normalize=function(t){return String(t || '').normalize('NFKC').replace(/[\\u200e\\u200f]/g,'').replace(/\\s+/g,' ').trim().toLowerCase();};
+        var byTitle=feed.episodes.filter(function(e){return normalize(e.episodeTitle)===normalize(apple.trackName);});
+        if(byTitle.length===1)episode=byTitle[0];
+      }
+      if(!episode)lastError='הפרק זוהה ב־Apple, אך לא נמצאה התאמה חד־משמעית בפיד ה־RSS.';
+    }catch(e){lastError=e.message;}
+  }
   if(!episode){
     // Direct audio fallback comes only from server-side Apple results, never arbitrary attachment fields.
     var key=JSON.stringify([request.channelUrl,request.episodeGuid]);
