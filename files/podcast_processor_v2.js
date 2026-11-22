@@ -2228,8 +2228,8 @@ function podkiQueueEpisode(request,queue) {
     episode=feed.episodes.filter(function(e){return e.episodeGuid===request.episodeGuid || e.episodeUrl===request.episodeGuid;})[0];
   }catch(e){lastError=e.message;}
   if(!episode && request.appleTrackId && request.episodeGuid==='apple-track:'+String(request.appleTrackId)){
-    // Resolve Apple's episode ID at processing time, then verify against the RSS.
-    // Never trust a client-supplied media URL.
+    // Same Apple episode data used by search results. Resolve on demand so
+    // recommendation requests also work after the in-memory search cache expires.
     try {
       var appleId=String(request.appleTrackId);
       if (!/^\\d{1,20}$/.test(appleId)) throw new Error('מזהה Apple אינו תקין.');
@@ -2237,17 +2237,25 @@ function podkiQueueEpisode(request,queue) {
         {muteHttpExceptions:true,followRedirects:true});
       if(lookup.getResponseCode()!==200) throw new Error('שירות Apple אינו זמין.');
       var matches=JSON.parse(lookup.getContentText('UTF-8')).results || [];
-      var apple=matches.filter(function(x){return String(x.trackId)===appleId && x.wrapperType==='podcastEpisode';})[0];
-      if(!apple) throw new Error('הפרק לא נמצא ב־Apple Podcasts.');
-      if(!feed)feed=podkiReadFeed(request.channelUrl);
-      var byAudio=feed.episodes.filter(function(e){return e.episodeUrl===apple.episodeUrl;});
-      if(byAudio.length===1)episode=byAudio[0];
-      if(!episode){
-        var normalize=function(t){return String(t || '').normalize('NFKC').replace(/[\\u200e\\u200f]/g,'').replace(/\\s+/g,' ').trim().toLowerCase();};
-        var byTitle=feed.episodes.filter(function(e){return normalize(e.episodeTitle)===normalize(apple.trackName);});
-        if(byTitle.length===1)episode=byTitle[0];
+      var apple=matches.filter(function(x){return String(x.trackId)===appleId &&
+        (x.kind==='podcast-episode' || x.wrapperType==='podcastEpisode');})[0];
+      if(!apple || !podkiUrl(apple.episodeUrl)) throw new Error('לא נמצאה כתובת אודיו מאומתת ב־Apple Podcasts.');
+      if(podkiUrl(apple.feedUrl) && apple.feedUrl!==request.channelUrl)
+        throw new Error('כתובת הערוץ אינה תואמת למידע של Apple Podcasts.');
+      if(feed){
+        var byAudio=feed.episodes.filter(function(e){return e.episodeUrl===apple.episodeUrl;});
+        if(byAudio.length===1)episode=byAudio[0];
       }
-      if(!episode)lastError='הפרק זוהה ב־Apple, אך לא נמצאה התאמה חד־משמעית בפיד ה־RSS.';
+      if(!episode){
+        // Apple is the same trusted source used for ordinary episode search.
+        episode={channelUrl:request.channelUrl,episodeGuid:apple.episodeGuid || apple.episodeUrl,
+          episodeUrl:apple.episodeUrl,episodeTitle:apple.trackName || request.episodeTitle || 'פרק',
+          channelTitle:apple.collectionName || request.channelTitle || 'ערוץ',
+          pubDate:apple.releaseDate || '',duration:apple.trackTimeMillis ? Math.round(apple.trackTimeMillis/60000)+' דקות' : '',
+          mimeType:'audio/mpeg',image:apple.artworkUrl600 || apple.artworkUrl160 || null,
+          episodeImageUrl:apple.artworkUrl600 || apple.artworkUrl160 || null,
+          author:apple.artistName || '',description:String(apple.description || apple.shortDescription || '').replace(/<[^>]*>/g,'').slice(0,350)};
+      }
     }catch(e){lastError=e.message;}
   }
   if(!episode){
