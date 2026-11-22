@@ -20,6 +20,16 @@
       "selected_score": 61.16,
       "scenarios": 30,
       "archive_path": "data/trending/experiments/44940240262.json"
+    },
+    {
+      "run_id": "45023016297",
+      "generated_at": "2026-11-22T12:35:00.291888+00:00",
+      "selected_scenario": "balanced",
+      "selected_episode_id": "1000800764096",
+      "selected_title": "אנרגיה או טכנולוגיה? ⚖️ זהב או ביטקוין? 🪙 META או AAPL? 🍏 והאם הולכים לתיקון ב-2027? 🔮",
+      "selected_score": 70.56,
+      "scenarios": 30,
+      "archive_path": "data/trending/experiments/45023016297.json"
     }
   ]
 }
