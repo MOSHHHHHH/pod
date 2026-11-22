@@ -233,8 +233,8 @@ def main():
         if n%5==0:
             print(f"Completed batch {batch}/6; saving artifact ZIP",flush=True)
             save()
-        # Resume attempt 4: preserve completed assets and respect API quota. # Gentle pacing between successful requests, particularly after a previous quota failure.
-        time.sleep(3)
+        # Continue from the first missing WAV, with conservative pacing between calls.
+        time.sleep(5)
     MANIFEST.sort(key=lambda x:x["n"])
     save()
     client.close()
