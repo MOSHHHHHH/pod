@@ -189,6 +189,18 @@
       "voice": "Orus",
       "style": "Epic cinematic trailer voice with two dramatic down-up pitches, massive vocal projection and brief reverb tail.",
       "transcript": "פּוֹדְקִי",
+      "status": "ok",
+      "file": "16-epic-trailer.wav",
+      "seconds": 1.92,
+      "bytes": 99868
+    },
+    {
+      "n": 17,
+      "batch": 4,
+      "title": "Glitch pop",
+      "voice": "Zephyr",
+      "style": "Experimental glitch-pop chopped vocal cadence, two syllables in a syncopated stutter-like effect without repetition or extra sounds.",
+      "transcript": "פּוֹדְקִי",
       "status": "failed",
       "error_type": "quota",
       "error_class": "ClientError"
