@@ -179,63 +179,89 @@ def err_type(exc):
     if str(code) in ("401","403") or "permission_denied" in message:return "permission"
     return "other"
 def main():
-    if not os.getenv("GEMINI_API_KEY"):raise SystemExit("Missing secret GEMINI_API_KEY")
+    if not os.getenv("GEMINI_API_KEY"):
+        raise SystemExit("Missing secret GEMINI_API_KEY")
     client=genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    for n,(title,voice,style) in enumerate(STYLES,1):
-        previous=next((x for x in MANIFEST if x.get("n")==n),None)
-        if previous and previous.get("status")=="ok" and (ROOT/previous.get("file","")).is_file():
-            print(f"SKIP {n}: previous WAV already saved",flush=True)
-            continue
-        # Failed attempts are not successes and must be replaced rather than duplicated.
-        MANIFEST[:]=[x for x in MANIFEST if x.get("n")!=n]
-        batch=(n-1)//5+1
-        print(f"BATCH {batch}/6; example {n}/30: {title}; voice={voice}",flush=True)
-        item={"n":n,"batch":batch,"title":title,"voice":voice,"style":style,"transcript":WORD}
-        try:
-            # Transcript is a separate, exact field. All extreme directions are metadata,
-            # never the actual words to be synthesized.
-            content=types.Content(role="user",parts=[
-                types.Part(text=WORD,speech_metadata=types.SpeechMetadata(
-                  style="Pronounce only the one Hebrew word supplied, no other words or syllables. "+style
-                ))
-            ])
-            response=client.models.generate_content(
-                model=MODEL,contents=content,
-                config=types.GenerateContentConfig(
-                  response_modalities=["AUDIO"],
-                  speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(voice=voice)),
-                )
-            )
-            raw=next((p.inline_data.data for p in (response.parts or []) if p.inline_data and p.inline_data.data),None)
-            if not raw:raise RuntimeError("EMPTY_AUDIO")
-            data=bytes(raw)
-            if not data.startswith(b"RIFF"):
-                with io.BytesIO() as b:
-                    with wave.open(b,"wb") as wav:
-                        wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(24000);wav.writeframes(data)
-                    data=b.getvalue()
-            name=f"{n:02d}-{re.sub('[^a-z0-9]+','-',title.lower()).strip('-')}.wav"
-            path=ROOT/name;path.write_bytes(data)
-            with wave.open(str(path),"rb") as wav:
-                duration=wav.getnframes()/wav.getframerate()
-            item.update(status="ok",file=name,seconds=round(duration,2),bytes=len(data))
-            print(f"OK {name}, {duration:.2f}s",flush=True)
-        except Exception as e:
-            reason=err_type(e)
-            item.update(status="failed",error_type=reason,error_class=type(e).__name__)
-            print(f"FAILED {n}: {reason} ({type(e).__name__}), no credential info",flush=True)
-            MANIFEST.append(item);save()
-            if reason in ("quota","permission"):
-                print("STOPPING: quota or access issue; will not switch to paid model.",flush=True)
-                break
-            continue
-        MANIFEST.append(item)
-        if n%5==0:
-            print(f"Completed batch {batch}/6; saving artifact ZIP",flush=True)
-            save()
-        # Resume from sample 18; skip completed samples, stop at free quota.
-        time.sleep(5)
-    MANIFEST.sort(key=lambda x:x["n"])
-    save()
-    client.close()
-if __name__=="__main__":main()
+    consecutive_quota_errors=0
+    try:
+        for n,(title,voice,style) in enumerate(STYLES,1):
+            previous=next((x for x in MANIFEST if x.get("n")==n),None)
+            if previous and previous.get("status")=="ok" and (ROOT/previous.get("file","")).is_file():
+                print(f"SKIP {n}: previous WAV already saved",flush=True)
+                continue
+            MANIFEST[:]=[x for x in MANIFEST if x.get("n")!=n]
+            batch=(n-1)//5+1
+            item={"n":n,"batch":batch,"title":title,"voice":voice,"style":style,"transcript":WORD}
+            while True:
+                print(f"BATCH {batch}/6; example {n}/30: {title}; voice={voice}; quota streak={consecutive_quota_errors}",flush=True)
+                try:
+                    content=types.Content(role="user",parts=[
+                        types.Part(text=WORD,speech_metadata=types.SpeechMetadata(
+                            style="Pronounce only the one Hebrew word supplied, no other words or syllables. "+style
+                        ))
+                    ])
+                    response=client.models.generate_content(
+                        model=MODEL,contents=content,
+                        config=types.GenerateContentConfig(
+                            response_modalities=["AUDIO"],
+                            speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(voice=voice)),
+                        )
+                    )
+                    raw=next((p.inline_data.data for p in (response.parts or [])
+                              if p.inline_data and p.inline_data.data),None)
+                    if not raw:
+                        raise RuntimeError("EMPTY_AUDIO")
+                    data=bytes(raw)
+                    if not data.startswith(b"RIFF"):
+                        with io.BytesIO() as b:
+                            with wave.open(b,"wb") as wav:
+                                wav.setnchannels(1)
+                                wav.setsampwidth(2)
+                                wav.setframerate(24000)
+                                wav.writeframes(data)
+                            data=b.getvalue()
+                    name=f"{n:02d}-{re.sub('[^a-z0-9]+','-',title.lower()).strip('-')}.wav"
+                    path=ROOT/name
+                    path.write_bytes(data)
+                    with wave.open(str(path),"rb") as wav:
+                        duration=wav.getnframes()/wav.getframerate()
+                    item.update(status="ok",file=name,seconds=round(duration,2),bytes=len(data))
+                    MANIFEST.append(item)
+                    consecutive_quota_errors=0
+                    print(f"OK {name}: {duration:.2f}s (quota streak reset)",flush=True)
+                    if n%5==0:
+                        save()
+                        print(f"Completed batch {batch}/6",flush=True)
+                    time.sleep(5)
+                    break
+                except Exception as e:
+                    reason=err_type(e)
+                    print(f"FAILED {n}: {reason} ({type(e).__name__}), no credentials logged",flush=True)
+                    if reason=="quota":
+                        consecutive_quota_errors+=1
+                        if consecutive_quota_errors<3:
+                            print(f"QUOTA {consecutive_quota_errors}/3. Sleeping 60 seconds, retrying SAME variant {n}.",flush=True)
+                            time.sleep(60)
+                            continue
+                        item.update(status="failed",error_type="quota",error_class=type(e).__name__,
+                                    consecutive_quota_errors=consecutive_quota_errors)
+                        MANIFEST.append(item)
+                        save()
+                        print("STOP after 3 consecutive quota errors; paid API not used.",flush=True)
+                        return
+                    consecutive_quota_errors=0
+                    item.update(status="failed",error_type=reason,error_class=type(e).__name__)
+                    MANIFEST.append(item)
+                    save()
+                    if reason=="permission":
+                        print("STOP: API permission error (not a quota retry).",flush=True)
+                        return
+                    break
+        save()
+    finally:
+        MANIFEST.sort(key=lambda x:x["n"])
+        save()
+        client.close()
+
+if __name__=="__main__":
+    main()
