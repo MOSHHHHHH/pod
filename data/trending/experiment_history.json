@@ -30,6 +30,16 @@
       "selected_score": 70.56,
       "scenarios": 30,
       "archive_path": "data/trending/experiments/45023016297.json"
+    },
+    {
+      "run_id": "45196273361",
+      "generated_at": "2026-11-23T14:38:04.675864+00:00",
+      "selected_scenario": "balanced",
+      "selected_episode_id": "1000803559018",
+      "selected_title": "מניית אנבידיה בלי ג'נסן, הנפקת אנתרופיק והעלאת ריבית הפד | אורן פיננסים ויו״ר פוריה פיננסים פרק 37",
+      "selected_score": 72.85,
+      "scenarios": 30,
+      "archive_path": "data/trending/experiments/45196273361.json"
     }
   ]
 }
