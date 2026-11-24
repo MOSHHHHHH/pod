@@ -2065,6 +2065,17 @@ function podkiFindRecommendationEpisode(feed,title) {
 }
 function podkiRecommendationGetEpisodeButton(item) {
   if (!podkiUrl(item.feed_url) || !item.title) return '';
+  if (item.episode_guid && podkiUrl(item.audio_url)) {
+    var guid=String(item.episode_guid);
+    var key=JSON.stringify([item.feed_url,guid]);
+    podkiState().appleResults[key]={channelUrl:item.feed_url,episodeGuid:guid,
+      appleTrackId:item.episode_id || null,episodeUrl:item.audio_url,
+      episodeTitle:item.title,channelTitle:item.podcast || 'ערוץ',
+      pubDate:item.published_at || '',duration:item.duration_ms ? Math.round(item.duration_ms/60000)+' דקות' : '',
+      image:item.image_url || null,episodeImageUrl:item.image_url || null,
+      description:item.description || '',cachedAt:Date.now()};
+    return buildGetEpisodeButton(item.podcast || 'ערוץ',item.title,item.feed_url,guid);
+  }
   try {
     var feed=podkiReadFeed(item.feed_url);
     var episode=podkiFindRecommendationEpisode(feed,item.title);
