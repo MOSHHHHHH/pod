@@ -11,7 +11,7 @@ OUT=Path("podki-flow-voice")
 OUT.mkdir(exist_ok=True)
 WORD="פּוֹדְקִי"
 MODEL="gemini-3.8-flash-tts"
-VOICE="Puck"
+VOICE="Charon"
 
 if not os.getenv("GEMINI_API_KEY"):
     raise SystemExit("Missing GEMINI_API_KEY")
@@ -20,9 +20,9 @@ try:
     content=types.Content(role="user",parts=[
         types.Part(text=WORD,speech_metadata=types.SpeechMetadata(style=(
             "Speak one Hebrew word, exactly as written, in natural modern Israeli Hebrew. "
-            "Warm, friendly, confident, youthful male brand voice. Pronounce it POD-kee. "
+            "Deep, resonant, commanding male Israeli television network announcer. Give it a bold, dramatic brand-reveal delivery with a deliberate rising intensity, a powerful stressed first syllable, and a confident sharp landing on the second syllable. Pronounce it POD-kee. "
             "Speech only; no singing, musical notes, sound effects, repetitions, or extra words. "
-            "Make the consonants crisp and finish cleanly."
+            "Sound cinematic and theatrical but natural, not shouted, no exaggerated growl; precise diction, crisp consonants and a clean ending."
         )))
     ])
     response=client.models.generate_content(
@@ -47,7 +47,7 @@ try:
                 wav.setframerate(24000)
                 wav.writeframes(data)
             data=buffer.getvalue()
-    path=OUT/"podki-spoken-hebrew.wav"
+    path=OUT/"podki-dramatic-hebrew.wav"
     path.write_bytes(data)
     with wave.open(str(path),"rb") as wav:
         print(f"SUCCESS {path}: {wav.getnframes()/wav.getframerate():.2f} seconds")
