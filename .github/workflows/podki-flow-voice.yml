@@ -1,0 +1,32 @@
+name: Podki single word for Flow approval
+on:
+  push:
+    branches: [experiment/podki-tts-30]
+    paths:
+      - 'tools/podki_flow_voice.py'
+      - '.github/workflows/podki-flow-voice.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'google-genai>=1.50,<3'
+      - name: Generate approved single word
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tools/podki_flow_voice.py
+      - name: Save WAV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: podki-flow-single-word
+          path: podki-flow-voice/
+          retention-days: 7
+          if-no-files-found: warn
