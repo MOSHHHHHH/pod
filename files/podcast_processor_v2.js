@@ -700,6 +700,40 @@ function id3Remote(url,meta){
 }
 
 
+
+var _podkiIntroCache={};
+function podkiMp3StereoRate(bytes){
+  if(!bytes||bytes.length<4)return 0;
+  var b0=bytes[0]&255,b1=bytes[1]&255,b2=bytes[2]&255,b3=bytes[3]&255;
+  if(b0!==255||(b1&254)!==250||(b2&240)===240||(b3>>>6)===3)return 0;
+  var rate=(b2>>>2)&3;return rate===0?44100:rate===1?48000:0;
+}
+function podkiIntroEnabled(){
+  try{return PropertiesService.getScriptProperties().getProperty("PODKI_AUDIO_INTRO_ENABLED")!=="false";}
+  catch(e){return true;}
+}
+function podkiIntroBytes(frame,fileName){
+  if(!isMp3Name(fileName)||!podkiIntroEnabled())return [];
+  var rate=podkiMp3StereoRate(frame);if(!rate)return [];
+  if(Object.prototype.hasOwnProperty.call(_podkiIntroCache,rate))return _podkiIntroCache[rate];
+  try{
+    var url="https://raw.githubusercontent.com/MOSHHHHHH/pod/main/assets/audio/podki-intro-"+rate+"-stereo.mp3";
+    var r=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true}),bytes=r.getContent();
+    if(r.getResponseCode()!==200||bytes.length<200||bytes.length>40000||
+       podkiMp3StereoRate(bytes)!==rate)throw new Error("missing/incompatible intro asset");
+    _podkiIntroCache[rate]=bytes;return bytes;
+  }catch(e){
+    Logger.log("⚠️ פתיח פודקי אינו זמין, הקובץ נשמר כרגיל: "+e.message);
+    _podkiIntroCache[rate]=[];return [];
+  }
+}
+function podkiRemoteFrame(url,skip){
+  try{
+    var r=fetchPodcastAudio(url,{headers:{"Range":"bytes="+skip+"-"+(skip+3)},muteHttpExceptions:true,followRedirects:true});
+    return r.getResponseCode()===206&&r.getContent().length===4?r.getContent():[];
+  }catch(e){return [];}
+}
+
 /** Complete redirects that UrlFetchApp did not follow, with a bounded hop count. */
 function fetchPodcastAudio(url,options){
   var current=String(url);
@@ -783,7 +817,10 @@ function downloadDirect(url, fileName, folder, meta, knownLength) {
         var info=id3Info(b);
         if(info){
           var tag=id3Tag(meta,b.slice(0,Math.max(10,info.skip)));
-          if(tag)blob=Utilities.newBlob(id3Join([tag.prefix,bytes.slice(tag.skip)]),"audio/mpeg",fileName);
+          if(tag){
+             var intro=podkiIntroBytes(b.slice(tag.skip,tag.skip+4),fileName);
+             blob=Utilities.newBlob(id3Join([tag.prefix,intro,bytes.slice(tag.skip)]),"audio/mpeg",fileName);
+           }
         }
       }catch(err){Logger.log("⚠️ מדלג על ID3: "+err.message);}
     }
@@ -805,10 +842,11 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
   var token     = ScriptApp.getOAuthToken();
   var uploadUrl = savedState && savedState.uploadUrl ? savedState.uploadUrl : null;
   var offset    = savedState && savedState.offset    ? savedState.offset    : 0;
-  var originalLength=contentLength,tag=null,tagSkip=0,tagLength=0;
+  var originalLength=contentLength,tag=null,tagSkip=0,tagLength=0,intro=[],introLength=0;
   if(savedState){
     tagSkip=savedState.tagSkip||0;
     tagLength=savedState.tagLength||0;
+    introLength=savedState.introLength||0;
     contentLength=savedState.outputLength||contentLength;
     // Rebuild only if the tag prefix was not uploaded before the pause.
     if(tagLength && offset<tagLength){
@@ -816,9 +854,19 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
       if(!tag || tag.skip!==tagSkip || tag.prefix.length!==tagLength)
         return {success:false,error:"לא ניתן לשחזר בבטחה את תגית ID3 לאחר השהיה"};
     }
+    if(introLength && offset<tagLength+introLength){
+      intro=podkiIntroBytes(podkiRemoteFrame(url,tagSkip),fileName);
+      if(intro.length!==introLength)
+        return {success:false,error:"לא ניתן לשחזר בבטחה את פתיח פודקי לאחר השהיה"};
+    }
   }else if(meta && isMp3Name(fileName)){
     tag=id3Remote(url,meta);
-    if(tag){tagSkip=tag.skip;tagLength=tag.prefix.length;contentLength=originalLength-tagSkip+tagLength;}
+    if(tag){
+      tagSkip=tag.skip;tagLength=tag.prefix.length;
+      intro=podkiIntroBytes(podkiRemoteFrame(url,tagSkip),fileName);
+      introLength=intro.length;
+      contentLength=originalLength-tagSkip+tagLength+introLength;
+    }
   }
 
   // ── פתיחת session חדש אם אין saved state ──
@@ -855,7 +903,7 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
         success  : false,
         paused   : true,
         error    : "time_limit",
-        chunkState: { uploadUrl: uploadUrl, offset: offset, contentLength: originalLength, outputLength: contentLength, tagSkip: tagSkip, tagLength: tagLength }
+        chunkState: { uploadUrl: uploadUrl, offset: offset, contentLength: originalLength, outputLength: contentLength, tagSkip: tagSkip, tagLength: tagLength, introLength: introLength }
       };
     }
 
@@ -868,7 +916,12 @@ function downloadChunked(url, fileName, mimeType, folder, contentLength, startTi
       if(!tag)return {success:false,error:"חסרה תגית ID3 בעת חידוש העלאה"};
       pre=tag.prefix.slice(offset,Math.min(end+1,tagLength));
     }
-    var sourceStart=tagSkip+Math.max(0,offset-tagLength);
+    if(introLength && end>=tagLength && offset<tagLength+introLength){
+      if(intro.length!==introLength)return {success:false,error:"חסר פתיח פודקי בעת חידוש העלאה"};
+      pre=id3Join([pre,intro.slice(Math.max(0,offset-tagLength),
+                   Math.min(introLength,end-tagLength+1))]);
+    }
+    var sourceStart=tagSkip+Math.max(0,offset-tagLength-introLength);
     var sourceCount=end-offset+1-pre.length;
     var source=[];
     if(sourceCount>0){
