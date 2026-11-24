@@ -40,6 +40,16 @@
       "selected_score": 72.85,
       "scenarios": 30,
       "archive_path": "data/trending/experiments/45196273361.json"
+    },
+    {
+      "run_id": "45418847776",
+      "generated_at": "2026-11-24T14:52:05.121157+00:00",
+      "selected_scenario": "balanced",
+      "selected_episode_id": "1000803538026",
+      "selected_title": "רפיק חלבי: “יש יותר מרגלים יהודים לטובת איראן מאשר מרגלים ערבים”",
+      "selected_score": 66.76,
+      "scenarios": 30,
+      "archive_path": "data/trending/experiments/45418847776.json"
     }
   ]
 }
