@@ -173,6 +173,8 @@ def main():
                 "published_at":ep.get("releaseDate"),
                 "episode_url":ep.get("trackViewUrl") or ep.get("episodeUrl"),
                 "feed_url":ep.get("feedUrl"),
+                "episode_guid":ep.get("episodeGuid") or ep.get("episodeUrl"),
+                "audio_url":ep.get("episodeUrl"),
                 "duration_ms":ep.get("trackTimeMillis"),
                 "image_url":ep.get("artworkUrl600") or ep.get("artworkUrl100")
             })
@@ -292,7 +294,14 @@ def main():
     latest_path = Path("data/trending/latest.json")
     latest_path.parent.mkdir(parents=True,exist_ok=True)
     latest_path.write_text(json.dumps({"generated_at":result["generated_at"],"selected_scenario":"balanced","recommendation":result["recommendation"]},ensure_ascii=False,indent=2),encoding="utf-8")
-    # Experiment archive is not publication history; do not penalize unpublished choices.
+    # latest.json is the published daily choice; archive it for future ranking.
+    history_path = Path(os.getenv("TRENDING_HISTORY_PATH", "data/trending/history.json"))
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    chosen = result["recommendation"]
+    day = NOW.date().isoformat()
+    history = [entry for entry in history if str(entry.get("recommended_at", ""))[:10] != day]
+    history.append({**chosen, "recommended_at": NOW.isoformat()})
+    history_path.write_text(json.dumps({"schema_version":1,"recommendations":history},ensure_ascii=False,indent=2),encoding="utf-8")
     run_id = os.getenv("GITHUB_RUN_ID", NOW.strftime("%Y%m%dT%H%M%S"))
     archive = Path("data/trending/experiments")
     archive.mkdir(parents=True,exist_ok=True)
