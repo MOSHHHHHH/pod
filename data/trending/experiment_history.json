@@ -50,6 +50,16 @@
       "selected_score": 66.76,
       "scenarios": 30,
       "archive_path": "data/trending/experiments/45418847776.json"
+    },
+    {
+      "run_id": "45633115687",
+      "generated_at": "2026-11-25T14:21:25.658965+00:00",
+      "selected_scenario": "balanced",
+      "selected_episode_id": "1000757409939",
+      "selected_title": "איך מיירטים טיל איראני?",
+      "selected_score": 70.09,
+      "scenarios": 30,
+      "archive_path": "data/trending/experiments/45633115687.json"
     }
   ]
 }
