@@ -174,8 +174,8 @@ function runPodcastMain(sysFolder, mainFolder) {
       Logger.log("❌ ניסיון " + item.retryCount + " מתוך " + MAX_RETRIES + " נכשל: " + result.error);
       if (item.retryCount >= MAX_RETRIES) {
         addToWeeklyPending(_emailsData, item, "failed", result.error);
-        if(item.explicitRequested) podkiRecordExplicit(item,"failed");
         sendFailureEmail(item, result.error);
+        // Terminal failure is already reported separately; it must not block successful requests.
         queue.splice(idx, 1);
       } else { idx++; }
     }
@@ -1196,7 +1196,11 @@ function initEmailsStructure(data) {
   if (!_emailsData.pendingEpisodeSummary) _emailsData.pendingEpisodeSummary = [];
   if (!_emailsData.explicitCompletion) _emailsData.explicitCompletion={items:{}, unresolved:{}};
   if (!_emailsData.explicitCompletion.items) _emailsData.explicitCompletion.items={};
-  if (!_emailsData.explicitCompletion.unresolved) _emailsData.explicitCompletion.unresolved={};
+  // Legacy unresolved entries were terminal lookup failures, not pending downloads.
+  _emailsData.explicitCompletion.unresolved={};
+  Object.keys(_emailsData.explicitCompletion.items).forEach(function(k){
+    if(_emailsData.explicitCompletion.items[k].status==='failed')delete _emailsData.explicitCompletion.items[k];
+  });
   if (!_emailsData.recommendations) _emailsData.recommendations = {sentByRecipient:{}};
   if (!_emailsData.recommendations.sentByRecipient) _emailsData.recommendations.sentByRecipient = {};
 }
@@ -2259,9 +2263,7 @@ function podkiQueueEpisode(request,queue) {
     var cached=podkiState().appleResults[key];
     if(cached && podkiUrl(cached.episodeUrl) && (!request.appleTrackId || String(cached.appleTrackId)===String(request.appleTrackId))) episode=cached;
   }
-  var requestKey=JSON.stringify([request.channelUrl,request.episodeGuid]);
-  if(!episode) _emailsData.explicitCompletion.unresolved[requestKey]=true;
-  else delete _emailsData.explicitCompletion.unresolved[requestKey];
+  // Lookup failures are reported by the job notice, never held as pending downloads.
   if(!episode) return {status:'failed',episodeTitle:request.episodeTitle || request.episodeGuid,
     channelTitle:request.channelTitle || request.channelUrl,channelUrl:request.channelUrl,
     error:lastError || "הפרק כבר אינו זמין בפיד של הערוץ, ולא נמצאה כתובת אודיו מאומתת באמצעות Apple Podcasts."};
@@ -2316,7 +2318,10 @@ function podkiPumpJobs(sysFolder,queue,mainFolder,startTime) {
         }
         if(job.index<job.payload.length) break;
         var failures=job.results.filter(function(r){return r.status==='failed';});
-        if(failures.length) podkiSendNotice({accepted:0,errors:failures.map(function(r){return r.episodeTitle+': '+r.error;})});
+        if(failures.length) {
+          var accepted=job.results.filter(function(r){return r.status==='queued' || r.status==='already';}).length;
+          podkiSendNotice({accepted:accepted,errors:failures.map(function(r){return r.episodeTitle+': '+r.error;})});
+        }
       }else if(job.type==='catalog'){
         sendEpisodeCatalogEmail(job.payload.url,startTime);
       }else if(job.type==='search'){
@@ -2638,6 +2643,7 @@ function podkiCatalogClient() {
 
 
 function podkiRecordExplicit(item,status) {
+  if(status!=="success")return;
   var state=_emailsData.explicitCompletion;
   state.items[item.url]={url:item.url,status:status,channelUrl:item.rssUrl || null,channelTitle:item.channelTitle,
     image:item.channelImageUrl || null,episodeTitle:item.episodeTitle,
@@ -2646,18 +2652,17 @@ function podkiRecordExplicit(item,status) {
 }
 function podkiExplicitReady(queue) {
   var state=_emailsData.explicitCompletion, keys=Object.keys(state.items);
-  return keys.length>1 && !Object.keys(state.unresolved).length &&
+  return keys.filter(function(k){return state.items[k].status==='success';}).length>1 &&
     !queue.some(function(it){return it.explicitRequested;}) &&
-    !podkiState().jobs.some(function(j){return j.type==='episodes';}) &&
-    keys.every(function(k){return state.items[k].status==='success';});
+    !podkiState().jobs.some(function(j){return j.type==='episodes';});
 }
 function podkiSendCompletedRequests(sysFolder,queue,mainFolder,startTime) {
   var state=_emailsData.explicitCompletion;
   try {
     if(!state.delivery){
       if(!podkiExplicitReady(queue))return;
-      var keys=Object.keys(state.items),rows=keys.map(function(k){return state.items[k];});
-      var title="הבקשה הושלמה",intro="<p>כל "+rows.length+" הפרקים שביקשת במפורש נשמרו בדרייב וזמינים להאזנה. 🎧</p>";
+      var keys=Object.keys(state.items).filter(function(k){return state.items[k].status==="success";}),rows=keys.map(function(k){return state.items[k];});
+      var title="הבקשה הושלמה",intro="<p>"+rows.length+" פרקים שביקשת במפורש נשמרו בדרייב וזמינים להאזנה. 🎧</p><p>אם בקשה כלשהי נכשלה, הודעת השגיאה שלה נשלחת בנפרד.</p>";
       var blocks=podkiGroupedEpisodeCards(rows,function(it){
         return '<p><strong>✅ נשמר בדרייב</strong></p><p dir="auto">'+escapeHtml(it.episodeTitle)+'</p><p>'+escapeHtml(it.pubDate || '')+' · '+escapeHtml(it.duration || '')+'</p>'+
           (it.fileUrl?'<p><a href="'+escapeHtml(it.fileUrl)+'">פתח את הפרק בדרייב</a></p>':'');
