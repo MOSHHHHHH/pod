@@ -86,7 +86,7 @@ def repetition_penalty(candidate, history):
             penalty += 25 * (1 - days / 14) if days < 14 else 0
     return round(min(70, penalty), 2)
 
-# Thirty experiments; balanced is the provisional default.
+# Twenty-nine experiments; balanced is the provisional default.
 SCENARIOS = {
     "balanced": (35,25,15,15,10),
     "relevance_first": (60,15,10,10,5),
@@ -105,7 +105,6 @@ SCENARIOS = {
     "extreme_multi_trend_90": (3,3,3,1,90),
     "pure_relevance": (100,0,0,0,0),
     "pure_freshness": (0,100,0,0,0),
-    "pure_popularity": (0,0,100,0,0),
     "pure_quality": (0,0,0,100,0),
     "pure_multi_trend": (0,0,0,0,100),
     "relevance_freshness": (50,50,0,0,0),
@@ -263,18 +262,20 @@ def main():
     for name,weights in SCENARIOS.items():
         scored = []
         for item in ranked:
-            raw = sum(item[k]*w/100 for k,w in zip(METRICS,weights))
-            score = round(max(0,raw-item["repetition_penalty"]),2)
+            # Popularity is a direct multiplier, not an additive scoring component.
+            raw = sum(item[k]*w/100 for k,w in zip(METRICS,weights) if k != "popularity")
+            score = round(max(0,raw-item["repetition_penalty"])*item["popularity"],2)
             scored.append({**item,"base_score":round(raw,2),"total_score":score})
         scored.sort(key=lambda x:(x["total_score"],x["relevance"]),reverse=True)
         experiments.append({
-            "name":name,"weights":dict(zip(METRICS,weights)),
+            "name":name,"weights":{k:w for k,w in zip(METRICS,weights) if k != "popularity"},
+            "popularity_multiplier":True,
             "recommendation":scored[0] if scored else None,
             "top_5":[{"episode_id":x["episode_id"],"title":x["title"],
                       "podcast":x["podcast"],"trend":x["trend"],
                       "score":x["total_score"]} for x in scored[:5]]
         })
-    assert len(SCENARIOS)==30 and all(sum(w)==100 for w in SCENARIOS.values())
+    assert len(SCENARIOS)==29 and all(sum(w)==100 for w in SCENARIOS.values())
     result = {
         "generated_at":NOW.isoformat(),"model":"gemini-decision-1",
         "selected_scenario":"balanced",
@@ -285,7 +286,7 @@ def main():
         "filtered_non_hebrew_titles":filtered_non_hebrew,
         "history_entries_loaded":len(history),
         "hebrew_title_threshold":.20,
-        "methodology":"Quality and event currency estimated from metadata only; multi-trend bonus discounts similar topics; all scenarios reuse identical model assessments.",
+        "methodology":"Quality and event currency estimated from metadata only; multi-trend bonus discounts similar topics; all scenarios reuse identical model assessments. Final score multiplies the non-popularity weighted score after repetition penalty by the 0–100 popularity value, without a cap.",
         "trend_similarities":[{"a":a,"b":b,"similarity":v} for (a,b),v in similarities.items()],
         "experiments":experiments,
         "candidates":ranked
