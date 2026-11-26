@@ -60,6 +60,16 @@
       "selected_score": 70.09,
       "scenarios": 30,
       "archive_path": "data/trending/experiments/45633115687.json"
+    },
+    {
+      "run_id": "45833602522",
+      "generated_at": "2026-11-26T13:54:05.817724+00:00",
+      "selected_scenario": "balanced",
+      "selected_episode_id": "1000770378409",
+      "selected_title": "״חמש השנים הקרובות יהיו הקשות ביותר״: הדס אלמוג על שוק העבודה החדש",
+      "selected_score": 68.92,
+      "scenarios": 30,
+      "archive_path": "data/trending/experiments/45833602522.json"
     }
   ]
 }
