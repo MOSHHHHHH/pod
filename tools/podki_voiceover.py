@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the approved continuous Hebrew Podki commercial voiceover as a WAV artifact."""
+"""Generate a Hebrew Gemini Live telephone menu announcement."""
 import json
 import os
 from pathlib import Path
@@ -10,35 +10,16 @@ from google.genai import types
 MODEL = "gemini-3.8-flash-tts"
 VOICE = "Charon"
 OUT = Path("podki-voiceovers")
-TRANSCRIPT = """אוהבים פודקאסטים?
-
-גם אנחנו!
-
-אבל מה עושים כשרוצים לשמור פרק להאזנה מאוחרת יותר? בלי להיות תלויים באינטרנט או באפליקציה מסוימת?
-
-הכירו את פּוֹדְקִי!
-
-העוזר האישי שלכם לשמירת פודקאסטים.
-
-פשוט מבקשים — ופּוֹדְקִי דואג שהפרקים שאתם אוהבים יגיעו ישירות ל־Google Drive שלכם, מסודרים בתיקיות לפי ערוץ!
-
-משם תוכלו להוריד אותם למכשיר, ולהאזין מתי שתרצו, גם בלי חיבור לאינטרנט, ובנגן שאתם אוהבים.
-
-ואפשר גם להירשם לעדכונים, כדי לא לפספס פרקים חדשים!
-
-הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם."""
-
+TRANSCRIPT = "לכניסה לקו Gemini Live, הקישו שמונה."
 STYLE = (
-    "Professional Israeli Hebrew commercial voiceover. Warm, youthful, charismatic "
-    "male voice, friendly and confident, not a newsreader. Begin with playful "
-    "curiosity and conversational humor; gradually build genuine excitement. "
-    "Introduce פּוֹדְקִי with an enthusiastic, memorable reveal. "
-    "Keep a brisk but intelligible pace and natural expressive pauses. "
-    "Emphasize the freedom of offline listening and ownership of saved files. Give the 'הפודקאסטים שלכם. הקבצים שלכם. הבחירה שלכם.' slogan a rhythmic, confident cadence; "
-    "finish confidently on the three-part slogan, without adding any brand signature. Pronounce פּוֹדְקִי "
-    "naturally as POD-kee in Israeli Hebrew. Speak only the supplied transcript, "
-    "without stage directions, additions, music, or sound effects."
+    "Professional Israeli Hebrew telephone IVR announcement. "
+    "Clear, friendly and calm male voice. "
+    "Natural pronunciation and moderate pace. "
+    "Pronounce Gemini Live naturally in English. "
+    "Speak only the supplied text. "
+    "No music or sound effects."
 )
+
 
 def main():
     if not os.environ.get("GEMINI_API_KEY"):
@@ -69,7 +50,7 @@ def main():
         )
         if not audio or not bytes(audio).startswith(b"RIFF"):
             raise RuntimeError("Gemini returned no valid WAV audio.")
-        filename = "podki-commercial-he.wav"
+        filename = "gemini-live-menu-he.wav"
         (OUT / filename).write_bytes(audio)
         (OUT / "transcripts.json").write_text(
             json.dumps([{
@@ -81,6 +62,7 @@ def main():
         print(f"Saved {filename} ({len(audio)} bytes)")
     finally:
         client.close()
+
 
 if __name__ == "__main__":
     main()
