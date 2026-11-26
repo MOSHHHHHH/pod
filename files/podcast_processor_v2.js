@@ -1,3 +1,4 @@
+// PODKI BETA
 /**
  * podcast_processor_v2.js
  * ========================
@@ -73,6 +74,7 @@ function runPodcastMain(sysFolder, mainFolder) {
 
   // ── 2. טעינת תור ועיבוד מיילי בקרה ──
   var queue = loadStatusQueue(sysFolder);
+  queue.forEach(function(it){if(it.explicitRequested===undefined && (it.source==="manual" || it.fromSubscription===false))it.explicitRequested=true;});
   Logger.log("📦 " + queue.length + " פריטים ממתינים בתור.");
   var seenUrls = {};
   for (var q = 0; q < queue.length; q++) seenUrls[queue[q].url] = true;
@@ -134,7 +136,9 @@ function runPodcastMain(sysFolder, mainFolder) {
     }
     var targetFolder = getOrCreateFolder(mainFolder, item.folderName);
     if (fileExistsInFolder(targetFolder, item.fileName)) {
-      Logger.log("🔁 הקובץ כבר קיים: " + item.fileName); queue.splice(idx, 1); continue;
+      Logger.log("🔁 הקובץ כבר קיים: " + item.fileName);
+      if(item.explicitRequested){var files=targetFolder.getFiles(), match=null;while(files.hasNext()){var candidate=files.next();if(normalizeAudioFileName(candidate.getName())===normalizeAudioFileName(item.fileName)){match=candidate;break;}}if(match){item.fileUrl=match.getUrl();podkiRecordExplicit(item,"success");}else{idx++;continue;}}
+      queue.splice(idx, 1); continue;
     }
     var freeBytes = getFreeStorageBytes();
     if (freeBytes < STORAGE_MIN_BYTES) {
@@ -159,6 +163,7 @@ function runPodcastMain(sysFolder, mainFolder) {
          createLrcFile(targetFolder, item.fileName.substring(0, item.fileName.lastIndexOf(".")), item);
       addToHistory(_downloadHistory, item);
       addToWeeklyPending(_emailsData, item, "success", null);
+      if(item.explicitRequested) podkiRecordExplicit(item,"success");
       queue.splice(idx, 1);
     } else if (result.paused) {
       Logger.log("⏸️ שמירת הפרק הושהתה: " + item.episodeTitle);
@@ -170,6 +175,7 @@ function runPodcastMain(sysFolder, mainFolder) {
       if (item.retryCount >= MAX_RETRIES) {
         addToWeeklyPending(_emailsData, item, "failed", result.error);
         sendFailureEmail(item, result.error);
+        // Terminal failure is already reported separately; it must not block successful requests.
         queue.splice(idx, 1);
       } else { idx++; }
     }
@@ -196,17 +202,12 @@ function runPodcastMain(sysFolder, mainFolder) {
     Logger.log("⏰ לא נותר מספיק זמן לשליחת מיילים. השליחה תימשך בהרצה הבאה.");
   }
 
-  // ── 8. סיכום פרקים שהתקבלו בבקשה ספציפית ──
-  // הוסף לרשימה המצטברת ב-emails.json
-  if (_emailsData.pendingEpisodeSummary.length > 0 && hasEnoughTimeForEmails(startTime)) {
-    if (sendProcessedEmailsSummary(_emailsData.pendingEpisodeSummary)) _emailsData.pendingEpisodeSummary = [];
-    saveEmailsData(sysFolder, _emailsData);
-  } else if (_emailsData.pendingEpisodeSummary.length > 0) {
-    Logger.log("⏰ סיכום " + _emailsData.pendingEpisodeSummary.length + " פרקים יישלח בהרצה הבאה.");
-    saveEmailsData(sysFolder, _emailsData);
-  }
+  // Explicit requests: only report completed batches, independently of weekly state.
+  _emailsData.pendingEpisodeSummary=[];
+  if(hasEnoughTimeForEmails(startTime)) podkiSendCompletedRequests(sysFolder,queue,mainFolder,startTime);
+  saveEmailsData(sysFolder,_emailsData);
+  return queue.length > 0 || needStorage || needWeekly || needSubs || podkiState().jobs.length > 0 || !!_emailsData.explicitCompletion.delivery || podkiExplicitReady(queue);
 
-  return queue.length > 0 || needStorage || needWeekly || needSubs || podkiState().jobs.length > 0;
 }
 
 
@@ -504,7 +505,7 @@ function sendMissingRssFileEmail() {
     "<p><strong>״הירשם להתראות בלבד״ — עדכונים ללא שמירה אוטומטית:</strong> פרקים חדשים יופיעו בדוח השבועי. ליד כל פרק יהיה כפתור ״קבל פרק״, שיאפשר לך לבחור אילו פרקים לשמור בדרייב.</p>" +
     "<p>אפשר לשנות את סוג ההרשמה או להסיר ערוץ בכל עת באמצעות הכפתורים המופיעים לצד הערוץ בהודעות של פודקי.</p><p><strong>חשוב לדעת:</strong> שמירת פרק בודד באמצעות ״קבל פרק״ אינה משנה את סוג ההרשמה לערוץ.</p>" +
     "<h2 style=\"font-size:18px;\">רוצים לבחור פרקים מתוך הקטלוג?</h2>" +
-    "<p>לוחצים על ״קבל פרקים״ ליד הערוץ הרצוי, ופודקי שולח קטלוג של הפרקים הזמינים בפיד שלו.</p><p><strong>בחירת פרק בודד:</strong> בקטלוג קצר אפשר לשמור פרק ישירות באמצעות הכפתור ״קבל פרק״.</p><p><strong>בחירת כמה פרקים יחד:</strong> הקטלוג כולל קובץ HTML אינטראקטיבי, שבו אפשר לחפש פרקים לפי כותרת או תיאור, למיין את התוצאות ולבחור כמה פרקים לשמירה בדרייב.</p><p><strong>קטלוג גדול במיוחד:</strong> פודקי שומר את הקטלוג בדרייב ושולח במייל קישור פרטי להורדתו.</p>" +
+    "<p>לוחצים על ״קבל קטלוג פרקים״ ליד הערוץ הרצוי, ופודקי שולח קטלוג של הפרקים הזמינים בפיד שלו.</p><p><strong>בחירת פרק בודד:</strong> בקטלוג קצר אפשר לשמור פרק ישירות באמצעות הכפתור ״קבל פרק״.</p><p><strong>בחירת כמה פרקים יחד:</strong> הקטלוג כולל קובץ HTML אינטראקטיבי, שבו אפשר לחפש פרקים לפי כותרת או תיאור, למיין את התוצאות ולבחור כמה פרקים לשמירה בדרייב.</p><p><strong>קטלוג גדול במיוחד:</strong> פודקי שומר את הקטלוג בדרייב ושולח במייל קישור פרטי להורדתו.</p>" +
     "<h2 style=\"font-size:18px;\">איך שומרים כמה פרקים יחד?</h2><ol><li>מורידים את קובץ ה-HTML המצורף לקטלוג ופותחים אותו בדפדפן.</li><li>מחפשים ומסמנים את הפרקים הרצויים.</li><li>לוחצים על הכפתור להורדת קובץ JSON המכיל את רשימת הפרקים שנבחרו.</li><li>לוחצים בקטלוג על הכפתור לפתיחת הודעת מייל.</li><li><strong>מצרפים ידנית את קובץ ה-JSON</strong> להודעה שנפתחה ושולחים אותה.</li></ol><p>אין צורך לכתוב דבר בשורת הנושא — אפשר להשאיר אותה ריקה. אפשר לבחור עד 1,000 פרקים בבקשה אחת. בקשות גדולות יטופלו בהדרגה, לאורך כמה הרצות אוטומטיות. פתיחת המייל אינה מצרפת את הקובץ באופן אוטומטי.</p>" +
     "<p><strong>חשוב לדעת על הקטלוג:</strong> יש להוריד את קובץ ה-HTML ולפתוח אותו בדפדפן, לא בתצוגה המקדימה של Gmail; באנדרואיד דרוש דפדפן שתומך בקובצי HTML מקומיים; תיאורים עשויים להיות מקוצרים; פרקים שהוסרו מהפיד לא יופיעו בו.</p>" +
     "<h2 style=\"font-size:18px;\">מחפשים פרק מסוים?</h2>" +
@@ -1193,6 +1194,13 @@ function initEmailsStructure(data) {
   if (!_emailsData.processedEmailIds) _emailsData.processedEmailIds = [];
   if (!_emailsData.pendingSearches)     _emailsData.pendingSearches = {};
   if (!_emailsData.pendingEpisodeSummary) _emailsData.pendingEpisodeSummary = [];
+  if (!_emailsData.explicitCompletion) _emailsData.explicitCompletion={items:{}, unresolved:{}};
+  if (!_emailsData.explicitCompletion.items) _emailsData.explicitCompletion.items={};
+  // Legacy unresolved entries were terminal lookup failures, not pending downloads.
+  _emailsData.explicitCompletion.unresolved={};
+  Object.keys(_emailsData.explicitCompletion.items).forEach(function(k){
+    if(_emailsData.explicitCompletion.items[k].status==='failed')delete _emailsData.explicitCompletion.items[k];
+  });
   if (!_emailsData.recommendations) _emailsData.recommendations = {sentByRecipient:{}};
   if (!_emailsData.recommendations.sentByRecipient) _emailsData.recommendations.sentByRecipient = {};
 }
@@ -1423,7 +1431,7 @@ function buildMailtoBtn(label, to, subject, body, color) {
          ';direction:rtl;text-align:center;color:#fff;border-radius:20px;text-decoration:none;font-size:.78rem;font-weight:600;margin:2px 3px;">'+escapeHtml(label)+'</a>';
 }
 
-/** שני כפתורי הרשמה לפי מצב נוכחי, ובנוסף קבל פרקים (קטלוג). */
+/** שני כפתורי הרשמה לפי מצב נוכחי, ובנוסף קבל קטלוג פרקים (קטלוג). */
 function buildChannelControlButtons(channelTitle, rssUrl) {
   if (!rssUrl) return '<span style="color:#64748b;">פרטי הערוץ יעודכנו בסריקה הבאה</span>';
   var sub = _rssList.filter(function(r) { return r.url === rssUrl; })[0];
@@ -1432,7 +1440,7 @@ function buildChannelControlButtons(channelTitle, rssUrl) {
   if (sub) buttons += buildMailtoBtn('הסר', CTRL_UNSUBSCRIBE, rssUrl,
     "כדי להסיר את הערוץ " + channelTitle + " מרשימת הערוצים שלך, יש לשלוח את הודעת המייל הזו.\n\n" + PRIVACY_NOTE, '#ef4444');
   if (!sub || !sub.notifyOnly) buttons += buildSubscriptionButton(channelTitle, rssUrl, true);
-  return buttons + buildMailtoBtn('קבל פרקים', CTRL_GET_EPISODE, rssUrl,
+  return buttons + buildMailtoBtn('קבל קטלוג פרקים', CTRL_GET_EPISODE, rssUrl,
     "כדי לקבל את קטלוג הפרקים של " + channelTitle + ", יש לשלוח את הודעת המייל הזו.\n\n" + PRIVACY_NOTE);
 }
 
@@ -1585,7 +1593,7 @@ function checkSentMailbox(sysFolder, mainFolder, queue, rssList, startTime) {
       if (!result || result.type === 'subscribe_search_pending') return;
       if (result.type === 'subscribe_invalid') sendInvalidSubscriptionEmail(result.error);
       // Save requests and dedup state before moving just this message to Trash.
-      if (result.type === 'episode_queued' && result.ok) _emailsData.pendingEpisodeSummary.push(result);
+      // Explicit request completion is recorded on the queue, not on receipt.
       ids.push(entry.id);
       _emailsData.processedEmailIds = ids.slice(-200);
       saveStatusQueue(sysFolder,queue);
@@ -1786,13 +1794,14 @@ function addSpecificEpisodeToQueueEx(channelUrl, episodeGuid, queue, mainFolder)
       var fileExt= getFileExtension(encl.url, encl.type);
       var existingRequest = queue.filter(function(q) { return q.url === encl.url; })[0];
       if (existingRequest) {
-        existingRequest.source='manual';existingRequest.rssUrl=channelUrl;
+        existingRequest.source='manual';existingRequest.explicitRequested=true;existingRequest.rssUrl=channelUrl;
         if(!existingRequest.episodeImageUrl)existingRequest.episodeImageUrl=getEpisodeCoverArtUrl(item,ns);
         RET.ok=true; RET.channelTitle=chanTitle; RET.episodeTitle=title; return RET;
       }
       queue.push({
         rssUrl:         channelUrl,
         source:         "manual",
+        explicitRequested: true,
         url:            encl.url,
         mimeType:       encl.type || 'audio/mpeg',
         fileName:       buildFileName(title, epNum, fileExt),
@@ -2254,19 +2263,20 @@ function podkiQueueEpisode(request,queue) {
     var cached=podkiState().appleResults[key];
     if(cached && podkiUrl(cached.episodeUrl) && (!request.appleTrackId || String(cached.appleTrackId)===String(request.appleTrackId))) episode=cached;
   }
+  // Lookup failures are reported by the job notice, never held as pending downloads.
   if(!episode) return {status:'failed',episodeTitle:request.episodeTitle || request.episodeGuid,
     channelTitle:request.channelTitle || request.channelUrl,channelUrl:request.channelUrl,
     error:lastError || "הפרק כבר אינו זמין בפיד של הערוץ, ולא נמצאה כתובת אודיו מאומתת באמצעות Apple Podcasts."};
   var existing=queue.filter(function(q){return q.url===episode.episodeUrl;})[0];
   var status='queued';
   if(existing){
-    existing.source='manual';existing.rssUrl=request.channelUrl;
+    existing.source='manual';existing.explicitRequested=true;existing.rssUrl=request.channelUrl;
     if(!existing.episodeImageUrl && episode.episodeImageUrl)existing.episodeImageUrl=episode.episodeImageUrl;
     status='already';
   }
   else{
     var ext=getFileExtension(episode.episodeUrl,episode.mimeType);
-    queue.push({rssUrl:request.channelUrl,source:'manual',url:episode.episodeUrl,mimeType:episode.mimeType || 'audio/mpeg',
+    queue.push({rssUrl:request.channelUrl,source:'manual',explicitRequested:true,url:episode.episodeUrl,mimeType:episode.mimeType || 'audio/mpeg',
       fileName:buildFileName(episode.episodeTitle,episode.episodeNumber || '',ext),folderName:sanitizeFolderName(episode.channelTitle),
       channelTitle:episode.channelTitle,channelImageUrl:feed ? feed.image : episode.image,
       episodeImageUrl:episode.episodeImageUrl || null,
@@ -2280,7 +2290,7 @@ function podkiQueueEpisode(request,queue) {
 // Collect separate episode emails into one durable confirmation batch. Once any
 // summary page was sent, keep that batch frozen so retries cannot repeat pages.
 function podkiMergeEpisodeJobs(sysFolder) {
-  var p=podkiState(),jobs=p.jobs.filter(function(j){return j.type==='episodes' && !(j.summaryIndex>0);});
+  var p=podkiState(),jobs=p.jobs.filter(function(j){return j.type==='episodes';});
   if(jobs.length<2)return;
   var batch=jobs[0],resolved=[],pending=[],results=[],ids=[];
   jobs.forEach(function(j){
@@ -2307,7 +2317,11 @@ function podkiPumpJobs(sysFolder,queue,mainFolder,startTime) {
           saveStatusQueue(sysFolder,queue); saveEmailsData(sysFolder,_emailsData);
         }
         if(job.index<job.payload.length) break;
-        podkiSendRequestSummary(job.results,mainFolder);
+        var failures=job.results.filter(function(r){return r.status==='failed';});
+        if(failures.length) {
+          var accepted=job.results.filter(function(r){return r.status==='queued' || r.status==='already';}).length;
+          podkiSendNotice({accepted:accepted,errors:failures.map(function(r){return r.episodeTitle+': '+r.error;})});
+        }
       }else if(job.type==='catalog'){
         sendEpisodeCatalogEmail(job.payload.url,startTime);
       }else if(job.type==='search'){
@@ -2627,3 +2641,45 @@ function podkiCatalogClient() {
   render();
 }
 
+
+function podkiRecordExplicit(item,status) {
+  if(status!=="success")return;
+  var state=_emailsData.explicitCompletion;
+  state.items[item.url]={url:item.url,status:status,channelUrl:item.rssUrl || null,channelTitle:item.channelTitle,
+    image:item.channelImageUrl || null,episodeTitle:item.episodeTitle,
+    pubDate:item.pubDate ? formatDate(new Date(item.pubDate)) : '',duration:item.duration || '',fileUrl:item.fileUrl || null,
+    version:String(Date.now())+':'+Math.random()};
+}
+function podkiExplicitReady(queue) {
+  var state=_emailsData.explicitCompletion, keys=Object.keys(state.items);
+  return keys.filter(function(k){return state.items[k].status==='success';}).length>1 &&
+    !queue.some(function(it){return it.explicitRequested;}) &&
+    !podkiState().jobs.some(function(j){return j.type==='episodes';});
+}
+function podkiSendCompletedRequests(sysFolder,queue,mainFolder,startTime) {
+  var state=_emailsData.explicitCompletion;
+  try {
+    if(!state.delivery){
+      if(!podkiExplicitReady(queue))return;
+      var keys=Object.keys(state.items).filter(function(k){return state.items[k].status==="success";}),rows=keys.map(function(k){return state.items[k];});
+      var title="הבקשה הושלמה",intro="<p>"+rows.length+" פרקים שביקשת במפורש נשמרו בדרייב וזמינים להאזנה. 🎧</p><p>אם בקשה כלשהי נכשלה, הודעת השגיאה שלה נשלחת בנפרד.</p>";
+      var blocks=podkiGroupedEpisodeCards(rows,function(it){
+        return '<p><strong>✅ נשמר בדרייב</strong></p><p dir="auto">'+escapeHtml(it.episodeTitle)+'</p><p>'+escapeHtml(it.pubDate || '')+' · '+escapeHtml(it.duration || '')+'</p>'+
+          (it.fileUrl?'<p><a href="'+escapeHtml(it.fileUrl)+'">פתח את הפרק בדרייב</a></p>':'');
+      },mainFolder,intro,title);
+      state.delivery={pages:podkiPackBlocks(blocks,intro,title),next:0,items:rows.map(function(it){return {url:it.url,version:it.version};})};
+      saveEmailsData(sysFolder,_emailsData);
+    }
+    var delivery=state.delivery;
+    if(!podkiExplicitReady(queue))return;
+    for(var i=delivery.next;i<delivery.pages.length;i++){
+      if(!hasEnoughTimeForEmails(startTime))return;
+      var part=delivery.pages.length>1?' — חלק '+(i+1)+' מתוך '+delivery.pages.length:'';
+      podkiSendEmail({to:Session.getEffectiveUser().getEmail(),subject:"🎧 פודקי — הבקשה הושלמה"+part,
+        htmlBody:_emailWrap("הבקשה הושלמה"+part,delivery.pages[i])});
+      delivery.next=i+1;saveEmailsData(sysFolder,_emailsData);
+    }
+    delivery.items.forEach(function(it){if(state.items[it.url] && state.items[it.url].version===it.version)delete state.items[it.url];});
+    delete state.delivery;saveEmailsData(sysFolder,_emailsData);
+  }catch(e){Logger.log("⚠️ דוח השלמת בקשות יישלח שוב בהרצה הבאה: "+e.message);}
+}
