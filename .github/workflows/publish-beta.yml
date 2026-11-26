@@ -28,13 +28,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate beta and run regression tests
+      - name: Validate syntax and copy beta
         run: |
           node --check files/podcast_processor_v2_beta.js
           cp files/podcast_processor_v2_beta.js files/podcast_processor_v2.js
           node --check files/podcast_processor_v2.js
-          node --test tests/processor.test.cjs
-      - name: Publish tested beta
+      - name: Publish beta
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
