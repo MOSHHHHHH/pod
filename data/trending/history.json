@@ -294,6 +294,57 @@
       "base_score": 68.92,
       "total_score": 68.92,
       "recommended_at": "2026-11-26T13:54:05.817724+00:00"
+    },
+    {
+      "trend": "מכבי פ\"ת נגד הפועל ת״א",
+      "traffic": "5000+",
+      "episode_id": "1000803842631",
+      "title": "פריגיים הפועל פ\"ת - מכבי חוזרת מהפגרה, הציפייה לחזור למסלול הנצחונות",
+      "podcast": "הקול מהיציע - מכבי תל אביב",
+      "description": "לקראת המחזור ה-11 בליגת העל בכדורגל, מכבי תארח ביום שבת 19:00 את הפועל פ\"ת במטרה לחזור למסלול הנצחונות, גל ברהון, תמיר קליסקי ויניב טוכמן ניסו להבין איזה מכבי נקבל, מה קורה בגזרת הפצועים ואיך יראה חלון ינואר הקרוב.",
+      "published_at": "2026-11-24T17:59:27Z",
+      "episode_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%A8%D7%99%D7%92%D7%99%D7%99%D7%9D-%D7%94%D7%A4%D7%95%D7%A2%D7%9C-%D7%A4-%D7%AA-%D7%9E%D7%9B%D7%91%D7%99-%D7%97%D7%95%D7%96%D7%A8%D7%AA-%D7%9E%D7%94%D7%A4%D7%92%D7%A8%D7%94-%D7%94%D7%A6%D7%99%D7%A4%D7%99%D7%99%D7%94-%D7%9C%D7%97%D7%96%D7%95%D7%A8-%D7%9C%D7%9E%D7%A1%D7%9C%D7%95%D7%9C/id1606106175?i=1000803842631&uo=4",
+      "feed_url": "https://anchor.fm/s/7ebb3810/podcast/rss",
+      "episode_guid": "d81d8ea7-4ba7-440e-8ffe-6841f938fd78",
+      "audio_url": "https://anchor.fm/s/7ebb3810/podcast/play/130036410/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-10-24%2F437530797-44100-2-309e43b8375ab.m4a",
+      "duration_ms": 5717000,
+      "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8c/40/87/8c408788-c2a8-95fe-b017-b79bb01dd97d/mza_4146334352644093155.jpg/600x600bb.jpg",
+      "relevance": 48.01,
+      "decision_confidence": 0.25336702361139396,
+      "event_currency": 56.66,
+      "release_recency": 95.48,
+      "freshness": 76.07,
+      "popularity": 100.0,
+      "quality": 46.93,
+      "multi_trend": 0.0,
+      "extra_trend_bonus_points": 0.0,
+      "matched_trends": [
+        {
+          "trend": "מכבי פ\"ת נגד הפועל ת״א",
+          "traffic": "5000+",
+          "episode_id": "1000803842631",
+          "title": "פריגיים הפועל פ\"ת - מכבי חוזרת מהפגרה, הציפייה לחזור למסלול הנצחונות",
+          "podcast": "הקול מהיציע - מכבי תל אביב",
+          "description": "לקראת המחזור ה-11 בליגת העל בכדורגל, מכבי תארח ביום שבת 19:00 את הפועל פ\"ת במטרה לחזור למסלול הנצחונות, גל ברהון, תמיר קליסקי ויניב טוכמן ניסו להבין איזה מכבי נקבל, מה קורה בגזרת הפצועים ואיך יראה חלון ינואר הקרוב.",
+          "published_at": "2026-11-24T17:59:27Z",
+          "episode_url": "https://podcasts.apple.com/il/podcast/%D7%A4%D7%A8%D7%99%D7%92%D7%99%D7%99%D7%9D-%D7%94%D7%A4%D7%95%D7%A2%D7%9C-%D7%A4-%D7%AA-%D7%9E%D7%9B%D7%91%D7%99-%D7%97%D7%95%D7%96%D7%A8%D7%AA-%D7%9E%D7%94%D7%A4%D7%92%D7%A8%D7%94-%D7%94%D7%A6%D7%99%D7%A4%D7%99%D7%99%D7%94-%D7%9C%D7%97%D7%96%D7%95%D7%A8-%D7%9C%D7%9E%D7%A1%D7%9C%D7%95%D7%9C/id1606106175?i=1000803842631&uo=4",
+          "feed_url": "https://anchor.fm/s/7ebb3810/podcast/rss",
+          "episode_guid": "d81d8ea7-4ba7-440e-8ffe-6841f938fd78",
+          "audio_url": "https://anchor.fm/s/7ebb3810/podcast/play/130036410/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-10-24%2F437530797-44100-2-309e43b8375ab.m4a",
+          "duration_ms": 5717000,
+          "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8c/40/87/8c408788-c2a8-95fe-b017-b79bb01dd97d/mza_4146334352644093155.jpg/600x600bb.jpg",
+          "relevance": 48.01,
+          "decision_confidence": 0.25336702361139396,
+          "event_currency": 56.66,
+          "release_recency": 95.48,
+          "freshness": 76.07,
+          "popularity": 100.0
+        }
+      ],
+      "repetition_penalty": 0.0,
+      "base_score": 42.86,
+      "total_score": 4286.05,
+      "recommended_at": "2026-11-27T13:51:09.286554+00:00"
     }
   ]
 }
