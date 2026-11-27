@@ -360,7 +360,7 @@ function saveStatusQueue(sysFolder, queue) {
 
 function deleteStatusQueue(sysFolder) {
   var it = sysFolder.getFilesByName(STATUS_FILE_NAME);
-  while (it.hasNext()) { it.next().setTrashed(true); }
+  if (it.hasNext()) podkiWriteStateFile(sysFolder, STATUS_FILE_NAME, []);
 }
 
 /**
@@ -1985,11 +1985,21 @@ function podkiBytes(text) {
 
 function podkiWriteStateFile(folder, name, value) {
   if (!folder) throw new Error("תיקיית המערכת אינה זמינה כרגע לשמירת נתוני ההתקדמות.");
-  var it=folder.getFilesByName(name),old=[];
-  while(it.hasNext())old.push(it.next());
-  // Do not retire the current state until a replacement exists.
-  folder.createFile(name,JSON.stringify(value),MimeType.PLAIN_TEXT);
-  old.forEach(function(file){file.setTrashed(true);});
+  var content=JSON.stringify(value);
+  var it=folder.getFilesByName(name),files=[];
+  while(it.hasNext())files.push(it.next());
+  if (!files.length) {
+    folder.createFile(name,content,MimeType.PLAIN_TEXT);
+    return;
+  }
+  // Reuse the existing file instead of generating Drive trash on every save.
+  if (files[0].getBlob().getDataAsString("UTF-8") !== content) files[0].setContent(content);
+  // Retire legacy duplicates without adding to Trash. Rename only after
+  // successfully saving the canonical state, then clear obsolete contents.
+  for (var i=1;i<files.length;i++) {
+    files[i].setName(name+".obsolete."+files[i].getId());
+    files[i].setContent("");
+  }
 }
 
 function podkiUrl(url) {
